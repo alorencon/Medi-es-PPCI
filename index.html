@@ -106,10 +106,8 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
                     <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">Entrar</button>
-                <div class="text-center mt-4">
-                    <p class="text-sm text-gray-600">Ainda não tem uma conta? <a href="#" id="create-account-link" class="text-red-500 hover:underline">Crie uma aqui</a></p>
-                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary w-full">Entrar</button>
+                <button type="button" id="create-account-btn" class="btn btn-secondary w-full">Criar Conta</button>
             </form>
         </div>
 
@@ -208,14 +206,15 @@
     // };
 
     const firebaseConfig = {
-       apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
     authDomain: "medicoes-ppci.firebaseapp.com",
     projectId: "medicoes-ppci",
     storageBucket: "medicoes-ppci.firebasestorage.app",
     messagingSenderId: "408815173796",
     appId: "1:408815173796:web:efd25d921a7f0ee923e631",
     measurementId: "G-9YW2XQH2HH"
-    };
+  };
+
 
     // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
     // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
@@ -255,7 +254,8 @@
     const appView = document.getElementById('app-view');
     const logoutBtn = document.getElementById('logout-btn');
     const loginForm = document.getElementById('login-form');
-    const createAccountLink = document.getElementById('create-account-link');
+    const loginBtn = document.getElementById('login-btn');
+    const createAccountBtn = document.getElementById('create-account-btn');
 
     // Utility function to format currency
     const formatCurrency = (value) => {
@@ -345,7 +345,7 @@
         }
     };
     
-    loginForm.addEventListener('submit', async (e) => {
+    loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
@@ -356,7 +356,7 @@
         }
     });
     
-    createAccountLink.addEventListener('click', async (e) => {
+    createAccountBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
