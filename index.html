@@ -168,8 +168,32 @@
     // Set Firebase log level for debugging
     setLogLevel('Debug');
 
-    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
-    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : {};
+    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
+    // Entre em "Configurações do projeto" > "Seus apps"
+    // Copie e cole o objeto de configuração aqui.
+    // Exemplo:
+    // const firebaseConfig = {
+    //   apiKey: "YOUR_API_KEY",
+    //   authDomain: "YOUR_AUTH_DOMAIN",
+    //   projectId: "YOUR_PROJECT_ID",
+    //   storageBucket: "YOUR_STORAGE_BUCKET",
+    //   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    //   appId: "YOUR_APP_ID"
+    // };
+
+    const firebaseConfig = {
+      // Cole sua configuração do Firebase aqui
+    };
+
+    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
+    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
+    // const API_KEY = "YOUR_GEMINI_API_KEY";
+
+    const API_KEY = ''; 
+
+    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
+    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
+    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
     const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
 
     let app;
@@ -194,7 +218,6 @@
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
-    const API_KEY = '';
 
     // Utility function to format currency
     const formatCurrency = (value) => {
@@ -295,6 +318,11 @@
     };
 
     const addOrUpdateObra = async (obra) => {
+        if (!db) {
+            console.error("Firestore não inicializado.");
+            return;
+        }
+
         const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
         if (obra.id) {
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
