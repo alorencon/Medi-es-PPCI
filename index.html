@@ -76,7 +76,7 @@
 
 <div id="app" class="container">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div id="header-container" class="flex items-center justify-between mb-8">
         <div class="flex items-center space-x-4">
             <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z"></path>
@@ -88,55 +88,81 @@
         </div>
         <div class="flex items-center space-x-4">
             <span class="text-white">ID: <span id="userIdDisplay" class="font-mono"></span></span>
+            <button id="logout-btn" class="btn btn-secondary">Sair</button>
         </div>
     </div>
-
-    <!-- Tabs -->
-    <div class="flex bg-gray-200 p-2 rounded-full space-x-2 mb-8">
-        <button class="tab-btn active" data-tab="obras">Obras</button>
-        <button class="tab-btn" data-tab="tarefas">Tarefas</button>
-        <button class="tab-btn" data-tab="relatorios">Relatórios</button>
-    </div>
-
-    <!-- Main Content Area -->
-    <div id="content" class="card">
-        <!-- Obras Section (Default View) -->
-        <div id="obras-view" class="tab-content active">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">Gerenciar Obras</h2>
-                <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Nova Obra</span>
-                </button>
-            </div>
-            <div id="obras-list" class="space-y-4">
-                <!-- Obra cards will be rendered here -->
-            </div>
+    
+    <!-- Login/Main Content -->
+    <div id="main-content">
+        <!-- Login Page (Default View) -->
+        <div id="login-view" class="card">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Entrar</button>
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">Ainda não tem uma conta? <a href="#" id="create-account-link" class="text-red-500 hover:underline">Crie uma aqui</a></p>
+                </div>
+            </form>
         </div>
 
-        <!-- Tarefas Section -->
-        <div id="tarefas-view" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">Tarefas da Obra</h2>
-                <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Nova Tarefa</span>
-                </button>
+        <!-- App Main Content (hidden by default) -->
+        <div id="app-view" class="hidden">
+            <!-- Tabs -->
+            <div class="flex bg-gray-200 p-2 rounded-full space-x-2 mb-8">
+                <button class="tab-btn active" data-tab="obras">Obras</button>
+                <button class="tab-btn" data-tab="tarefas">Tarefas</button>
+                <button class="tab-btn" data-tab="relatorios">Relatórios</button>
             </div>
-            <div id="tarefas-list" class="space-y-6">
-                <!-- Tarefa cards will be rendered here -->
-            </div>
-        </div>
 
-        <!-- Relatórios Section -->
-        <div id="relatorios-view" class="tab-content hidden">
-            <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
-            <div id="relatorio-content" class="space-y-6">
-                <!-- Relatórios will be rendered here -->
+            <!-- Main Content Area -->
+            <div id="content" class="card">
+                <!-- Obras Section (Default View) -->
+                <div id="obras-view" class="tab-content active">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Gerenciar Obras</h2>
+                        <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Obra</span>
+                        </button>
+                    </div>
+                    <div id="obras-list" class="space-y-4">
+                        <!-- Obra cards will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Tarefas Section -->
+                <div id="tarefas-view" class="tab-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Tarefas da Obra</h2>
+                        <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Tarefa</span>
+                        </button>
+                    </div>
+                    <div id="tarefas-list" class="space-y-6">
+                        <!-- Tarefa cards will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Relatórios Section -->
+                <div id="relatorios-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
+                    <div id="relatorio-content" class="space-y-6">
+                        <!-- Relatórios will be rendered here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -161,7 +187,7 @@
 <script type="module">
     // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -182,7 +208,7 @@
     // };
 
     const firebaseConfig = {
-    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+       apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
     authDomain: "medicoes-ppci.firebaseapp.com",
     projectId: "medicoes-ppci",
     storageBucket: "medicoes-ppci.firebasestorage.app",
@@ -205,7 +231,7 @@
     let app;
     let auth;
     let db;
-    let userId;
+    let userId = null;
     let audioContext;
 
     let currentObraId = null;
@@ -224,6 +250,12 @@
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
+
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginForm = document.getElementById('login-form');
+    const createAccountLink = document.getElementById('create-account-link');
 
     // Utility function to format currency
     const formatCurrency = (value) => {
@@ -293,17 +325,18 @@
             db = getFirestore(app);
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Tenta autenticação anônima primeiro. Isso garante que sempre haja um usuário logado.
-            await signInAnonymously(auth);
-
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
                     userIdDisplay.textContent = userId;
+                    loginView.classList.add('hidden');
+                    appView.classList.remove('hidden');
                     listenToObras();
                 } else {
-                    console.error("Usuário não autenticado.");
+                    userId = null;
                     userIdDisplay.textContent = "N/A";
+                    loginView.classList.remove('hidden');
+                    appView.classList.add('hidden');
                 }
             });
 
@@ -311,6 +344,36 @@
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
     };
+    
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
+        }
+    });
+    
+    createAccountLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
+        } catch (error) {
+            openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
+        }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        await signOut(auth);
+        currentObraId = null; // Reset current obra
+        tabs[0].click(); // Go back to obras tab
+    });
+
 
     // Firestore CRUD Operations
     const listenToObras = () => {
@@ -1165,4 +1228,3 @@
 </script>
 </body>
 </html>
-
