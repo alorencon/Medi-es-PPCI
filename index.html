@@ -286,22 +286,20 @@
             auth = getAuth(app);
             db = getFirestore(app);
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Tenta autenticação anônima primeiro. Isso garante que sempre haja um usuário logado.
+            await signInAnonymously(auth);
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
+                    userIdDisplay.textContent = userId;
+                    listenToObras();
                 } else {
-                    // Fallback para autenticação anônima se não houver token.
-                    await signInAnonymously(auth);
+                    console.error("Usuário não autenticado.");
+                    userIdDisplay.textContent = "N/A";
                 }
-                userIdDisplay.textContent = userId;
-                listenToObras();
             });
-
-            // Se o ambiente Canvas fornecer um token, use-o. Caso contrário, a autenticação anônima será usada.
-            if (__initial_auth_token) {
-                 await signInWithCustomToken(auth, __initial_auth_token);
-            }
 
         } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
