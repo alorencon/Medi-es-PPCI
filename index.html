@@ -161,7 +161,7 @@
 <script type="module">
     // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -287,22 +287,22 @@
             db = getFirestore(app);
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
                 } else {
+                    // Fallback para autenticação anônima se não houver token.
                     await signInAnonymously(auth);
                 }
                 userIdDisplay.textContent = userId;
                 listenToObras();
             });
 
+            // Se o ambiente Canvas fornecer um token, use-o. Caso contrário, a autenticação anônima será usada.
             if (__initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+                 await signInWithCustomToken(auth, __initial_auth_token);
             }
+
         } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
@@ -310,6 +310,10 @@
 
     // Firestore CRUD Operations
     const listenToObras = () => {
+        if (!db || !userId) {
+            console.error("Firestore ou UserID não inicializados. Tente novamente.");
+            return;
+        }
         const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
         onSnapshot(obrasRef, (snapshot) => {
             const obras = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1155,6 +1159,5 @@
     // Run app
     initFirebase();
 </script>
-
 </body>
 </html>
