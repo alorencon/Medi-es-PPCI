@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: url('https://placehold.co/1920x1080/494C4F/494C4F?text=') no-repeat center center fixed; /* Fundo escuro */
+            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed; /* Fundo com a nova imagem */
             background-size: cover;
             color: #fff;
         }
@@ -78,9 +78,7 @@
     <!-- Header -->
     <div id="header-container" class="flex items-center justify-between mb-8">
         <div class="flex items-center space-x-4">
-            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z"></path>
-            </svg>
+            <img src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp" alt="Logo" class="w-20 h-20">
             <div>
                 <h1 class="text-3xl font-bold text-white">Medições PPCI</h1>
                 <p class="text-white">Sistema de Gestão de Obras</p>
@@ -184,10 +182,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
     // Firebase Imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Set Firebase log level for debugging
     setLogLevel('Debug');
@@ -196,15 +194,6 @@
     // Entre em "Configurações do projeto" > "Seus apps"
     // Copie e cole o objeto de configuração aqui.
     // Exemplo:
-    // const firebaseConfig = {
-    //   apiKey: "YOUR_API_KEY",
-    //   authDomain: "YOUR_AUTH_DOMAIN",
-    //   projectId: "YOUR_PROJECT_ID",
-    //   storageBucket: "YOUR_STORAGE_BUCKET",
-    //   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    //   appId: "YOUR_APP_ID"
-    // };
-
     const firebaseConfig = {
     apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
     authDomain: "medicoes-ppci.firebaseapp.com",
@@ -1216,7 +1205,7 @@
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${medicao.observacoes || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
