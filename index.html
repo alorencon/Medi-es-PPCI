@@ -76,8 +76,8 @@
 
 <div id="app" class="container">
     <!-- Header -->
-    <div id="header-container" class="flex items-center justify-between mb-8">
-        <div class="flex items-center space-x-4">
+    <div id="header-container" class="flex items-center justify-between mb-8 flex-wrap">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
             <img src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp" alt="Logo" class="w-20 h-20">
             <div>
                 <h1 class="text-3xl font-bold text-white">Medições PPCI</h1>
@@ -112,7 +112,7 @@
         <!-- App Main Content (hidden by default) -->
         <div id="app-view" class="hidden">
             <!-- Tabs -->
-            <div class="flex bg-gray-200 p-2 rounded-full space-x-2 mb-8">
+            <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
                 <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
@@ -122,8 +122,8 @@
             <div id="content" class="card">
                 <!-- Obras Section (Default View) -->
                 <div id="obras-view" class="tab-content active">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-semibold">Gerenciar Obras</h2>
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Gerenciar Obras</h2>
                         <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
@@ -138,8 +138,8 @@
 
                 <!-- Tarefas Section -->
                 <div id="tarefas-view" class="tab-content hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-semibold">Tarefas da Obra</h2>
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Tarefas da Obra</h2>
                         <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
@@ -194,7 +194,7 @@
     // Entre em "Configurações do projeto" > "Seus apps"
     // Copie e cole o objeto de configuração aqui.
     // Exemplo:
-    const firebaseConfig = {
+   const firebaseConfig = {
     apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
     authDomain: "medicoes-ppci.firebaseapp.com",
     projectId: "medicoes-ppci",
@@ -523,20 +523,20 @@
                 totalMedido += valorMedido;
 
                 const tarefaCard = document.createElement('div');
-                tarefaCard.className = 'card';
+                tarefaCard.className = 'card w-full';
                 tarefaCard.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">${tarefa.nome}</h3>
+                    <div class="flex flex-wrap justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold mb-2 md:mb-0">${tarefa.nome}</h3>
                         <p class="text-sm text-gray-600">${porcentagemConcluida.toFixed(1)}% concluído</p>
                     </div>
                     <div class="bg-gray-200 rounded-full h-2 mb-4">
                         <div class="bg-green-500 h-2 rounded-full" style="width: ${porcentagemConcluida}%;"></div>
                     </div>
-                    <div class="flex justify-between items-center text-sm text-gray-600 mb-4">
-                        <span>Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
+                    <div class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4">
+                        <span class="mb-2 md:mb-0">Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
                         <span>Unidade: ${tarefa.unidade}</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div>
                             <p class="text-sm text-gray-500">Valor Unitário</p>
                             <p class="font-semibold">${formatCurrency(valorUnitario)}</p>
@@ -550,10 +550,10 @@
                             <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
                         </div>
                     </div>
-                    <div class="flex justify-start space-x-2 mt-4">
-                        <button class="btn btn-secondary add-medicao-btn" data-id="${tarefa.id}">+ Medição</button>
-                        <button class="btn btn-secondary ver-medicoes-btn" data-id="${tarefa.id}">Ver Medições</button>
-                        <button class="btn btn-secondary edit-tarefa-btn" data-id="${tarefa.id}">Editar</button>
+                    <div class="flex flex-wrap justify-start space-x-2 mt-4">
+                        <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
+                        <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
+                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
                         <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
@@ -1132,8 +1132,8 @@
         const listHtml = `
             <ul class="space-y-2" id="medicao-list">
                 ${medicoes.map((medicao, index) => `
-                    <li class="p-4 bg-gray-100 rounded-lg flex justify-between items-center medicoes-list-item">
-                        <div>
+                    <li class="p-4 bg-gray-100 rounded-lg flex flex-wrap justify-between items-center medicoes-list-item">
+                        <div class="mb-2 md:mb-0">
                             <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
                             <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
                             <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
