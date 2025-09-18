@@ -115,6 +115,7 @@
             <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
                 <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
+                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
             </div>
 
@@ -152,6 +153,21 @@
                     </div>
                 </div>
 
+                <!-- Cronograma Section -->
+                <div id="cronograma-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Cronograma da Obra</h2>
+                    <div id="gantt"></div>
+
+                    <div class="flex justify-end space-x-2 mt-6">
+                        <button id="export-curvaS-pdf" class="btn btn-secondary">Exportar Curva S (PDF)</button>
+                        <button id="export-curvaS-excel" class="btn btn-secondary">Exportar Curva S (Excel)</button>
+                        <button id="export-gantt-pdf" class="btn btn-secondary">Exportar Gantt (PDF)</button>
+                        <button id="export-gantt-png" class="btn btn-secondary">Exportar Gantt (PNG)</button>
+                    </div>
+
+                    <canvas id="curvaS" class="mt-10 w-full h-64"></canvas>
+                </div>
+
                 <!-- Relatórios Section -->
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
@@ -180,6 +196,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
+
 <script type="module">
     // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -1246,8 +1266,220 @@
         openTarefaForm();
     });
 
+    
+// Função para renderizar Cronograma (Gantt + Curva S)
+const renderCronograma = async () => {
+    if (!currentObraId) {
+        openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+        tabs[0].click(); 
+        return;
+    }
+
+    const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+    const snapshot = await getDocs(tarefasRef);
+    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // ----- Gantt -----
+    const tasks = tarefas.map(t => ({
+        id: t.id,
+        name: t.nome,
+        start: t.dataInicio || new Date().toISOString().split('T')[0],
+        end: t.dataFim || new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+        progress: ((t.medicoes || []).reduce((s,m)=>s+m.valor,0) / (t.valorTotal || 1)) * 100,
+    }));
+
+    document.getElementById("gantt").innerHTML = ""; // reset
+    new Gantt("#gantt", tasks, {
+        view_mode: 'Week',
+        date_format: 'YYYY-MM-DD'
+    });
+
+    // ----- Curva S -----
+    let datas = [];
+    let valoresPrevistos = {};
+    let valoresReais = {};
+
+    tarefas.forEach(t => {
+        const inicio = new Date(t.dataInicio || Date.now());
+        const fim = new Date(t.dataFim || Date.now()+7*24*60*60*1000);
+        const dias = Math.max(1, Math.ceil((fim - inicio)/(1000*60*60*24)));
+
+        // Distribui previsto
+        const valorPorDia = (t.valorTotal || 0) / dias;
+        for (let i = 0; i <= dias; i++) {
+            const d = new Date(inicio);
+            d.setDate(d.getDate() + i);
+            const key = d.toISOString().split("T")[0];
+            datas.push(key);
+            valoresPrevistos[key] = (valoresPrevistos[key] || 0) + valorPorDia;
+        }
+
+        // Realizado por medições
+        (t.medicoes || []).forEach(m => {
+            const key = new Date(m.data).toISOString().split("T")[0];
+            valoresReais[key] = (valoresReais[key] || 0) + (m.valor || 0);
+            datas.push(key);
+        });
+    });
+
+    datas = [...new Set(datas)].sort((a,b) => new Date(a) - new Date(b));
+
+    let acumuladoPrevisto = 0;
+    let acumuladoReal = 0;
+    const seriePrevisto = [];
+    const serieReal = [];
+
+    datas.forEach(d => {
+        acumuladoPrevisto += valoresPrevistos[d] || 0;
+        acumuladoReal += valoresReais[d] || 0;
+        seriePrevisto.push(acumuladoPrevisto);
+        serieReal.push(acumuladoReal);
+    });
+
+    const ctx = document.getElementById("curvaS").getContext("2d");
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: datas.map(d => new Date(d).toLocaleDateString("pt-BR")),
+            datasets: [
+                {
+                    label: "Previsto",
+                    data: seriePrevisto,
+                    borderColor: "blue",
+                    fill: false,
+                    tension: 0.2
+                },
+                {
+                    label: "Realizado",
+                    data: serieReal,
+                    borderColor: "green",
+                    fill: false,
+                    tension: 0.2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "top" },
+                title: { display: true, text: "Curva S da Obra" }
+            },
+            scales: {
+                y: { title: { display: true, text: "Valor acumulado (R$)" } },
+                x: { title: { display: true, text: "Data" } }
+            }
+        }
+    });
+
+    // Guarda dados globais para exportação
+    window.curvaSData = { datas, seriePrevisto, serieReal };
+
+    // Liga exportações
+    document.getElementById("export-curvaS-pdf").onclick = exportCurvaSPDF;
+    document.getElementById("export-curvaS-excel").onclick = exportCurvaSExcel;
+    document.getElementById("export-gantt-pdf").onclick = exportGanttPDF;
+    document.getElementById("export-gantt-png").onclick = exportGanttPNG;
+};
+
+// Exportações Curva S e Gantt
+const exportCurvaSPDF = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Curva S da Obra", 14, 20);
+
+    const head = [["Data", "Previsto (R$)", "Realizado (R$)"]];
+    const rows = window.curvaSData.datas.map((d, i) => [
+        new Date(d).toLocaleDateString("pt-BR"),
+        window.curvaSData.seriePrevisto[i].toFixed(2),
+        window.curvaSData.serieReal[i].toFixed(2)
+    ]);
+
+    doc.autoTable({ head, body: rows, startY: 30, theme: "striped" });
+
+    const canvas = document.getElementById("curvaS");
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    doc.addPage();
+    doc.text("Gráfico da Curva S", 14, 20);
+    doc.addImage(imgData, "PNG", 15, 30, 180, 100);
+
+    doc.save("curvaS.pdf");
+};
+
+const exportCurvaSExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+        ["Curva S da Obra"], [], ["Data", "Previsto (R$)", "Realizado (R$)"],
+        ...window.curvaSData.datas.map((d, i) => [
+            new Date(d).toLocaleDateString("pt-BR"),
+            window.curvaSData.seriePrevisto[i],
+            window.curvaSData.serieReal[i]
+        ])
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, "CurvaS");
+    XLSX.writeFile(wb, "curvaS.xlsx");
+};
+
+const exportGanttPDF = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("l", "pt", "a4");
+    doc.setFontSize(16);
+    doc.text("Cronograma - Gráfico de Gantt", 40, 40);
+
+    const ganttElement = document.querySelector("#gantt svg"); 
+    if (!ganttElement) { alert("Não foi possível capturar o Gantt."); return; }
+
+    const svgData = new XMLSerializer().serializeToString(ganttElement);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const DOMURL = window.URL || window.webkitURL || window;
+    const img = new Image();
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = DOMURL.createObjectURL(svgBlob);
+
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const imgData = canvas.toDataURL("image/png");
+        doc.addImage(imgData, "PNG", 40, 60, 700, 400);
+        doc.save("gantt.pdf");
+        DOMURL.revokeObjectURL(url);
+    };
+    img.src = url;
+};
+
+const exportGanttPNG = () => {
+    const ganttElement = document.querySelector("#gantt svg");
+    if (!ganttElement) { alert("Não foi possível capturar o Gantt."); return; }
+
+    const svgData = new XMLSerializer().serializeToString(ganttElement);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const DOMURL = window.URL || window.webkitURL || window;
+    const img = new Image();
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = DOMURL.createObjectURL(svgBlob);
+
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const imgData = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = imgData;
+        a.download = "gantt.png";
+        a.click();
+        DOMURL.revokeObjectURL(url);
+    };
+    img.src = url;
+};
+
     // Run app
     initFirebase();
 </script>
 </body>
 </html>
+
