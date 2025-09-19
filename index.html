@@ -62,6 +62,781 @@
             background-color: #494C4F;
             color: #fff;
         }
+        input[type="text"], input[type="number"], input[type="date"], textarea, select {
+            color: #000;
+        }
+        .medicoes-list-item {
+            color: #000;
+        }
+        .gantt-container {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        .gantt-chart {
+            min-width: 100%;
+            display: grid;
+            grid-template-columns: 200px repeat(30, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+        .gantt-header {
+            background-color: #494C4F;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        .gantt-task {
+            background-color: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            cursor: move;
+        }
+        .gantt-cell {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+        }
+        .gantt-cell.active {
+            background-color: #E21B2F;
+            opacity: 0.6;
+        }
+        .curva-s-container {
+            margin-top: 2rem;
+            height: 300px;
+        }
+        .despesa-item {
+            border-left: 4px solid #E21B2F;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+        .despesa-form label {
+            color: #000;
+        }
+        .despesa-form input, .despesa-form select, .despesa-form textarea {
+            color: #000;
+        }
+        .gantt-task-bar {
+            height: 20px;
+            background-color: #E21B2F;
+            border-radius: 4px;
+            position: absolute;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .gantt-task-handle {
+            width: 6px;
+            height: 100%;
+            position: absolute;
+            cursor: ew-resize;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        .gantt-task-handle-left {
+            left: 0;
+        }
+        .gantt-task-handle-right {
+            right: 0;
+        }
+        .gantt-grid {
+            display: grid;
+            grid-template-columns: 200px repeat(30, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+        .gantt-day-cell {
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+            position: relative;
+        }
+        .gantt-day-cell.weekend {
+            background-color: #f8f9fa;
+        }
+        .gantt-day-cell.today {
+            background-color: #fff3cd;
+        }
+        .gantt-row {
+            display: contents;
+        }
+        .gantt-row-label {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .feriado {
+            background-color: #ffebee !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <div id="header-container" class="flex items-center justify-between mb-8 flex-wrap">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+            <img src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp" alt="Logo" class="w-20 h-20">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Medições PPCI</h1>
+                <p class="text-white">Sistema de Gestão de Obras</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-white">ID: <span id="userIdDisplay" class="font-mono"></span></span>
+            <button id="logout-btn" class="btn btn-secondary">Sair</button>
+        </div>
+    </div>
+    
+    <div id="main-content">
+        <div id="login-view" class="card">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary w-full">Entrar</button>
+                <button type="button" id="create-account-btn" class="btn btn-secondary w-full">Criar Conta</button>
+            </form>
+        </div>
+
+        <div id="app-view" class="hidden">
+            <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
+                <button class="tab-btn active" data-tab="obras">Obras</button>
+                <button class="tab-btn" data-tab="tarefas">Tarefas</button>
+                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
+                <button class="tab-btn" data-tab="relatorios">Relatórios</button>
+                <button class="tab-btn" data-tab="despesas">Despesas</button>
+            </div>
+
+            <div id="content" class="card">
+                <div id="obras-view" class="tab-content active">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Gerenciar Obras</h2>
+                        <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Obra</span>
+                        </button>
+                    </div>
+                    <div id="obras-list" class="space-y-4">
+                    </div>
+                </div>
+
+                <div id="tarefas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Tarefas da Obra</h2>
+                        <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Tarefa</span>
+                        </button>
+                    </div>
+                    <div id="tarefas-list" class="space-y-6">
+                    </div>
+                </div>
+
+                <div id="cronograma-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
+                        <div class="flex space-x-2">
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Adicionar Tarefa</span>
+                            </button>
+                            <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Gerar Cronograma</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início do Cronograma</label>
+                        <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+
+                    <div id="tarefas-cronograma-list" class="space-y-4 mb-6">
+                        <!-- As tarefas serão listadas aqui automaticamente -->
+                    </div>
+                    
+                    <div class="gantt-container">
+                        <div id="gantt-calendario" class="gantt-grid">
+                            <!-- Cabeçalho do calendário será gerado aqui -->
+                        </div>
+                        <div id="gantt-chart" class="gantt-grid">
+                            <!-- Gráfico de Gantt será renderizado aqui -->
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
+                    <div class="curva-s-container">
+                        <canvas id="curva-s-chart"></canvas>
+                    </div>
+                </div>
+
+                <div id="relatorios-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
+                    <div id="relatorio-content" class="space-y-6">
+                    </div>
+                </div>
+
+                <div id="despesas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Despesas da Obra</h2>
+                        <div class="flex space-x-2">
+                            <button id="add-despesa-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Nova Despesa</span>
+                            </button>
+                            <button id="gerar-relatorio-despesas-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Relatório</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Total de Despesas</p>
+                            <p id="total-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Maior Despesa</p>
+                            <p id="maior-despesa" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Média por Dia</p>
+                            <p id="media-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                    </div>
+                    
+                    <div id="relatorio-despesas-container" class="hidden mb-8">
+                        <h3 class="text-xl font-semibold mb-4">Relatório de Despesas por Período</h3>
+                        <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0 mb-4">
+                            <div class="flex-1">
+                                <label for="despesa-start-date" class="block text-sm font-medium text-gray-700">Data de Início</label>
+                                <input type="date" id="despesa-start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                            <div class="flex-1">
+                                <label for="despesa-end-date" class="block text-sm font-medium text-gray-700">Data de Fim</label>
+                                <input type="date" id="despesa-end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                            <button id="generate-despesa-report-btn" class="btn btn-primary">Gerar Relatório</button>
+                        </div>
+                        <div id="despesa-period-report-result" class="mt-6">
+                        </div>
+                    </div>
+                    
+                    <div id="despesas-list" class="space-y-4">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div id="modal-body">
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+    // ... (código Firebase existente) ...
+
+    // Defina alguns feriados (adicione conforme necessário)
+    const feriados = [
+        '2025-01-01', // Ano Novo
+        '2025-04-18', // Sexta-feira Santa
+        '2025-04-21', // Tiradentes
+        '2025-05-01', // Dia do Trabalho
+        '2025-09-07', // Independência do Brasil
+        '2025-10-12', // Nossa Senhora Aparecida
+        '2025-11-02', // Finados
+        '2025-11-15', // Proclamação da República
+        '2025-12-25'  // Natal
+    ];
+
+    // Função para verificar se um dia é útil
+    const isDiaUtil = (date) => {
+        const day = date.getDay();
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Verificar se é final de semana
+        if (day === 0 || day === 6) return false;
+        
+        // Verificar se é feriado
+        if (feriados.includes(dateStr)) return false;
+        
+        return true;
+    };
+
+    // Função para encontrar o próximo dia útil
+    const proximoDiaUtil = (date) => {
+        const newDate = new Date(date);
+        newDate.setDate(newDate.getDate() + 1);
+        
+        while (!isDiaUtil(newDate)) {
+            newDate.setDate(newDate.getDate() + 1);
+        }
+        
+        return newDate;
+    };
+
+    // Função para renderizar o cronograma
+    const renderCronograma = async () => {
+        if (!currentObraId) return;
+        
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const cronograma = await getCronograma();
+        const tarefasList = document.getElementById('tarefas-cronograma-list');
+        tarefasList.innerHTML = '';
+        
+        if (tarefas.length === 0) {
+            tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa cadastrada. Adicione tarefas na aba "Tarefas".</p>';
+            return;
+        }
+        
+        tarefas.forEach(tarefa => {
+            const configTarefa = document.createElement('div');
+            configTarefa.className = 'card p-4';
+            configTarefa.innerHTML = `
+                <h4 class="font-semibold">${tarefa.nome}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Duração (dias úteis)</label>
+                        <input type="number" min="1" value="${cronograma && cronograma[tarefa.id] ? cronograma[tarefa.id].duracao : 5}" 
+                               class="duracao-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Dependência</label>
+                        <select class="dependencia-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                            <option value="">Nenhuma</option>
+                            ${tarefas.filter(t => t.id !== tarefa.id).map(t => 
+                                `<option value="${t.id}" ${cronograma && cronograma[tarefa.id] && cronograma[tarefa.id].dependencia === t.id ? 'selected' : ''}>${t.nome}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+            tarefasList.appendChild(configTarefa);
+        });
+        
+        if (cronograma && cronograma.dataInicio) {
+            document.getElementById('cronograma-data-inicio').value = cronograma.dataInicio;
+        }
+        
+        if (cronograma && Object.keys(cronograma).length > 0) {
+            await renderizarGantt(tarefas, cronograma);
+        }
+    };
+
+    // Função para renderizar o gráfico de Gantt
+    const renderizarGantt = async (tarefas, cronograma) => {
+        const dataInicio = new Date(document.getElementById('cronograma-data-inicio').value);
+        const ganttChart = document.getElementById('gantt-chart');
+        const ganttCalendario = document.getElementById('gantt-calendario');
+        ganttChart.innerHTML = '';
+        ganttCalendario.innerHTML = '';
+        
+        let dataFinal = new Date(dataInicio);
+        ganttTasks = [];
+        
+        // Calcular datas de início e fim para cada tarefa
+        tarefas.forEach(tarefa => {
+            if (cronograma[tarefa.id]) {
+                const config = cronograma[tarefa.id];
+                let inicio = new Date(dataInicio);
+                
+                // Se houver dependência, calcular a data de início com base na tarefa dependente
+                if (config.dependencia && cronograma[config.dependencia]) {
+                    const tarefaDependente = cronograma[config.dependencia];
+                    inicio = new Date(tarefaDependente.fim);
+                    inicio = proximoDiaUtil(inicio);
+                }
+                
+                let fim = new Date(inicio);
+                let diasUteisCount = 0;
+                
+                // Calcular a data final baseada em dias úteis
+                while (diasUteisCount < config.duracao) {
+                    if (isDiaUtil(fim)) {
+                        diasUteisCount++;
+                    }
+                    if (diasUteisCount < config.duracao) {
+                        fim.setDate(fim.getDate() + 1);
+                    }
+                }
+                
+                // Atualizar no cronograma
+                config.inicio = inicio;
+                config.fim = fim;
+                
+                if (fim > dataFinal) {
+                    dataFinal = new Date(fim);
+                }
+                
+                ganttTasks.push({
+                    id: tarefa.id,
+                    name: tarefa.nome,
+                    start: inicio,
+                    end: fim,
+                    duration: config.duracao,
+                    progress: 0
+                });
+            }
+        });
+        
+        // Calcular o número total de dias do cronograma
+        const totalDias = Math.ceil((dataFinal - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Gerar cabeçalho do calendário
+        const calendarioHeader = document.createElement('div');
+        calendarioHeader.className = 'gantt-row';
+        
+        const emptyHeader = document.createElement('div');
+        emptyHeader.className = 'gantt-row-label';
+        calendarioHeader.appendChild(emptyHeader);
+        
+        columnDates = [];
+        let currentDate = new Date(dataInicio);
+        
+        for (let i = 0; i < totalDias; i++) {
+            const date = new Date(currentDate);
+            columnDates.push(new Date(date));
+            
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'gantt-day-cell gantt-header';
+            dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
+            
+            const weekDay = document.createElement('div');
+            weekDay.style.fontSize = '10px';
+            weekDay.style.color = '#6c757d';
+            weekDay.textContent = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
+            dayHeader.appendChild(weekDay);
+            
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                dayHeader.classList.add('weekend');
+            }
+            
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                dayHeader.classList.add('feriado');
+                dayHeader.title = 'Feriado';
+            }
+            
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                dayHeader.classList.add('today');
+            }
+            
+            calendarioHeader.appendChild(dayHeader);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        ganttCalendario.appendChild(calendarioHeader);
+        
+        // Gerar linhas do gráfico de Gantt
+        const headerRow = document.createElement('div');
+        headerRow.className = 'gantt-row';
+        
+        const emptyLabel = document.createElement('div');
+        emptyLabel.className = 'gantt-row-label';
+        headerRow.appendChild(emptyLabel);
+        
+        for (let i = 0; i < totalDias; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'gantt-day-cell';
+            cell.dataset.day = i + 1;
+            
+            const date = columnDates[i];
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                cell.classList.add('weekend');
+            }
+            
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                cell.classList.add('feriado');
+            }
+            
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                cell.classList.add('today');
+            }
+            
+            headerRow.appendChild(cell);
+        }
+        
+        ganttChart.appendChild(headerRow);
+        
+        // Adicionar linhas para cada tarefa
+        tarefas.forEach((tarefa, index) => {
+            if (!cronograma[tarefa.id]) return;
+            
+            const taskRow = document.createElement('div');
+            taskRow.className = 'gantt-row';
+            taskRow.dataset.id = tarefa.id;
+            
+            const taskLabel = document.createElement('div');
+            taskLabel.className = 'gantt-row-label';
+            taskLabel.textContent = tarefa.nome;
+            taskRow.appendChild(taskLabel);
+            
+            for (let i = 0; i < totalDias; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'gantt-day-cell';
+                cell.dataset.day = i + 1;
+                cell.dataset.taskId = tarefa.id;
+                
+                const date = columnDates[i];
+                if (date.getDay() === 0 || date.getDay() === 6) {
+                    cell.classList.add('weekend');
+                }
+                
+                const dateStr = date.toISOString().split('T')[0];
+                if (feriados.includes(dateStr)) {
+                    cell.classList.add('feriado');
+                }
+                
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
+                    cell.classList.add('today');
+                }
+                
+                taskRow.appendChild(cell);
+            }
+            
+            ganttChart.appendChild(taskRow);
+        });
+        
+        renderGanttBars();
+        renderCurvaS(tarefas);
+    };
+
+    // Função para renderizar as barras do Gantt
+    const renderGanttBars = () => {
+        document.querySelectorAll('.gantt-task-bar').forEach(bar => bar.remove());
+        
+        const dayCells = document.querySelectorAll('.gantt-day-cell');
+        if (dayCells.length === 0) return;
+        
+        const cellWidth = dayCells[0].offsetWidth;
+        const cellHeight = dayCells[0].offsetHeight;
+        
+        ganttTasks.forEach(task => {
+            const taskRow = document.querySelector(`.gantt-row[data-id="${task.id}"]`);
+            if (!taskRow) return;
+            
+            const rowCells = taskRow.querySelectorAll('.gantt-day-cell');
+            const firstCell = rowCells[0];
+            if (!firstCell) return;
+            
+            const rowTop = firstCell.offsetTop;
+            const startDate = new Date(document.getElementById('cronograma-data-inicio').value);
+            const daysFromStart = Math.floor((task.start - startDate) / (1000 * 60 * 60 * 24));
+            
+            const barLeft = daysFromStart * cellWidth;
+            const barWidth = task.duration * cellWidth;
+            
+            const taskBar = document.createElement('div');
+            taskBar.className = 'gantt-task-bar';
+            taskBar.dataset.taskId = task.id;
+            taskBar.style.top = `${rowTop}px`;
+            taskBar.style.left = `${barLeft}px`;
+            taskBar.style.width = `${barWidth}px`;
+            taskBar.innerHTML = `
+                <div class="gantt-task-handle gantt-task-handle-left"></div>
+                <div class="gantt-task-handle gantt-task-handle-right"></div>
+                <span>${task.name}</span>
+            `;
+            
+            ganttChart.appendChild(taskBar);
+            
+            taskBar.addEventListener('mousedown', startDrag);
+        });
+    };
+
+    // Adicione este evento para o botão de gerar cronograma
+    document.getElementById('gerar-cronograma-btn').addEventListener('click', async () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        
+        const dataInicio = document.getElementById('cronograma-data-inicio').value;
+        if (!dataInicio) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, informe a data de início do cronograma.</p>');
+            return;
+        }
+        
+        // Coletar configurações de cada tarefa
+        const duracaoInputs = document.querySelectorAll('.duracao-tarefa');
+        const dependenciaSelects = document.querySelectorAll('.dependencia-tarefa');
+        const cronogramaData = { dataInicio: dataInicio };
+        
+        duracaoInputs.forEach(input => {
+            const tarefaId = input.dataset.id;
+            const duracao = parseInt(input.value);
+            const dependenciaSelect = document.querySelector(`.dependencia-tarefa[data-id="${tarefaId}"]`);
+            const dependencia = dependenciaSelect.value;
+            
+            cronogramaData[tarefaId] = {
+                duracao: duracao,
+                dependencia: dependencia
+            };
+        });
+        
+        // Salvar no Firestore
+        await addOrUpdateCronograma(cronogramaData);
+        
+        // Buscar tarefas para renderizar o Gantt
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Renderizar o Gantt
+        await renderizarGantt(tarefas, cronogramaData);
+    });
+
+    // Inicialize o cronograma quando a aba for clicada
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.add('hidden'));
+            tab.classList.add('active');
+            document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
+            
+            if (tab.dataset.tab === 'tarefas') {
+                if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderTarefas();
+                }
+            } else if (tab.dataset.tab === 'relatorios') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderRelatorios();
+                }
+            } else if (tab.dataset.tab === 'cronograma') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderCronograma();
+                }
+            } else if (tab.dataset.tab === 'despesas') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderDespesas();
+                }
+            }
+        });
+    });
+
+    // ... (restante do código JavaScript existente) ...
+</script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medições PPCI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 2rem;
+            color: #000;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #E21B2F;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #c7172a;
+        }
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+        .tab-btn {
+            flex-grow: 1;
+            padding: 1rem;
+            border-radius: 9999px;
+            text-align: center;
+            font-weight: 600;
+            color: #6c757d;
+            transition: background-color 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background-color: #494C4F;
+            color: #fff;
+        }
 
         /* Estilos para campos de input para garantir visibilidade */
         input[type="text"], input[type="number"], input[type="date"], textarea, select {
@@ -2184,5 +2959,7 @@
     // Run app
     initFirebase();
 </script>
+</body>
+</html>
 </body>
 </html>
