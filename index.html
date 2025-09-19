@@ -2484,5 +2484,45 @@
     // Run app
     initFirebase();
   </script>
+  <script type="module">
+   const container = document.getElementById('tarefas-cronograma-list');
+const progresso = ((tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0) / tarefa.metragemTotal) * 100;
+const tarefaElement = document.createElement('div');
+const dataInicio = new Date(document.getElementById('cronograma-data-inicio').value);
+const diasUteisPorSemana = parseInt(document.getElementById('dias-uteis-semana').value);
+const tarefasComDatas = calcularDatasTarefas(tarefas, dataInicio, diasUteisPorSemana);
+const totalDias = Math.max(...tarefasComDatas.map(t => t.fim)) + 2;
+let headerHTML = '<div class="gantt-row-label gantt-header">Tarefa</div>';
+let currentDate = new Date(dataInicio);
+const day = currentDate.getDate();
+const month = currentDate.getMonth() + 1;
+const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+const row = document.createElement('div');
+const label = document.createElement('div');
+const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+const tarefasComDatas = [];
+let diaAtual = 0;
+const duracaoInput = document.querySelector(`.duracao-tarefa[data-id="${tarefa.id}"]`);
+const duracao = duracaoInput ? parseInt(duracaoInput.value) : 5;
+let tarefasComDependencias = tarefas.filter(t => t.dependencia);
+let maxIteracoes = 10; // Prevenir loop infinito
+const tarefaProcessada = [];
+const dependencia = tarefasComDatas.find(t => t.id === tarefa.dependencia);
+const duracaoInput = document.querySelector(`.duracao-tarefa[data-id="${tarefa.id}"]`);
+const duracao = duracaoInput ? parseInt(duracaoInput.value) : 5;
+const inicio = dependencia.fim + 1;
+const valoresPlanejados = new Array(totalDias).fill(0);
+const valoresReais = new Array(totalDias).fill(0);
+const valorPorDia = tarefa.valorTotal / (tarefa.fim - tarefa.inicio + 1);
+const progresso = ((tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0) / tarefa.metragemTotal);
+const valorRealTotal = tarefa.valorTotal * progresso;
+const diasConcluidos = Math.floor((tarefa.fim - tarefa.inicio + 1) * progresso);
+let acumuladoPlanejado = 0;
+const acumuladosPlanejados = valoresPlanejados.map(valor => {
+let acumuladoReal = 0;
+const acumuladosReais = valoresReais.map(valor => {
+const labels = Array.from({length: totalDias}, (_, i) => `Dia ${i+1}`);
+const dataInicioInput = document.getElementById('cronograma-data-inicio');
+  </script>
  </body>
 </html>
