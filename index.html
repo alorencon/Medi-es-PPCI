@@ -287,16 +287,12 @@
                     </div>
                     
                     <div class="mb-6">
-                        <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início do Cronograma</label>
-                        <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
+                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     </div>
-
-                    <div id="tarefas-cronograma-list" class="space-y-4 mb-8">
-                    </div>
-
+                    
                     <div class="gantt-container">
-                        <div id="gantt-calendario" class="gantt-grid"></div>
-                        <div id="gantt-chart" class="gantt-grid">
+                        <div id="gantt-chart" class="gantt-chart">
                         </div>
                     </div>
                     
@@ -1597,7 +1593,7 @@
             taskName,
             taskTotals[taskName]
         ]));
-        const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio");
         XLSX.writeFile(workbook, `relatorio_${nomeObra}_${startDate}_${endDate}.xlsx`);
@@ -2045,34 +2041,12 @@
         }
         openTarefaForm();
     });
-    gerarCronogramaBtn.addEventListener('click', async () => {
+    gerarCronogramaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-        const dataInicio = document.getElementById('cronograma-data-inicio').value;
-        if (!dataInicio) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma data de início.</p>');
-            return;
-        }
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const cronogramaData = {
-            dataInicio: dataInicio
-        };
-        document.querySelectorAll('.duracao-tarefa').forEach(input => {
-            const tarefaId = input.dataset.id;
-            const duracao = parseInt(input.value);
-            const dependenciaSelect = document.querySelector(`.dependencia-tarefa[data-id="${tarefaId}"]`);
-            const dependencia = dependenciaSelect ? dependenciaSelect.value : '';
-            cronogramaData[tarefaId] = {
-                duracao: duracao,
-                dependencia: dependencia
-            };
-        });
-        await addOrUpdateCronograma(cronogramaData);
-        await renderizarGantt(tarefas, cronogramaData);
+        renderCronograma();
     });
     addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
