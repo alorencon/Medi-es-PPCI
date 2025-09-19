@@ -406,6 +406,10 @@
       measurementId: "G-9YW2XQH2HH"
     };
 
+    // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+    
     // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
     // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
     // const API_KEY = "YOUR_GEMINI_API_KEY";
@@ -2179,3 +2183,4 @@ if (typeof gerarCronogramaBtn !== 'undefined' && gerarCronogramaBtn) {
 </script>
 </body>
 </html>
+
