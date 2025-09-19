@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>
-   Medições PPCI
-  </title>
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com">
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js">
-  </script>
-  <style>
-   body {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medições PPCI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
             font-family: 'Inter', sans-serif;
             background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed;
             background-size: cover;
@@ -198,492 +194,196 @@
             display: flex;
             align-items: center;
         }
-  </style>
-  <style>
-   body {
-            font-family: 'Inter', sans-serif;
-            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed;
-            background-size: cover;
-            color: #fff;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 2rem;
-            color: #000;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        .btn-primary {
-            background-color: #E21B2F;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: #c7172a;
-        }
-        .btn-secondary {
-            background-color: #e9ecef;
-            color: #495057;
-        }
-        .btn-secondary:hover {
-            background-color: #dee2e6;
-        }
-        .tab-btn {
-            flex-grow: 1;
-            padding: 1rem;
-            border-radius: 9999px;
-            text-align: center;
-            font-weight: 600;
-            color: #6c757d;
-            transition: background-color 0.3s, color 0.3s;
-            cursor: pointer;
-        }
-        .tab-btn.active {
-            background-color: #494C4F;
-            color: #fff;
-        }
-        input[type="text"], input[type="number"], input[type="date"], textarea, select {
-            color: #000;
-        }
-        .medicoes-list-item {
-            color: #000;
-        }
-        .gantt-container {
-            overflow-x: auto;
-            margin-bottom: 2rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            background: white;
-        }
-        .gantt-header {
-            background-color: #494C4F;
-            color: white;
-            padding: 0.5rem;
-            text-align: center;
-            font-weight: bold;
-            position: sticky;
-            left: 0;
-        }
-        .gantt-task {
-            background-color: #e9ecef;
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin-bottom: 2px;
-            cursor: move;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-        .gantt-cell {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            min-height: 40px;
-            position: relative;
-        }
-        .gantt-cell.active {
-            background-color: #E21B2F;
-            opacity: 0.6;
-        }
-        .curva-s-container {
-            margin-top: 2rem;
-            height: 300px;
-        }
-        .gantt-grid {
-            display: grid;
-            grid-template-columns: 250px repeat(30, 1fr);
-            gap: 1px;
-            background-color: #e5e7eb;
-        }
-        .gantt-row-label {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            position: sticky;
-            left: 0;
-            z-index: 10;
-        }
-        .gantt-day-cell {
-            min-width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e5e7eb;
-            background: white;
-        }
-        .gantt-day-cell.weekend {
-            background-color: #f3f4f6;
-        }
-        .gantt-day-cell.today {
-            background-color: #fff3cd;
-        }
-        .gantt-day-cell.feriado {
-            background-color: #ffcccc;
-        }
-        .gantt-task-bar {
-            height: 30px;
-            background-color: #E21B2F;
-            border-radius: 4px;
-            position: absolute;
-            cursor: move;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 5;
-        }
-        .gantt-task-handle {
-            width: 6px;
-            height: 100%;
-            position: absolute;
-            cursor: ew-resize;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-        .gantt-task-handle-left {
-            left: 0;
-        }
-        .gantt-task-handle-right {
-            right: 0;
-        }
-        .cronograma-actions {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .tarefa-config {
-            background-color: #f8f9fa;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .tarefa-config h4 {
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-        .progress-bar {
-            height: 8px;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-        .progress-bar-inner {
-            height: 100%;
-            background-color: #10B981;
-            border-radius: 4px;
-        }
-        .despesa-item {
-            border-left: 4px solid #E21B2F;
-            padding-left: 1rem;
-            margin-bottom: 1rem;
-            color: #000;
-        }
-        .despesa-form label {
-            color: #000;
-        }
-        .despesa-form input, .despesa-form select, .despesa-form textarea {
-            color: #000;
-        }
-        #modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-  </style>
- </head>
- <body>
-  <div class="container" id="app">
-   <div class="flex items-center justify-between mb-8 flex-wrap" id="header-container">
-    <div class="flex items-center space-x-4 mb-4 md:mb-0">
-     <img alt="Logo" class="w-20 h-20" src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp"/>
-     <div>
-      <h1 class="text-3xl font-bold text-white">
-       Medições PPCI
-      </h1>
-      <p class="text-white">
-       Sistema de Gestão de Obras
-      </p>
-     </div>
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <div id="header-container" class="flex items-center justify-between mb-8 flex-wrap">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+            <img src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp" alt="Logo" class="w-20 h-20">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Medições PPCI</h1>
+                <p class="text-white">Sistema de Gestão de Obras</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-white">ID: <span id="userIdDisplay" class="font-mono"></span></span>
+            <button id="logout-btn" class="btn btn-secondary">Sair</button>
+        </div>
     </div>
-    <div class="flex items-center space-x-4">
-     <span class="text-white">
-      ID:
-      <span class="font-mono" id="userIdDisplay">
-      </span>
-     </span>
-     <button class="btn btn-secondary" id="logout-btn">
-      Sair
-     </button>
+    
+    <div id="main-content">
+        <div id="login-view" class="card">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary w-full">Entrar</button>
+                <button type="button" id="create-account-btn" class="btn btn-secondary w-full">Criar Conta</button>
+            </form>
+        </div>
+
+        <div id="app-view" class="hidden">
+            <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
+                <button class="tab-btn active" data-tab="obras">Obras</button>
+                <button class="tab-btn" data-tab="tarefas">Tarefas</button>
+                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
+                <button class="tab-btn" data-tab="relatorios">Relatórios</button>
+                <button class="tab-btn" data-tab="despesas">Despesas</button>
+            </div>
+
+            <div id="content" class="card">
+                <div id="obras-view" class="tab-content active">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Gerenciar Obras</h2>
+                        <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Obra</span>
+                        </button>
+                    </div>
+                    <div id="obras-list" class="space-y-4">
+                        </div>
+                </div>
+
+                <div id="tarefas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Tarefas da Obra</h2>
+                        <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Tarefa</span>
+                        </button>
+                    </div>
+                    <div id="tarefas-list" class="space-y-6">
+                        </div>
+                </div>
+
+                <div id="cronograma-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
+                        <div class="flex space-x-2">
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Adicionar Tarefa</span>
+                            </button>
+                            <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Gerar Cronograma</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
+                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    
+                    <div class="gantt-container">
+                        <div id="gantt-chart" class="gantt-chart">
+                            </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
+                    <div class="curva-s-container">
+                        <canvas id="curva-s-chart"></canvas>
+                    </div>
+                </div>
+
+                <div id="relatorios-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
+                    <div id="relatorio-content" class="space-y-6">
+                        </div>
+                </div>
+
+                <div id="despesas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Despesas da Obra</h2>
+                        <div class="flex space-x-2">
+                            <button id="add-despesa-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Nova Despesa</span>
+                            </button>
+                            <button id="gerar-relatorio-despesas-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Relatório</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Total de Despesas</p>
+                            <p id="total-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Maior Despesa</p>
+                            <p id="maior-despesa" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Média por Dia</p>
+                            <p id="media-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                    </div>
+                    
+                    <div id="relatorio-despesas-container" class="hidden mb-8">
+                        <h3 class="text-xl font-semibold mb-4">Relatório de Despesas por Período</h3>
+                        <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0 mb-4">
+                            <div class="flex-1">
+                                <label for="despesa-start-date" class="block text-sm font-medium text-gray-700">Data de Início</label>
+                                <input type="date" id="despesa-start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                            <div class="flex-1">
+                                <label for="despesa-end-date" class="block text-sm font-medium text-gray-700">Data de Fim</label>
+                                <input type="date" id="despesa-end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                            <button id="generate-despesa-report-btn" class="btn btn-primary">Gerar Relatório</button>
+                        </div>
+                        <div id="despesa-period-report-result" class="mt-6">
+                            </div>
+                    </div>
+                    
+                    <div id="despesas-list" class="space-y-4">
+                        </div>
+                </div>
+            </div>
+        </div>
     </div>
-   </div>
-   <div id="main-content">
-    <div class="card" id="login-view">
-     <h2 class="text-2xl font-semibold mb-4 text-center">
-      Login
-     </h2>
-     <form class="space-y-4" id="login-form">
-      <div>
-       <label class="block text-sm font-medium text-gray-700" for="login-email">
-        Email
-       </label>
-       <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="login-email" required="" type="email"/>
-      </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-700" for="login-password">
-        Senha
-       </label>
-       <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="login-password" required="" type="password"/>
-      </div>
-      <button class="btn btn-primary w-full" id="login-btn" type="submit">
-       Entrar
-      </button>
-      <button class="btn btn-secondary w-full" id="create-account-btn" type="button">
-       Criar Conta
-      </button>
-     </form>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div id="modal-body">
+            </div>
     </div>
-    <div class="hidden" id="app-view">
-     <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
-      <button class="tab-btn active" data-tab="obras">
-       Obras
-      </button>
-      <button class="tab-btn" data-tab="tarefas">
-       Tarefas
-      </button>
-      <button class="tab-btn" data-tab="cronograma">
-       Cronograma
-      </button>
-      <button class="tab-btn" data-tab="relatorios">
-       Relatórios
-      </button>
-      <button class="tab-btn" data-tab="despesas">
-       Despesas
-      </button>
-     </div>
-     <div class="card" id="content">
-      <div class="tab-content active" id="obras-view">
-       <div class="flex flex-wrap justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold mb-2 md:mb-0">
-         Gerenciar Obras
-        </h2>
-        <button class="btn btn-primary flex items-center space-x-2" id="add-obra-btn">
-         <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" fill-rule="evenodd">
-          </path>
-         </svg>
-         <span>
-          Nova Obra
-         </span>
-        </button>
-       </div>
-       <div class="space-y-4" id="obras-list">
-       </div>
-      </div>
-      <div class="tab-content hidden" id="tarefas-view">
-       <div class="flex flex-wrap justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold mb-2 md:mb-0">
-         Tarefas da Obra
-        </h2>
-        <button class="btn btn-primary flex items-center space-x-2" id="add-tarefa-btn">
-         <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" fill-rule="evenodd">
-          </path>
-         </svg>
-         <span>
-          Nova Tarefa
-         </span>
-        </button>
-       </div>
-       <div class="space-y-6" id="tarefas-list">
-       </div>
-      </div>
-      <div class="tab-content hidden" id="cronograma-view">
-       <!-- NOVO CONTEÚDO DO CRONOGRAMA -->
-       <div class="flex flex-wrap justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold mb-2 md:mb-0">
-         Cronograma da Obra
-        </h2>
-        <div class="flex space-x-2">
-         <button class="btn btn-primary flex items-center space-x-2" id="gerar-cronograma-btn">
-          <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-           <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" fill-rule="evenodd">
-           </path>
-          </svg>
-          <span>
-           Gerar Cronograma
-          </span>
-         </button>
-        </div>
-       </div>
-       <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-         <label class="block text-sm font-medium text-gray-700" for="cronograma-data-inicio">
-          Data de Início do Cronograma
-         </label>
-         <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="cronograma-data-inicio" required="" type="date"/>
-        </div>
-        <div>
-         <label class="block text-sm font-medium text-gray-700" for="dias-uteis-semana">
-          Dias Úteis por Semana
-         </label>
-         <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="dias-uteis-semana" max="7" min="1" required="" type="number" value="5"/>
-        </div>
-       </div>
-       <h3 class="text-xl font-semibold mb-4">
-        Tarefas da Obra
-       </h3>
-       <div class="space-y-4 mb-8" id="tarefas-cronograma-list">
-        <!-- As tarefas serão carregadas automaticamente aqui -->
-       </div>
-       <div class="gantt-container">
-        <div class="gantt-grid" id="gantt-chart">
-         <!-- O gráfico de Gantt será gerado aqui -->
-        </div>
-       </div>
-       <h3 class="text-xl font-semibold mb-4 mt-8">
-        Curva S - Evolução Financeira
-       </h3>
-       <div class="curva-s-container">
-        <canvas id="curva-s-chart">
-        </canvas>
-       </div>
-      </div>
-      <div class="tab-content hidden" id="relatorios-view">
-       <h2 class="text-2xl font-semibold mb-6">
-        Relatórios
-       </h2>
-       <div class="space-y-6" id="relatorio-content">
-       </div>
-      </div>
-      <div class="tab-content hidden" id="despesas-view">
-       <div class="flex flex-wrap justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold mb-2 md:mb-0">
-         Despesas da Obra
-        </h2>
-        <div class="flex space-x-2">
-         <button class="btn btn-primary flex items-center space-x-2" id="add-despesa-btn">
-          <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-           <path clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" fill-rule="evenodd">
-           </path>
-          </svg>
-          <span>
-           Nova Despesa
-          </span>
-         </button>
-         <button class="btn btn-secondary flex items-center space-x-2" id="gerar-relatorio-despesas-btn">
-          <svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-           <path clip-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd">
-           </path>
-          </svg>
-          <span>
-           Relatório
-          </span>
-         </button>
-        </div>
-       </div>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="p-4 bg-gray-100 rounded-lg">
-         <p class="text-gray-500">
-          Total de Despesas
-         </p>
-         <p class="text-2xl font-bold" id="total-despesas">
-          R$ 0,00
-         </p>
-        </div>
-        <div class="p-4 bg-gray-100 rounded-lg">
-         <p class="text-gray-500">
-          Maior Despesa
-         </p>
-         <p class="text-2xl font-bold" id="maior-despesa">
-          R$ 0,00
-         </p>
-        </div>
-        <div class="p-4 bg-gray-100 rounded-lg">
-         <p class="text-gray-500">
-          Média por Dia
-         </p>
-         <p class="text-2xl font-bold" id="media-despesas">
-          R$ 0,00
-         </p>
-        </div>
-       </div>
-       <div class="hidden mb-8" id="relatorio-despesas-container">
-        <h3 class="text-xl font-semibold mb-4">
-         Relatório de Despesas por Período
-        </h3>
-        <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0 mb-4">
-         <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700" for="despesa-start-date">
-           Data de Início
-          </label>
-          <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="despesa-start-date" type="date"/>
-         </div>
-         <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700" for="despesa-end-date">
-           Data de Fim
-          </label>
-          <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" id="despesa-end-date" type="date"/>
-         </div>
-         <button class="btn btn-primary" id="generate-despesa-report-btn">
-          Gerar Relatório
-         </button>
-        </div>
-        <div class="mt-6" id="despesa-period-report-result">
-        </div>
-       </div>
-       <div class="space-y-4" id="despesas-list">
-       </div>
-      </div>
-     </div>
-    </div>
-   </div>
-  </div>
-  <div class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4" id="modal">
-   <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
-    <div class="flex justify-between items-center mb-4">
-     <h3 class="text-xl font-bold" id="modal-title">
-      Título do Modal
-     </h3>
-     <button class="text-gray-500 hover:text-gray-700" id="close-modal-btn">
-      ×
-     </button>
-    </div>
-    <div id="modal-body">
-    </div>
-   </div>
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js">
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-  </script>
-  <script type="module">
-   // Firebase Imports
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+    // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
     import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
@@ -2483,6 +2183,6 @@
 
     // Run app
     initFirebase();
-  </script>
- </body>
+</script>
+</body>
 </html>
