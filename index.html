@@ -62,17 +62,12 @@
             background-color: #494C4F;
             color: #fff;
         }
-
-        /* Estilos para campos de input para garantir visibilidade */
         input[type="text"], input[type="number"], input[type="date"], textarea, select {
             color: #000;
         }
-
         .medicoes-list-item {
             color: #000;
         }
-
-        /* Estilos para a aba de Cronograma */
         .gantt-container {
             overflow-x: auto;
             margin-bottom: 2rem;
@@ -107,30 +102,22 @@
             background-color: #E21B2F;
             opacity: 0.6;
         }
-
-        /* Estilo para a Curva S */
         .curva-s-container {
             margin-top: 2rem;
             height: 300px;
         }
-
-        /* Estilo para a lista de despesas */
         .despesa-item {
             border-left: 4px solid #E21B2F;
             padding-left: 1rem;
             margin-bottom: 1rem;
             color: #000;
         }
-        
-        /* Estilo para formulários de despesas */
         .despesa-form label {
             color: #000;
         }
         .despesa-form input, .despesa-form select, .despesa-form textarea {
             color: #000;
         }
-
-        /* Novas regras do Gantt */
         .gantt-task-bar {
             height: 20px;
             background-color: #E21B2F;
@@ -144,7 +131,6 @@
             font-size: 12px;
             font-weight: bold;
         }
-        
         .gantt-task-handle {
             width: 6px;
             height: 100%;
@@ -152,40 +138,32 @@
             cursor: ew-resize;
             background-color: rgba(0, 0, 0, 0.3);
         }
-        
         .gantt-task-handle-left {
             left: 0;
         }
-        
         .gantt-task-handle-right {
             right: 0;
         }
-        
         .gantt-grid {
             display: grid;
             grid-template-columns: 200px repeat(30, 1fr);
             gap: 2px;
             margin-top: 1rem;
         }
-        
         .gantt-day-cell {
             border: 1px solid #dee2e6;
             min-height: 40px;
             position: relative;
         }
-        
         .gantt-day-cell.weekend {
             background-color: #f8f9fa;
         }
-        
         .gantt-day-cell.today {
             background-color: #fff3cd;
         }
-        
         .gantt-row {
             display: contents;
         }
-        
         .gantt-row-label {
             background-color: #f8f9fa;
             padding: 10px;
@@ -194,8 +172,6 @@
             display: flex;
             align-items: center;
         }
-    </style>
-    <style>
         .gantt-day-cell.feriado {
             background-color: #ffcccc;
         }
@@ -301,7 +277,7 @@
                     </div>
 
                     <div id="tarefas-cronograma-list" class="space-y-4 mb-8">
-                        </div>
+                    </div>
 
                     <div class="gantt-container">
                         <div id="gantt-calendario" class="gantt-grid"></div>
@@ -395,19 +371,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-    // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
     import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Set Firebase log level for debugging
     setLogLevel('Debug');
 
-    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
-    // Entre em "Configurações do projeto" > "Seus apps"
-    // Copie e cole o objeto de configuração aqui.
-    // Exemplo:
     const firebaseConfig = {
       apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
       authDomain: "medicoes-ppci.firebaseapp.com",
@@ -417,14 +387,7 @@
       appId: "1:408815173796:web:efd25d921a7f0ee923e631",
       measurementId: "G-9YW2XQH2HH"
     };
-
-    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
-    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
-    // const API_KEY = "YOUR_GEMINI_API_KEY";
-
     const API_KEY = ''; 
-
-    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
     const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
     const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
     const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
@@ -434,10 +397,8 @@
     let db;
     let userId = null;
     let audioContext;
-
     let currentObraId = null;
     let curvaSChart = null;
-
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const modal = document.getElementById('modal');
@@ -455,99 +416,81 @@
     const userIdDisplay = document.getElementById('userIdDisplay');
     const ganttChart = document.getElementById('gantt-chart');
     const cronogramaDias = document.getElementById('cronograma-dias');
-
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
-
     const loginView = document.getElementById('login-view');
     const appView = document.getElementById('app-view');
     const logoutBtn = document.getElementById('logout-btn');
     const loginForm = document.getElementById('login-form');
     const loginBtn = document.getElementById('login-btn');
     const createAccountBtn = document.getElementById('create-account-btn');
-
-    // New variables for gantt drag-and-drop
     let ganttTasks = [];
     let isDragging = false;
     let currentDragElement = null;
     let dragStartX = 0;
     let originalStartDay = 0;
     let originalEndDay = 0;
-    let dragType = ''; // 'move' ou 'resize-left' ou 'resize-right'
-
-    // Utility function to format currency
+    let dragType = '';
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
-
-    // Utility function to calculate percentage
     const calculatePercentage = (numerator, denominator) => {
         if (denominator === 0) return 0;
         return (numerator / denominator) * 100;
     };
-
-    // Modal functions
     const openModal = (title, content) => {
         modalTitle.textContent = title;
         modalBody.innerHTML = content;
         modal.classList.remove('hidden');
     };
-
     const closeModal = () => {
         modal.classList.add('hidden');
         modalTitle.textContent = '';
         modalBody.innerHTML = '';
     };
-
     document.getElementById('close-modal-btn').addEventListener('click', closeModal);
     window.addEventListener('click', (event) => {
         if (event.target === modal) {
             closeModal();
         }
     });
-
-    // Tab switching logic
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tabContents.forEach(c => c.classList.add('hidden'));
-
             tab.classList.add('active');
             document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
-
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderTarefas();
                 }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderRelatorios();
                 }
             } else if (tab.dataset.tab === 'cronograma') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderCronograma();
                 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderDespesas();
                 }
             }
         });
     });
-
-    // Firebase Initialization & Auth
     const initFirebase = async () => {
         try {
             app = initializeApp(__firebase_config);
@@ -568,12 +511,10 @@
                     appView.classList.add('hidden');
                 }
             });
-
         } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
     };
-    
     loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
@@ -584,7 +525,6 @@
             openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
         }
     });
-    
     createAccountBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
@@ -596,14 +536,11 @@
             openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
         }
     });
-
     logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
-        currentObraId = null; // Reset current obra
-        tabs[0].click(); // Go back to obras tab
+        currentObraId = null;
+        tabs[0].click();
     });
-
-    // Firestore CRUD Operations
     const listenToObras = () => {
         if (!db || !userId) {
             console.error("Firestore ou UserID não inicializados. Tente novamente.");
@@ -615,30 +552,25 @@
             renderObras(obras);
         });
     };
-
     const addOrUpdateObra = async (obra) => {
         if (!db) {
             console.error("Firestore não inicializado.");
             return;
         }
-
         const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
         if (obra.id) {
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
             await updateDoc(docRef, obra);
         } else {
-            // Remove o campo 'id' para evitar o erro "Unsupported field value: undefined (found in field id)"
             const { id, ...newObraData } = obra;
             await addDoc(obrasRef, newObraData);
         }
         closeModal();
     };
-
     const deleteObra = async (obraId) => {
         const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obraId);
         await deleteDoc(docRef);
     }
-    
     const addOrUpdateTarefa = async (tarefa) => {
         if (!currentObraId) return;
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
@@ -651,12 +583,10 @@
         }
         closeModal();
     };
-
     const deleteTarefa = async (tarefaId) => {
         const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
         await deleteDoc(docRef);
     }
-
     const addMedicaoToTarefa = async (tarefaId, medicao) => {
         if (!currentObraId) return;
         const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
@@ -668,7 +598,6 @@
         tarefa.medicoes.push(medicao);
         await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
     };
-
     const updateMedicaoInTarefa = async (tarefaId, medicaoIndex, updatedMedicao) => {
         if (!currentObraId) return;
         const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
@@ -679,35 +608,27 @@
             await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
         }
     }
-
     const deleteMedicao = async (tarefaId, medicaoIndex) => {
         const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
         const tarefaDoc = await getDoc(tarefaDocRef);
         const tarefa = tarefaDoc.data();
-        
         if (tarefa.medicoes && tarefa.medicoes[medicaoIndex]) {
             tarefa.medicoes.splice(medicaoIndex, 1);
             await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
-            // Re-render the list to show the change
             openMedicoesList(tarefaId, tarefa.medicoes);
         }
     };
-    
-    // CRUD para Cronograma
     const addOrUpdateCronograma = async (cronogramaData) => {
         if (!currentObraId) return;
         const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
         await setDoc(cronogramaRef, cronogramaData, { merge: true });
     };
-
     const getCronograma = async () => {
         if (!currentObraId) return null;
         const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
         const cronogramaDoc = await getDoc(cronogramaRef);
         return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
     };
-
-    // CRUD para Despesas
     const addOrUpdateDespesa = async (despesa) => {
         if (!currentObraId) return;
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
@@ -720,13 +641,10 @@
         }
         closeModal();
     };
-
     const deleteDespesa = async (despesaId) => {
         const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`, despesaId);
         await deleteDoc(docRef);
     }
-    
-    // Render functions
     const renderObras = (obras) => {
         obrasList.innerHTML = '';
         obras.forEach(obra => {
@@ -762,7 +680,7 @@
             `;
             obraCard.addEventListener('click', () => {
                 currentObraId = obra.id;
-                tabs[1].click(); // Switch to Tarefas tab
+                tabs[1].click();
             });
             obrasList.appendChild(obraCard);
         });
@@ -793,7 +711,6 @@
             });
         });
     };
-    
     const renderTarefas = () => {
         if (!currentObraId) return;
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
@@ -801,15 +718,12 @@
             tarefasList.innerHTML = '';
             let totalMedido = 0;
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             tarefas.forEach(tarefa => {
                 const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
                 const porcentagemConcluida = calculatePercentage(valorMedido, tarefa.valorTotal);
                 const metragemConcluida = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0);
                 const valorUnitario = tarefa.metragemTotal > 0 ? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
-
                 totalMedido += valorMedido;
-
                 const tarefaCard = document.createElement('div');
                 tarefaCard.className = 'card w-full';
                 tarefaCard.innerHTML = `
@@ -847,7 +761,6 @@
                 `;
                 tarefasList.appendChild(tarefaCard);
             });
-
             document.querySelectorAll('.add-medicao-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -886,69 +799,50 @@
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
                 });
             });
-
-            // Update valor total da obra
             const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
             updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
-
-    // Variáveis globais para o cronograma
     let columnDates = [];
-    let feriados = []; // Você pode preencher esta array com datas de feriados
-
-    // Função para verificar se é dia útil
+    let feriados = [];
     const isDiaUtil = (date) => {
         const day = date.getDay();
         const dateStr = date.toISOString().split('T')[0];
-        
-        // Verifica se é final de semana (0 = Domingo, 6 = Sábado)
         if (day === 0 || day === 6) return false;
-        // Verifica se é feriado
         if (feriados.includes(dateStr)) return false;
-        
         return true;
     };
-
-    // Função para calcular dias úteis entre duas datas
     const calcularDiasUteis = (startDate, endDate) => {
         let count = 0;
         const curDate = new Date(startDate);
-        
         while (curDate <= endDate) {
             if (isDiaUtil(curDate)) {
                 count++;
             }
             curDate.setDate(curDate.getDate() + 1);
         }
-        
         return count;
     };
-
-    // Função para obter a próxima data útil
     const proximoDiaUtil = (date) => {
         const newDate = new Date(date);
         newDate.setDate(newDate.getDate() + 1);
-        
         while (!isDiaUtil(newDate)) {
             newDate.setDate(newDate.getDate() + 1);
         }
-        
         return newDate;
     };
-    
-    // Modificação da função renderCronograma
     const renderCronograma = async () => {
         if (!currentObraId) return;
-        // Carregar tarefas
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Carregar cronograma existente
         const cronograma = await getCronograma();
-        // Preencher lista de configuração de tarefas
         const tarefasList = document.getElementById('tarefas-cronograma-list');
         tarefasList.innerHTML = '';
+        if (tarefas.length === 0) {
+            tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa cadastrada. Adicione tarefas na aba "Tarefas".</p>';
+            return;
+        }
         tarefas.forEach(tarefa => {
             const configTarefa = document.createElement('div');
             configTarefa.className = 'card p-4';
@@ -957,14 +851,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Duração (dias úteis)</label>
-                        <input type="number" min="1" value="${cronograma && cronograma[tarefa.id] ? cronograma[tarefa.id].duration : 5}" 
+                        <input type="number" min="1" value="${cronograma && cronograma[tarefa.id] ? cronograma[tarefa.id].duracao : 5}"
                                class="duracao-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Dependência</label>
                         <select class="dependencia-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
                             <option value="">Nenhuma</option>
-                            ${tarefas.filter(t => t.id !== tarefa.id).map(t => 
+                            ${tarefas.filter(t => t.id !== tarefa.id).map(t =>
                                 `<option value="${t.id}" ${cronograma && cronograma[tarefa.id] && cronograma[tarefa.id].dependencia === t.id ? 'selected' : ''}>${t.nome}</option>`
                             ).join('')}
                         </select>
@@ -973,47 +867,32 @@
             `;
             tarefasList.appendChild(configTarefa);
         });
-        
-        // Se houver data de início salva, preencher o campo
         if (cronograma && cronograma.dataInicio) {
             document.getElementById('cronograma-data-inicio').value = cronograma.dataInicio;
         }
-        
-        // Se já houver um cronograma, renderizar
         if (cronograma && Object.keys(cronograma).length > 0) {
             await renderizarGantt(tarefas, cronograma);
         }
     };
-
-    // Nova função para renderizar o gráfico de Gantt
     const renderizarGantt = async (tarefas, cronograma) => {
         const dataInicio = new Date(document.getElementById('cronograma-data-inicio').value);
         const ganttChart = document.getElementById('gantt-chart');
         const ganttCalendario = document.getElementById('gantt-calendario');
-        
         ganttChart.innerHTML = '';
         ganttCalendario.innerHTML = '';
-        // Calcular a data final baseada na tarefa com maior data de término
         let dataFinal = new Date(dataInicio);
         ganttTasks = [];
-        
-        // Primeiro, calcular as datas para cada tarefa
         tarefas.forEach(tarefa => {
             if (cronograma[tarefa.id]) {
                 const config = cronograma[tarefa.id];
                 let inicio = new Date(dataInicio);
-                
-                // Se houver dependência, começar após o término da tarefa dependente
                 if (config.dependencia && cronograma[config.dependencia]) {
                     const tarefaDependente = cronograma[config.dependencia];
                     inicio = new Date(tarefaDependente.fim);
                     inicio = proximoDiaUtil(inicio);
                 }
-                
-                // Calcular data final baseada na duração em dias úteis
                 let diasUteisCount = 0;
                 const fim = new Date(inicio);
-                
                 while (diasUteisCount < config.duracao) {
                     if (isDiaUtil(fim)) {
                         diasUteisCount++;
@@ -1022,16 +901,11 @@
                         fim.setDate(fim.getDate() + 1);
                     }
                 }
-                
-                // Atualizar cronograma
                 config.inicio = inicio;
                 config.fim = fim;
-                
-                // Atualizar data final se necessário
                 if (fim > dataFinal) {
                     dataFinal = new Date(fim);
                 }
-                
                 ganttTasks.push({
                     id: tarefa.id,
                     name: tarefa.nome,
@@ -1042,62 +916,43 @@
                 });
             }
         });
-        
-        // Calcular número total de dias (úteis e não úteis)
         const totalDias = Math.ceil((dataFinal - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
-        // Gerar calendário
         const calendarioHeader = document.createElement('div');
         calendarioHeader.className = 'gantt-row';
-        // Célula vazia para alinhamento
         const emptyHeader = document.createElement('div');
         emptyHeader.className = 'gantt-row-label';
         calendarioHeader.appendChild(emptyHeader);
-        
         columnDates = [];
         let currentDate = new Date(dataInicio);
-        
         for (let i = 0; i < totalDias; i++) {
             const date = new Date(currentDate);
             columnDates.push(new Date(date));
-            
             const dayHeader = document.createElement('div');
             dayHeader.className = 'gantt-day-cell gantt-header';
             dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
-            // Adicionar dia da semana
             const weekDay = document.createElement('div');
             weekDay.style.fontSize = '10px';
             weekDay.style.color = '#6c757d';
             weekDay.textContent = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
             dayHeader.appendChild(weekDay);
-            // Destacar fins de semana
             if (date.getDay() === 0 || date.getDay() === 6) {
                 dayHeader.classList.add('weekend');
             }
-            
-            // Destacar feriados
             const dateStr = date.toISOString().split('T')[0];
             if (feriados.includes(dateStr)) {
                 dayHeader.classList.add('feriado');
                 dayHeader.title = 'Feriado';
             }
-            
-            // Destacar hoje
             const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 dayHeader.classList.add('today');
             }
-            
             calendarioHeader.appendChild(dayHeader);
             currentDate.setDate(currentDate.getDate() + 1);
         }
-        
         ganttCalendario.appendChild(calendarioHeader);
-        
-        // Gerar grid do gráfico de Gantt
         const headerRow = document.createElement('div');
         headerRow.className = 'gantt-row';
-        
-        // Célula vazia para alinhamento
         const emptyLabel = document.createElement('div');
         emptyLabel.className = 'gantt-row-label';
         headerRow.appendChild(emptyLabel);
@@ -1105,105 +960,72 @@
             const cell = document.createElement('div');
             cell.className = 'gantt-day-cell';
             cell.dataset.day = i + 1;
-            
-            // Destacar fins de semana
             const date = columnDates[i];
             if (date.getDay() === 0 || date.getDay() === 6) {
                 cell.classList.add('weekend');
             }
-            
-            // Destacar feriados
             const dateStr = date.toISOString().split('T')[0];
             if (feriados.includes(dateStr)) {
                 cell.classList.add('feriado');
             }
-            
-            // Destacar hoje
             const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 cell.classList.add('today');
             }
-            
             headerRow.appendChild(cell);
         }
-        
         ganttChart.appendChild(headerRow);
-        
-        // Adicionar tarefas ao gráfico
         tarefas.forEach((tarefa, index) => {
             if (!cronograma[tarefa.id]) return;
-            
             const taskRow = document.createElement('div');
             taskRow.className = 'gantt-row';
             taskRow.dataset.id = tarefa.id;
-            
-            // Label da tarefa
             const taskLabel = document.createElement('div');
             taskLabel.className = 'gantt-row-label';
             taskLabel.textContent = tarefa.nome;
             taskRow.appendChild(taskLabel);
-            
-            // Criar células para cada dia
             for (let i = 0; i < totalDias; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'gantt-day-cell';
                 cell.dataset.day = i + 1;
                 cell.dataset.taskId = tarefa.id;
-                
-                // Destacar fins de semana
                 const date = columnDates[i];
                 if (date.getDay() === 0 || date.getDay() === 6) {
                     cell.classList.add('weekend');
                 }
-                
-                // Destacar feriados
                 const dateStr = date.toISOString().split('T')[0];
                 if (feriados.includes(dateStr)) {
                     cell.classList.add('feriado');
                 }
-                
-                // Destacar hoje
                 const today = new Date();
                 if (date.toDateString() === today.toDateString()) {
                     cell.classList.add('today');
                 }
-                
                 taskRow.appendChild(cell);
             }
-            
             ganttChart.appendChild(taskRow);
         });
-        // Renderizar barras de tarefas
         renderGanttBars();
-        // Renderizar Curva S
         renderCurvaS(tarefas);
     };
-
-    // Nova função para renderizar as barras do Gantt
     const renderGanttBars = () => {
-        // Remover barras existentes
         document.querySelectorAll('.gantt-task-bar').forEach(bar => bar.remove());
         const dayCells = document.querySelectorAll('.gantt-day-cell');
         const firstDayCell = dayCells[0];
         if (!firstDayCell) return;
-        
         const cellWidth = firstDayCell.offsetWidth;
         const cellHeight = firstDayCell.offsetHeight;
         ganttTasks.forEach(task => {
             const taskRow = document.querySelector(`.gantt-row[data-id="${task.id}"]`);
             if (!taskRow) return;
-            
             const rowCells = taskRow.querySelectorAll('.gantt-day-cell');
             const firstCell = rowCells[0];
             if (!firstCell) return;
-            
             const rowTop = firstCell.offsetTop;
-            
-            // Calcular posição e largura da barra
-            const barLeft = (task.start - 1) * cellWidth;
+            const startDate = new Date(document.getElementById('cronograma-data-inicio').value);
+            const daysFromStart = Math.floor((task.start - startDate) / (1000 * 60 * 60 * 24));
+            const barLeft = daysFromStart * cellWidth;
             const barWidth = task.duration * cellWidth;
-            
-            // Criar barra da tarefa
             const taskBar = document.createElement('div');
             taskBar.className = 'gantt-task-bar';
             taskBar.dataset.taskId = task.id;
@@ -1216,27 +1038,20 @@
                 <span>${task.name}</span>
             `;
             ganttChart.appendChild(taskBar);
-            
-            // Adicionar event listeners para arrastar
             taskBar.addEventListener('mousedown', startDrag);
         });
     };
-
-    // Funções para arrastar e soltar
     const startDrag = (e) => {
         e.preventDefault();
         isDragging = true;
         currentDragElement = e.target.closest('.gantt-task-bar');
         dragStartX = e.clientX;
-        
         const taskId = currentDragElement.dataset.taskId;
         const task = ganttTasks.find(t => t.id === taskId);
         if (task) {
             originalStartDay = task.start;
             originalEndDay = task.end;
         }
-        
-        // Determinar tipo de drag baseado no elemento clicado
         if (e.target.classList.contains('gantt-task-handle-left')) {
             dragType = 'resize-left';
         } else if (e.target.classList.contains('gantt-task-handle-right')) {
@@ -1244,52 +1059,39 @@
         } else {
             dragType = 'move';
         }
-        
         document.addEventListener('mousemove', handleDrag);
         document.addEventListener('mouseup', stopDrag);
     };
-
     const handleDrag = (e) => {
         if (!isDragging || !currentDragElement) return;
         const dayCells = document.querySelectorAll('.gantt-day-cell');
         const firstDayCell = dayCells[0];
         if (!firstDayCell) return;
-        
         const cellWidth = firstDayCell.offsetWidth;
         const deltaX = e.clientX - dragStartX;
         const deltaDays = Math.round(deltaX / cellWidth);
-        
         const taskId = currentDragElement.dataset.taskId;
         const taskIndex = ganttTasks.findIndex(t => t.id === taskId);
         if (taskIndex === -1) return;
         if (dragType === 'move') {
-            // Mover toda a tarefa
             const newStart = Math.max(1, originalStartDay + deltaDays);
             const newEnd = newStart + ganttTasks[taskIndex].duration - 1;
-            
             ganttTasks[taskIndex].start = newStart;
             ganttTasks[taskIndex].end = newEnd;
         } else if (dragType === 'resize-left') {
-            // Redimensionar a partir da esquerda
             const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, ganttTasks[taskIndex].end - 1));
             ganttTasks[taskIndex].start = newStart;
             ganttTasks[taskIndex].duration = ganttTasks[taskIndex].end - newStart + 1;
         } else if (dragType === 'resize-right') {
-            // Redimensionar a partir da direita
             const newEnd = Math.max(ganttTasks[taskIndex].start, originalEndDay + deltaDays);
             ganttTasks[taskIndex].end = newEnd;
             ganttTasks[taskIndex].duration = newEnd - ganttTasks[taskIndex].start + 1;
         }
-        
-        // Atualizar visualização
         renderGanttBars();
     };
-
     const stopDrag = async () => {
         if (!isDragging) return;
         isDragging = false;
-        
-        // Salvar alterações no Firestore
         const cronogramaData = {};
         ganttTasks.forEach(task => {
             cronogramaData[task.id] = {
@@ -1298,75 +1100,62 @@
             };
         });
         await addOrUpdateCronograma(cronogramaData);
-        
-        // Atualizar Curva S com base no novo cronograma
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderCurvaS(tarefas);
-        
         document.removeEventListener('mousemove', handleDrag);
         document.removeEventListener('mouseup', stopDrag);
     };
-
     const setupDragAndDrop = () => {
-        // Event listeners já foram adicionados nas barras individualmente
     };
-    
-    // Modificação na função renderCurvaS para usar dados reais
     const renderCurvaS = (tarefas) => {
-        // Calcular a curva S baseada no progresso das tarefas e no cronograma
         const ctx = document.getElementById('curva-s-chart').getContext('2d');
         if (curvaSChart) {
             curvaSChart.destroy();
         }
-        
-        const dias = parseInt(cronogramaDias.value) || 30;
-        const labels = Array.from({length: dias}, (_, i) => `Dia ${i+1}`);
-        // Calcular valor planejado acumulado (baseado no cronograma)
-        const plannedData = new Array(dias).fill(0);
+        if (ganttTasks.length === 0) {
+            return;
+        }
+        const startDate = new Date(document.getElementById('cronograma-data-inicio').value);
+        const endDate = new Date(Math.max(...ganttTasks.map(task => task.end)));
+        const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const plannedData = new Array(totalDays).fill(0);
         ganttTasks.forEach(task => {
             const tarefa = tarefas.find(t => t.id === task.id);
             if (!tarefa) return;
-            
             const valorTotal = tarefa.valorTotal || 0;
-            const duracao = task.end - task.start + 1;
+            const duracao = task.duration;
             const valorPorDia = valorTotal / duracao;
-            
-            for (let day = task.start; day <= task.end; day++) {
-                if (day <= dias) {
-                    plannedData[day-1] += valorPorDia;
+            const startDay = Math.floor((task.start - startDate) / (1000 * 60 * 60 * 24));
+            for (let day = startDay; day < startDay + duracao; day++) {
+                if (day < totalDays) {
+                    plannedData[day] += valorPorDia;
                 }
             }
         });
-        // Acumular valores planejados
         let accumulatedPlanned = 0;
         const plannedAccumulated = plannedData.map(val => {
             accumulatedPlanned += val;
             return accumulatedPlanned;
         });
-        // Calcular valor realizado (baseado nas medições)
-        const actualData = new Array(dias).fill(0);
+        const actualData = new Array(totalDays).fill(0);
         tarefas.forEach(tarefa => {
             const medicoes = tarefa.medicoes || [];
             medicoes.forEach(medicao => {
-                // Calcular em que dia a medição foi feita (relativo ao início da obra)
-                // Esta é uma simplificação - você pode querer usar datas reais
                 const medicaoDate = new Date(medicao.data);
-                const startDate = new Date(); // Esta deveria ser a data de início da obra
-                const dayDiff = Math.floor((medicaoDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-                
-                if (dayDiff >= 1 && dayDiff <= dias) {
-                    actualData[dayDiff-1] += medicao.valor || 0;
+                const dayDiff = Math.floor((medicaoDate - startDate) / (1000 * 60 * 60 * 24));
+                if (dayDiff >= 0 && dayDiff < totalDays) {
+                    actualData[dayDiff] += medicao.valor || 0;
                 }
             });
         });
-        // Acumular valores realizados
         let accumulatedActual = 0;
         const actualAccumulated = actualData.map(val => {
             accumulatedActual += val;
             return accumulatedActual;
         });
+        const labels = Array.from({length: totalDays}, (_, i) => `Dia ${i+1}`);
         curvaSChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -1428,24 +1217,19 @@
             }
         });
     };
-    
-    // Renderização de Despesas
     const renderDespesas = () => {
         if (!currentObraId) return;
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         onSnapshot(despesasRef, (snapshot) => {
             despesasList.innerHTML = '';
             const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
             let total = 0;
             let maiorDespesa = 0;
-            
             despesas.forEach(despesa => {
                 total += despesa.valor;
                 if (despesa.valor > maiorDespesa) {
                     maiorDespesa = despesa.valor;
                 }
-            
                 const despesaItem = document.createElement('div');
                 despesaItem.className = 'despesa-item';
                 despesaItem.innerHTML = `
@@ -1473,16 +1257,10 @@
                 `;
                 despesasList.appendChild(despesaItem);
             });
-            
-            // Atualizar totais
             document.getElementById('total-despesas').textContent = formatCurrency(total);
             document.getElementById('maior-despesa').textContent = formatCurrency(maiorDespesa);
-            
-            // Calcular média por dia (considerando últimos 30 dias)
             const media = total / 30;
             document.getElementById('media-despesas').textContent = formatCurrency(media);
-            
-            // Adicionar event listeners para editar e excluir
             document.querySelectorAll('.edit-despesa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const despesaId = e.currentTarget.dataset.id;
@@ -1507,33 +1285,26 @@
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
                 });
             });
-            
-            // Se não houver despesas, mostrar mensagem
             if (despesas.length === 0) {
                 despesasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma despesa registrada.</p>';
             }
         });
     };
-
     const renderRelatorios = async () => {
         if (!currentObraId) {
             relatorioContent.innerHTML = '<p class="text-center text-gray-600">Selecione uma obra na aba "Obras" para visualizar os relatórios.</p>';
             return;
         }
-
         const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
         const obraDoc = await getDoc(obraDocRef);
         const obra = obraDoc.data();
-
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
         let totalTarefas = tarefas.length;
         let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
         let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
         let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
-
         relatorioContent.innerHTML = `
             <h3 class="text-xl font-semibold mb-4">Relatório Geral da Obra</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -1553,9 +1324,7 @@
                     <p class="text-sm text-gray-500">média das tarefas</p>
                 </div>
             </div>
-
             <hr class="my-8">
-
             <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
                 Relatório por Período
                 <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
@@ -1587,8 +1356,6 @@
             await speakText(summaryText);
         });
     };
-
-    // Função para converter ArrayBuffer para Blob
     const pcmToWav = (pcm16, sampleRate) => {
         const pcmData = pcm16.buffer;
         const numChannels = 1;
@@ -1599,12 +1366,9 @@
         const fileSize = wavDataSize + 44;
         const buffer = new ArrayBuffer(fileSize);
         const view = new DataView(buffer);
-        // RIFF chunk
         writeString(view, 0, 'RIFF');
         view.setUint32(4, fileSize - 8, true);
         writeString(view, 8, 'WAVE');
-
-        // fmt chunk
         writeString(view, 12, 'fmt ');
         view.setUint32(16, 16, true);
         view.setUint16(20, 1, true);
@@ -1613,25 +1377,19 @@
         view.setUint32(28, byteRate, true);
         view.setUint16(32, blockAlign, true);
         view.setUint16(34, bitsPerSample, true);
-        // data chunk
         writeString(view, 36, 'data');
         view.setUint32(40, wavDataSize, true);
-        // PCM data
         const pcmView = new Int16Array(pcmData);
         for (let i = 0; i < pcmView.length; i++) {
             view.setInt16(44 + i * 2, pcmView[i], true);
         }
-
         return new Blob([view], { type: 'audio/wav' });
     };
-
     const writeString = (view, offset, string) => {
         for (let i = 0; i < string.length; i++) {
             view.setUint8(offset + i, string.charCodeAt(i));
         }
     };
-
-    // Function to convert Base64 to ArrayBuffer
     const base64ToArrayBuffer = (base64) => {
         const binaryString = window.atob(base64);
         const len = binaryString.length;
@@ -1641,8 +1399,6 @@
         }
         return bytes.buffer;
     };
-
-    // Speak text with TTS API
     const speakText = async (text) => {
         const payload = {
             contents: [{ parts: [{ text: text }] }],
@@ -1665,7 +1421,6 @@
                 console.error('API call failed:', response.status, response.statusText);
                 return;
             }
-
             const result = await response.json();
             const part = result?.candidates?.[0]?.content?.parts?.[0];
             const audioData = part?.inlineData?.data;
@@ -1678,7 +1433,6 @@
                 const audioUrl = URL.createObjectURL(wavBlob);
                 const audio = new Audio(audioUrl);
                 audio.play();
-
             } else {
                 console.error('Invalid audio data received');
             }
@@ -1686,24 +1440,19 @@
             console.error('Error in TTS API call:', error);
         }
     };
-
     const renderRelatorioPorPeriodo = (startDate, endDate, tarefas, nomeObra) => {
         const reportResultDiv = document.getElementById('period-report-result');
         reportResultDiv.innerHTML = '';
-
         if (!startDate || !endDate) {
             reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
             return;
         }
-
         const start = new Date(startDate);
         const end = new Date(endDate);
-        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
-
+        end.setDate(end.getDate() + 1);
         let totalPeriodo = 0;
         let relatorioHtml = '';
         let hasData = false;
-
         const reportData = [];
         const taskTotals = {};
         tarefas.forEach(tarefa => {
@@ -1711,18 +1460,14 @@
                 const medicaoDate = new Date(medicao.data);
                 return medicaoDate >= start && medicaoDate < end;
             });
-
             if (medicoesPeriodo.length > 0) {
                 hasData = true;
                 const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
                 totalPeriodo += valorPeriodoTarefa;
-                
                 if (!taskTotals[tarefa.nome]) {
                     taskTotals[tarefa.nome] = 0;
                 }
                 taskTotals[tarefa.nome] += valorPeriodoTarefa;
-
-
                 relatorioHtml += `
                     <div class="card p-4 mb-4">
                         <p class="font-semibold text-lg">${tarefa.nome}</p>
@@ -1748,7 +1493,6 @@
                 `;
             }
         });
-
         if (!hasData) {
             reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada no período selecionado.</p>';
         } else {
@@ -1773,18 +1517,14 @@
             });
         }
     };
-
     const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         doc.setFontSize(18);
         doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
-
         doc.setFontSize(12);
         doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
         doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
-        // First table: detailed report
         const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
         const rows = data.map(item => [
             item.Tarefa,
@@ -1799,7 +1539,6 @@
             body: rows,
             startY: 45
         });
-        // Second table: task totals
         const taskTotalColumns = ["Tarefa", "Total a Receber"];
         const taskTotalRows = Object.keys(taskTotals).map(taskName => [
             taskName,
@@ -1815,9 +1554,7 @@
         });
         doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
     };
-
     const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
-        // Prepare detailed data
         const detailedData = [
             ["Relatório de Medições"],
             [`Obra: ${nomeObra}`],
@@ -1834,7 +1571,6 @@
             item.Data,
             item.Observacoes
         ]));
-        // Prepare task totals data
         const taskTotalData = [
             [],
             [],
@@ -1844,14 +1580,11 @@
             taskName,
             taskTotals[taskName]
         ]));
-
         const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio");
         XLSX.writeFile(workbook, `relatorio_${nomeObra}_${startDate}_${endDate}.xlsx`);
     };
-
-    // Forms
     const openObraForm = (obra = {}) => {
         const formHtml = `
             <form id="obra-form" class="space-y-4">
@@ -1883,7 +1616,6 @@
             addOrUpdateObra({ ...newObra, id: obra.id });
         });
     };
-    
     const openTarefaForm = (tarefa = {}) => {
         const formHtml = `
             <form id="tarefa-form" class="space-y-4">
@@ -1939,8 +1671,6 @@
             }
         });
     };
-
-    // Formulário para Despesas
     const openDespesaForm = (despesa = {}) => {
         const formHtml = `
             <form id="despesa-form" class="space-y-4">
@@ -1987,8 +1717,6 @@
             addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
         });
     };
-
-    // LLM - Gerador de Descrição de Tarefa
     const generateTaskDescription = async (nome, unidade) => {
         const descricaoTextarea = document.getElementById('tarefa-descricao');
         const generateBtn = document.getElementById('gerar-descricao-btn');
@@ -2016,7 +1744,6 @@
             generateBtn.textContent = originalBtnText;
         }
     };
-
     const openMedicaoForm = (tarefa) => {
         const formHtml = `
             <form id="medicao-form" class="space-y-4">
@@ -2037,10 +1764,7 @@
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
-            
-            // Calculate valor automatically based on valorUnitario
             const valor = tarefa.valorUnitario * metragem;
-
             const newMedicao = {
                 metragem: metragem,
                 valor: valor,
@@ -2051,7 +1775,6 @@
             closeModal();
         });
     };
-
     const openMedicoesList = (tarefaId, medicoes) => {
         const listHtml = `
             <ul class="space-y-2" id="medicao-list">
@@ -2080,7 +1803,6 @@
             </ul>
         `;
         openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
-
         document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const medicaoIndex = e.currentTarget.dataset.index;
@@ -2106,7 +1828,6 @@
             });
         });
     };
-
     const openEditMedicaoForm = (tarefaId, medicaoIndex, medicao) => {
         const formHtml = `
             <form id="edit-medicao-form" class="space-y-4">
@@ -2127,76 +1848,56 @@
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
-            
             const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
             const tarefaDoc = await getDoc(tarefaDocRef);
             const tarefa = tarefaDoc.data();
-            
             const valor = tarefa.valorUnitario * metragem;
-            
             const updatedMedicao = {
                 metragem: metragem,
                 valor: valor,
                 observacoes: observacoes,
                 data: medicao.data
             };
-            
             await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
-            
             closeModal();
         });
     }
-
-    // Adicionar event listener para o botão de relatório de despesas
     document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
         const relatorioContainer = document.getElementById('relatorio-despesas-container');
         const isVisible = !relatorioContainer.classList.contains('hidden');
-        
         if (isVisible) {
             relatorioContainer.classList.add('hidden');
         } else {
             relatorioContainer.classList.remove('hidden');
         }
     });
-
-    // Função para gerar relatório de despesas por período
     document.getElementById('generate-despesa-report-btn').addEventListener('click', async () => {
         const startDate = document.getElementById('despesa-start-date').value;
         const endDate = document.getElementById('despesa-end-date').value;
-        
         if (!startDate || !endDate) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione ambas as datas.</p>');
             return;
         }
-        
         await renderDespesaReportPorPeriodo(startDate, endDate);
     });
-
     const renderDespesaReportPorPeriodo = async (startDate, endDate) => {
         const reportResultDiv = document.getElementById('despesa-period-report-result');
         reportResultDiv.innerHTML = '<p class="text-center text-gray-500">Carregando...</p>';
-        
-        // Buscar despesas do período
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         const snapshot = await getDocs(despesasRef);
         let despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Filtrar por período
         despesas = despesas.filter(despesa => {
             const despesaDate = new Date(despesa.data);
             const start = new Date(startDate);
             const end = new Date(endDate);
-            end.setDate(end.getDate() + 1); // Para incluir o dia final
-            
+            end.setDate(end.getDate() + 1);
             return despesaDate >= start && despesaDate < end;
         });
-
         if (despesas.length === 0) {
             reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma despesa encontrada no período selecionado.</p>';
             return;
         }
-        
         let totalPeriodo = despesas.reduce((sum, d) => sum + d.valor, 0);
-        // Agrupar por categoria
         const porCategoria = {};
         despesas.forEach(despesa => {
             if (!porCategoria[despesa.categoria]) {
@@ -2204,7 +1905,6 @@
             }
             porCategoria[despesa.categoria] += despesa.valor;
         });
-
         let relatorioHtml = `
             <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
                 <div>
@@ -2228,7 +1928,6 @@
             `;
         });
         relatorioHtml += `</div><h4 class="text-lg font-semibold mb-4">Detalhamento</h4>`;
-        
         despesas.forEach(despesa => {
             relatorioHtml += `
                 <div class="despesa-item mb-4">
@@ -2246,8 +1945,6 @@
             `;
         });
         reportResultDiv.innerHTML = relatorioHtml;
-        
-        // Adicionar event listeners para os botões de exportação
         document.getElementById('export-despesa-pdf-btn').addEventListener('click', () => {
             exportDespesaPDF(despesas, porCategoria, startDate, endDate, totalPeriodo);
         });
@@ -2255,28 +1952,21 @@
             exportDespesaExcel(despesas, porCategoria, startDate, endDate, totalPeriodo);
         });
     };
-
     const exportDespesaPDF = (despesas, porCategoria, startDate, endDate, total) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         doc.setFontSize(18);
         doc.text(`Relatório de Despesas`, 14, 22);
-        
         doc.setFontSize(12);
         doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
         doc.text(`Total de Despesas: ${formatCurrency(total)}`, 14, 38);
-        
-        // Tabela de totais por categoria
         const categoriaColumns = ["Categoria", "Total"];
         const categoriaRows = Object.keys(porCategoria).map(cat => [cat, formatCurrency(porCategoria[cat])]);
-        
         doc.autoTable({
             head: [categoriaColumns],
             body: categoriaRows,
             startY: 45
         });
-        // Tabela detalhada
         const columns = ["Descrição", "Categoria", "Valor (R$)", "Data", "Observações"];
         const rows = despesas.map(d => [
             d.descricao,
@@ -2295,9 +1985,7 @@
         });
         doc.save(`relatorio_despesas_${startDate}_${endDate}.pdf`);
     };
-
     const exportDespesaExcel = (despesas, porCategoria, startDate, endDate, total) => {
-        // Preparar dados para exportação
         const data = [
             ["Relatório de Despesas"],
             [`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`],
@@ -2325,8 +2013,6 @@
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-
-    // Event listeners for main buttons
     addObraBtn.addEventListener('click', () => openObraForm());
     addTarefaBtn.addEventListener('click', () => {
         if (!currentObraId) {
@@ -2347,23 +2033,17 @@
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-        
         const dataInicio = document.getElementById('cronograma-data-inicio').value;
         if (!dataInicio) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma data de início.</p>');
             return;
         }
-        
-        // Carregar tarefas
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Coletar configurações das tarefas
         const cronogramaData = {
             dataInicio: dataInicio
         };
-        
         document.querySelectorAll('.duracao-tarefa').forEach(input => {
             const tarefaId = input.dataset.id;
             const duracao = parseInt(input.value);
@@ -2374,11 +2054,7 @@
                 dependencia: dependencia
             };
         });
-        
-        // Salvar cronograma
         await addOrUpdateCronograma(cronogramaData);
-        
-        // Renderizar gráfico de Gantt
         await renderizarGantt(tarefas, cronogramaData);
     });
     addDespesaBtn.addEventListener('click', () => {
@@ -2388,8 +2064,6 @@
         }
         openDespesaForm();
     });
-
-    // Run app
     initFirebase();
 </script>
 </body>
