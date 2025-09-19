@@ -882,121 +882,153 @@
     };
 
     
-// --- NOVO RENDER CRONOGRAMA AUTOMÁTICO ---
-const renderCronograma = () => {
+// --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
+const renderCronograma = async () => {
   if (!currentObraId) return;
-
   const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-  onSnapshot(tarefasRef, (snapshot) => {
-    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const snapshot = await getDocs(tarefasRef);
+  const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const gantt = document.getElementById("gantt-chart");
-    gantt.innerHTML = "";
+  const dias = parseInt(cronogramaDias.value) || 30;
+  ganttChart.innerHTML = "";
 
-    if (tarefas.length === 0) {
-      gantt.innerHTML = "<p class='text-center text-gray-500'>Nenhuma tarefa cadastrada.</p>";
-      return;
+  // Cabeçalho
+  const headerRow = document.createElement("div");
+  headerRow.className = "gantt-row";
+  const emptyHeader = document.createElement("div");
+  emptyHeader.className = "gantt-row-label";
+  headerRow.appendChild(emptyHeader);
+
+  const today = new Date();
+  for (let i = 0; i < dias; i++) {
+    const date = new Date();
+    date.setDate(today.getDate() + i);
+    const dayHeader = document.createElement("div");
+    dayHeader.className = "gantt-day-cell gantt-header";
+    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
+    headerRow.appendChild(dayHeader);
+  }
+  ganttChart.appendChild(headerRow);
+
+  ganttTasks = [];
+  tarefas.forEach((tarefa, index) => {
+    const row = document.createElement("div");
+    row.className = "gantt-row";
+    row.dataset.id = tarefa.id;
+
+    const label = document.createElement("div");
+    label.className = "gantt-row-label";
+    label.textContent = tarefa.nome;
+    row.appendChild(label);
+
+    for (let i = 1; i <= dias; i++) {
+      const cell = document.createElement("div");
+      cell.className = "gantt-day-cell";
+      cell.dataset.day = i;
+      cell.dataset.taskId = tarefa.id;
+      row.appendChild(cell);
     }
+    ganttChart.appendChild(row);
 
-    const datasInicio = tarefas.map(t => new Date(t.dataInicio));
-    const datasFim = tarefas.map(t => new Date(t.dataFim));
-    const minDate = new Date(Math.min(...datasInicio));
-    const maxDate = new Date(Math.max(...datasFim));
-    const totalDias = Math.ceil((maxDate - minDate) / (1000*60*60*24)) + 1;
-
-    const headerRow = document.createElement("div");
-    headerRow.className = "gantt-row";
-    const emptyHeader = document.createElement("div");
-    emptyHeader.className = "gantt-row-label";
-    headerRow.appendChild(emptyHeader);
-
-    for (let i = 0; i < totalDias; i++) {
-      const d = new Date(minDate);
-      d.setDate(minDate.getDate() + i);
-      const dayHeader = document.createElement("div");
-      dayHeader.className = "gantt-day-cell gantt-header";
-      dayHeader.textContent = `${d.getDate()}/${d.getMonth()+1}`;
-      headerRow.appendChild(dayHeader);
-    }
-    gantt.appendChild(headerRow);
-
-    tarefas.forEach(tarefa => {
-      const row = document.createElement("div");
-      row.className = "gantt-row";
-
-      const label = document.createElement("div");
-      label.className = "gantt-row-label";
-      label.textContent = tarefa.nome;
-      row.appendChild(label);
-
-      const start = new Date(tarefa.dataInicio);
-      const end = new Date(tarefa.dataFim);
-      const startOffset = Math.floor((start - minDate)/(1000*60*60*24));
-      const duration = Math.floor((end - start)/(1000*60*60*24)) + 1;
-
-      for (let i = 0; i < totalDias; i++) {
-        const cell = document.createElement("div");
-        cell.className = "gantt-day-cell";
-        if (i >= startOffset && i < startOffset+duration) {
-          cell.classList.add("active");
-        }
-        row.appendChild(cell);
-      }
-      gantt.appendChild(row);
+    let startDay = 1;
+    let duration = tarefa.prazo || 5;
+    ganttTasks.push({
+      id: tarefa.id,
+      name: tarefa.nome,
+      start: startDay,
+      end: startDay + duration - 1,
+      duration: duration
     });
+  });
 
-    renderCurvaS(tarefas, minDate, totalDias);
+  renderGanttBars();
+  renderCurvaS(tarefas);
+};
+
+const renderGanttBars = () => {
+  document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
+  const firstCell = document.querySelector(".gantt-day-cell");
+  if (!firstCell) return;
+  const cellWidth = firstCell.offsetWidth;
+
+  ganttTasks.forEach(task => {
+    const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
+    if (!row) return;
+    const rowCells = row.querySelectorAll(".gantt-day-cell");
+    const rowTop = rowCells[0].offsetTop;
+    const barLeft = (task.start - 1) * cellWidth;
+    const barWidth = task.duration * cellWidth;
+
+    const bar = document.createElement("div");
+    bar.className = "gantt-task-bar";
+    bar.dataset.taskId = task.id;
+    bar.style.top = rowTop + "px";
+    bar.style.left = barLeft + "px";
+    bar.style.width = barWidth + "px";
+    bar.innerHTML = `
+      <div class="gantt-task-handle gantt-task-handle-left"></div>
+      <div class="gantt-task-handle gantt-task-handle-right"></div>
+      <span>${task.name}</span>
+    `;
+    ganttChart.appendChild(bar);
+    bar.addEventListener("mousedown", startDrag);
   });
 };
 
-const renderCurvaS = (tarefas, minDate, totalDias) => {
-  const ctx = document.getElementById('curva-s-chart').getContext('2d');
-  if (curvaSChart) curvaSChart.destroy();
+const startDrag = (e) => {
+  e.preventDefault();
+  isDragging = true;
+  currentDragElement = e.target.closest(".gantt-task-bar");
+  dragStartX = e.clientX;
+  const taskId = currentDragElement.dataset.taskId;
+  const task = ganttTasks.find(t => t.id === taskId);
+  originalStartDay = task.start;
+  originalEndDay = task.end;
+  dragType = e.target.classList.contains("gantt-task-handle-left")
+    ? "resize-left"
+    : e.target.classList.contains("gantt-task-handle-right")
+    ? "resize-right"
+    : "move";
+  document.addEventListener("mousemove", handleDrag);
+  document.addEventListener("mouseup", stopDrag);
+};
 
-  const labels = Array.from({length: totalDias}, (_, i) => {
-    const d = new Date(minDate);
-    d.setDate(minDate.getDate() + i);
-    return `${d.getDate()}/${d.getMonth()+1}`;
-  });
+const handleDrag = (e) => {
+  if (!isDragging || !currentDragElement) return;
+  const firstCell = document.querySelector(".gantt-day-cell");
+  if (!firstCell) return;
+  const cellWidth = firstCell.offsetWidth;
+  const deltaX = e.clientX - dragStartX;
+  const deltaDays = Math.round(deltaX / cellWidth);
+  const taskId = currentDragElement.dataset.taskId;
+  const task = ganttTasks.find(t => t.id === taskId);
 
-  const planned = new Array(totalDias).fill(0);
-  tarefas.forEach(t => {
-    const valor = t.valorTotal || 0;
-    const start = new Date(t.dataInicio);
-    const end = new Date(t.dataFim);
-    const startOffset = Math.floor((start - minDate)/(1000*60*60*24));
-    const dur = Math.floor((end - start)/(1000*60*60*24)) + 1;
-    const valorDia = valor / dur;
-    for (let i = 0; i < dur; i++) {
-      planned[startOffset+i] += valorDia;
-    }
-  });
-  let acum = 0;
-  const plannedAccum = planned.map(v => acum += v);
+  if (dragType === "move") {
+    const newStart = Math.max(1, originalStartDay + deltaDays);
+    task.start = newStart;
+    task.end = newStart + task.duration - 1;
+  } else if (dragType === "resize-left") {
+    const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, task.end - 1));
+    task.start = newStart;
+    task.duration = task.end - newStart + 1;
+  } else if (dragType === "resize-right") {
+    const newEnd = Math.max(task.start, originalEndDay + deltaDays);
+    task.end = newEnd;
+    task.duration = newEnd - task.start + 1;
+  }
+  renderGanttBars();
+};
 
-  const actual = new Array(totalDias).fill(0);
-  tarefas.forEach(t => {
-    (t.medicoes || []).forEach(m => {
-      const d = new Date(m.data);
-      const offset = Math.floor((d - minDate)/(1000*60*60*24));
-      if (offset >= 0 && offset < totalDias) {
-        actual[offset] += m.valor || 0;
-      }
-    });
+const stopDrag = async () => {
+  if (!isDragging) return;
+  isDragging = false;
+  const cronogramaData = {};
+  ganttTasks.forEach(t => {
+    cronogramaData[t.id] = { start: t.start, end: t.end };
   });
-  acum = 0;
-  const actualAccum = actual.map(v => acum += v);
-
-  curvaSChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Planejado', data: plannedAccum, borderColor: 'blue', fill: false },
-        { label: 'Realizado', data: actualAccum, borderColor: 'green', fill: false }
-      ]
-    }
-  });
+  await addOrUpdateCronograma(cronogramaData);
+  document.removeEventListener("mousemove", handleDrag);
+  document.removeEventListener("mouseup", stopDrag);
 };
 
 // Renderização de Despesas
