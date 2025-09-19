@@ -8,10 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adicionando biblioteca para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed; /* Fundo com a nova imagem */
+            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
         }
@@ -70,6 +72,55 @@
         .medicoes-list-item {
             color: #000;
         }
+
+        /* Estilos para a aba de Cronograma */
+        .gantt-container {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        .gantt-chart {
+            min-width: 100%;
+            display: grid;
+            grid-template-columns: 200px repeat(30, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+        .gantt-header {
+            background-color: #494C4F;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        .gantt-task {
+            background-color: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            cursor: move;
+        }
+        .gantt-cell {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+        }
+        .gantt-cell.active {
+            background-color: #E21B2F;
+            opacity: 0.6;
+        }
+
+        /* Estilo para a Curva S */
+        .curva-s-container {
+            margin-top: 2rem;
+            height: 300px;
+        }
+
+        /* Estilo para a lista de despesas */
+        .despesa-item {
+            border-left: 4px solid #E21B2F;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -115,7 +166,9 @@
             <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
                 <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
+                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
+                <button class="tab-btn" data-tab="despesas">Despesas</button>
             </div>
 
             <!-- Main Content Area -->
@@ -152,11 +205,80 @@
                     </div>
                 </div>
 
+                <!-- Cronograma Section -->
+                <div id="cronograma-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
+                        <div class="flex space-x-2">
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Adicionar Tarefa</span>
+                            </button>
+                            <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Gerar Cronograma</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
+                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    
+                    <div class="gantt-container">
+                        <div id="gantt-chart" class="gantt-chart">
+                            <!-- Gráfico de Gantt será gerado aqui -->
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
+                    <div class="curva-s-container">
+                        <canvas id="curva-s-chart"></canvas>
+                    </div>
+                </div>
+
                 <!-- Relatórios Section -->
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
                     <div id="relatorio-content" class="space-y-6">
                         <!-- Relatórios will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Despesas Section -->
+                <div id="despesas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Despesas da Obra</h2>
+                        <button id="add-despesa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Despesa</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Total de Despesas</p>
+                            <p id="total-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Maior Despesa</p>
+                            <p id="maior-despesa" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <p class="text-gray-500">Média por Dia</p>
+                            <p id="media-despesas" class="text-2xl font-bold">R$ 0,00</p>
+                        </div>
+                    </div>
+                    
+                    <div id="despesas-list" class="space-y-4">
+                        <!-- Lista de despesas será renderizada aqui -->
                     </div>
                 </div>
             </div>
@@ -222,6 +344,7 @@
     let audioContext;
 
     let currentObraId = null;
+    let curvaSChart = null;
 
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -230,10 +353,16 @@
     const modalBody = document.getElementById('modal-body');
     const addObraBtn = document.getElementById('add-obra-btn');
     const addTarefaBtn = document.getElementById('add-tarefa-btn');
+    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
+    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
+    const addDespesaBtn = document.getElementById('add-despesa-btn');
     const obrasList = document.getElementById('obras-list');
     const tarefasList = document.getElementById('tarefas-list');
     const relatorioContent = document.getElementById('relatorio-content');
+    const despesasList = document.getElementById('despesas-list');
     const userIdDisplay = document.getElementById('userIdDisplay');
+    const ganttChart = document.getElementById('gantt-chart');
+    const cronogramaDias = document.getElementById('cronograma-dias');
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
@@ -287,7 +416,6 @@
 
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
-                    // Crie um modal customizado no lugar do alert() para melhorar a UX
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click(); // Go back to obras tab
                 } else {
@@ -295,11 +423,24 @@
                 }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
-                    // Crie um modal customizado no lugar do alert() para melhorar a UX
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
+                }
+            } else if (tab.dataset.tab === 'cronograma') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click(); // Go back to obras tab
+                } else {
+                    renderCronograma();
+                }
+            } else if (tab.dataset.tab === 'despesas') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click(); // Go back to obras tab
+                } else {
+                    renderDespesas();
                 }
             }
         });
@@ -430,6 +571,38 @@
         }
     }
 
+    // CRUD para Cronograma
+    const addOrUpdateCronograma = async (cronogramaData) => {
+        if (!currentObraId) return;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        await setDoc(cronogramaRef, cronogramaData, { merge: true });
+    };
+
+    const getCronograma = async () => {
+        if (!currentObraId) return null;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        const cronogramaDoc = await getDoc(cronogramaRef);
+        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
+    };
+
+    // CRUD para Despesas
+    const addOrUpdateDespesa = async (despesa) => {
+        if (!currentObraId) return;
+        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
+        if (despesa.id) {
+            const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`, despesa.id);
+            await updateDoc(docRef, despesa);
+        } else {
+            const { id, ...newDespesaData } = despesa;
+            await addDoc(despesasRef, newDespesaData);
+        }
+        closeModal();
+    };
+
+    const deleteDespesa = async (despesaId) => {
+        const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`, despesaId);
+        await deleteDoc(docRef);
+    }
 
     // Render functions
     const renderObras = (obras) => {
@@ -483,7 +656,6 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const obraId = e.currentTarget.dataset.id;
-                // Crie um modal customizado no lugar do confirm()
                 openModal('Confirmação', `
                     <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta obra?</p>
                     <div class="flex justify-center space-x-4">
@@ -587,7 +759,6 @@
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
-                    // Crie um modal customizado no lugar do confirm()
                     openModal('Confirmação', `
                         <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta tarefa?</p>
                         <div class="flex justify-center space-x-4">
@@ -613,6 +784,274 @@
         const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
         await deleteDoc(docRef);
     }
+
+    // Renderização do Cronograma
+    const renderCronograma = async () => {
+        if (!currentObraId) return;
+
+        // Carregar tarefas
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Carregar cronograma existente
+        const cronograma = await getCronograma();
+        const dias = parseInt(cronogramaDias.value) || 30;
+
+        // Gerar cabeçalho do gráfico de Gantt
+        ganttChart.innerHTML = '';
+        
+        // Linha de cabeçalho com dias
+        let headerRow = document.createElement('div');
+        headerRow.className = 'gantt-header';
+        headerRow.textContent = 'Tarefa';
+        ganttChart.appendChild(headerRow);
+        
+        for (let i = 1; i <= dias; i++) {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'gantt-header';
+            dayHeader.textContent = i;
+            ganttChart.appendChild(dayHeader);
+        }
+
+        // Adicionar tarefas ao gráfico
+        tarefas.forEach(tarefa => {
+            // Linha da tarefa
+            const taskRow = document.createElement('div');
+            taskRow.className = 'gantt-task';
+            taskRow.textContent = tarefa.nome;
+            taskRow.setAttribute('draggable', 'true');
+            taskRow.dataset.id = tarefa.id;
+            ganttChart.appendChild(taskRow);
+
+            // Configuração inicial do cronograma (se não existir)
+            if (!cronograma || !cronograma[tarefa.id]) {
+                // Posicionar aleatoriamente para demonstração
+                const startDay = Math.floor(Math.random() * (dias - 5)) + 1;
+                const duration = Math.floor(Math.random() * 10) + 3;
+                
+                for (let i = 1; i <= dias; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'gantt-cell';
+                    if (i >= startDay && i < startDay + duration) {
+                        cell.classList.add('active');
+                    }
+                    ganttChart.appendChild(cell);
+                }
+            } else {
+                // Usar configuração existente
+                const taskSchedule = cronograma[tarefa.id];
+                for (let i = 1; i <= dias; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'gantt-cell';
+                    if (i >= taskSchedule.start && i <= taskSchedule.end) {
+                        cell.classList.add('active');
+                    }
+                    ganttChart.appendChild(cell);
+                }
+            }
+        });
+
+        // Adicionar funcionalidade de arrastar e soltar
+        setupDragAndDrop();
+
+        // Renderizar Curva S
+        renderCurvaS(tarefas);
+    };
+
+    const setupDragAndDrop = () => {
+        const tasks = document.querySelectorAll('.gantt-task');
+        const cells = document.querySelectorAll('.gantt-cell');
+        
+        let draggedTask = null;
+        
+        tasks.forEach(task => {
+            task.addEventListener('dragstart', (e) => {
+                draggedTask = task;
+                e.dataTransfer.setData('text/plain', task.dataset.id);
+            });
+        });
+        
+        cells.forEach(cell => {
+            cell.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedTask) {
+                    // Encontrar a coluna da célula
+                    const allCells = Array.from(document.querySelectorAll('.gantt-cell'));
+                    const cellIndex = allCells.indexOf(cell);
+                    const day = (cellIndex % (parseInt(cronogramaDias.value) || 30)) + 1;
+                    
+                    // Atualizar visualmente (simplificado para demonstração)
+                    cell.classList.add('active');
+                    
+                    // Aqui você salvaria a nova posição no Firestore
+                    // saveTaskPosition(draggedTask.dataset.id, day);
+                }
+            });
+        });
+    };
+
+    const renderCurvaS = (tarefas) => {
+        // Calcular a curva S baseada no progresso das tarefas
+        const ctx = document.getElementById('curva-s-chart').getContext('2d');
+        
+        if (curvaSChart) {
+            curvaSChart.destroy();
+        }
+        
+        // Dados de exemplo para a curva S
+        const labels = Array.from({length: 30}, (_, i) => `Dia ${i+1}`);
+        const plannedData = labels.map((_, i) => {
+            // Simulação de uma curva S típica
+            if (i < 5) return i * 2;
+            if (i < 20) return 10 + (i - 5) * 4;
+            return 70 + (i - 20) * 1.5;
+        });
+        
+        const actualData = labels.map((_, i) => {
+            // Dados reais (simulados) - normalmente viriam das medições
+            if (i < 7) return i * 1.5;
+            if (i < 22) return 10.5 + (i - 7) * 3.5;
+            return 63 + (i - 22) * 1.2;
+        });
+        
+        curvaSChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Planejado',
+                        data: plannedData,
+                        borderColor: 'rgb(54, 162, 235)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Realizado',
+                        data: actualData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Curva S - Evolução Financeira'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valor (R$)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tempo (dias)'
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // Renderização de Despesas
+    const renderDespesas = () => {
+        if (!currentObraId) return;
+
+        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
+        onSnapshot(despesasRef, (snapshot) => {
+            despesasList.innerHTML = '';
+            const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            let total = 0;
+            let maiorDespesa = 0;
+            
+            despesas.forEach(despesa => {
+                total += despesa.valor;
+                if (despesa.valor > maiorDespesa) {
+                    maiorDespesa = despesa.valor;
+                }
+                
+                const despesaItem = document.createElement('div');
+                despesaItem.className = 'despesa-item';
+                despesaItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">${despesa.descricao}</p>
+                            <p class="text-sm text-gray-500">${new Date(despesa.data).toLocaleDateString()} - ${despesa.categoria}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
+                            <div class="flex space-x-2 mt-2">
+                                <button class="edit-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                    </svg>
+                                </button>
+                                <button class="delete-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                despesasList.appendChild(despesaItem);
+            });
+            
+            // Atualizar totais
+            document.getElementById('total-despesas').textContent = formatCurrency(total);
+            document.getElementById('maior-despesa').textContent = formatCurrency(maiorDespesa);
+            
+            // Calcular média por dia (considerando últimos 30 dias)
+            const media = total / 30;
+            document.getElementById('media-despesas').textContent = formatCurrency(media);
+            
+            // Adicionar event listeners para editar e excluir
+            document.querySelectorAll('.edit-despesa-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const despesaId = e.currentTarget.dataset.id;
+                    const despesa = despesas.find(d => d.id === despesaId);
+                    openDespesaForm(despesa);
+                });
+            });
+            
+            document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const despesaId = e.currentTarget.dataset.id;
+                    openModal('Confirmação', `
+                        <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta despesa?</p>
+                        <div class="flex justify-center space-x-4">
+                            <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
+                            <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                        </div>
+                    `);
+                    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                        deleteDespesa(despesaId);
+                        closeModal();
+                    });
+                    document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
+                });
+            });
+            
+            // Se não houver despesas, mostrar mensagem
+            if (despesas.length === 0) {
+                despesasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma despesa registrada.</p>';
+            }
+        });
+    };
 
     const renderRelatorios = async () => {
         if (!currentObraId) {
@@ -1059,6 +1498,54 @@
         });
     };
 
+    // Formulário para Despesas
+    const openDespesaForm = (despesa = {}) => {
+        const formHtml = `
+            <form id="despesa-form" class="space-y-4">
+                <div>
+                    <label for="despesa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
+                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="despesa-valor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="despesa-data" class="block text-sm font-medium text-gray-700">Data</label>
+                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="despesa-categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
+                    <select id="despesa-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <option value="Gasolina" ${despesa.categoria === 'Gasolina' ? 'selected' : ''}>Gasolina</option>
+                        <option value="Alimentação" ${despesa.categoria === 'Alimentação' ? 'selected' : ''}>Alimentação</option>
+                        <option value="Hospedagem" ${despesa.categoria === 'Hospedagem' ? 'selected' : ''}>Hospedagem</option>
+                        <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
+                        <option value="Outros" ${despesa.categoria === 'Outros' ? 'selected' : ''}>Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="despesa-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes || ''}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${despesa.id ? 'Atualizar' : 'Salvar'}</button>
+            </form>
+        `;
+        openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
+        document.getElementById('despesa-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newDespesa = {
+                descricao: formData.get('descricao'),
+                valor: parseFloat(formData.get('valor')),
+                data: formData.get('data'),
+                categoria: formData.get('categoria'),
+                observacoes: formData.get('observacoes')
+            };
+            addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
+        });
+    };
+
     // LLM - Gerador de Descrição de Tarefa
     const generateTaskDescription = async (nome, unidade) => {
         const descricaoTextarea = document.getElementById('tarefa-descricao');
@@ -1239,11 +1726,34 @@
     addObraBtn.addEventListener('click', () => openObraForm());
     addTarefaBtn.addEventListener('click', () => {
         if (!currentObraId) {
-            // Crie um modal customizado no lugar do alert()
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
         openTarefaForm();
+    });
+    
+    addTarefaCronogramaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        openTarefaForm();
+    });
+    
+    gerarCronogramaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        renderCronograma();
+    });
+    
+    addDespesaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        openDespesaForm();
     });
 
     // Run app
@@ -1251,4 +1761,3 @@
 </script>
 </body>
 </html>
-
