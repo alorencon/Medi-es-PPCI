@@ -195,6 +195,14 @@
             align-items: center;
         }
     </style>
+    <style>
+        .gantt-day-cell.feriado {
+            background-color: #ffcccc;
+        }
+        .gantt-header.feriado {
+            background-color: #ff6666;
+        }
+    </style>
 </head>
 <body>
 
@@ -251,7 +259,7 @@
                         </button>
                     </div>
                     <div id="obras-list" class="space-y-4">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="tarefas-view" class="tab-content hidden">
@@ -265,7 +273,7 @@
                         </button>
                     </div>
                     <div id="tarefas-list" class="space-y-6">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="cronograma-view" class="tab-content hidden">
@@ -288,13 +296,17 @@
                     </div>
                     
                     <div class="mb-6">
-                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
-                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início do Cronograma</label>
+                        <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                     </div>
-                    
+
+                    <div id="tarefas-cronograma-list" class="space-y-4 mb-8">
+                        </div>
+
                     <div class="gantt-container">
-                        <div id="gantt-chart" class="gantt-chart">
-                            </div>
+                        <div id="gantt-calendario" class="gantt-grid"></div>
+                        <div id="gantt-chart" class="gantt-grid">
+                        </div>
                     </div>
                     
                     <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
@@ -306,7 +318,7 @@
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
                     <div id="relatorio-content" class="space-y-6">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="despesas-view" class="tab-content hidden">
@@ -357,11 +369,11 @@
                             <button id="generate-despesa-report-btn" class="btn btn-primary">Gerar Relatório</button>
                         </div>
                         <div id="despesa-period-report-result" class="mt-6">
-                            </div>
+                        </div>
                     </div>
                     
                     <div id="despesas-list" class="space-y-4">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -375,7 +387,7 @@
             <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
         </div>
         <div id="modal-body">
-            </div>
+        </div>
     </div>
 </div>
 
@@ -881,7 +893,51 @@
         });
     };
 
-    // Modificações na função renderCronograma
+    // Variáveis globais para o cronograma
+    let columnDates = [];
+    let feriados = []; // Você pode preencher esta array com datas de feriados
+
+    // Função para verificar se é dia útil
+    const isDiaUtil = (date) => {
+        const day = date.getDay();
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Verifica se é final de semana (0 = Domingo, 6 = Sábado)
+        if (day === 0 || day === 6) return false;
+        // Verifica se é feriado
+        if (feriados.includes(dateStr)) return false;
+        
+        return true;
+    };
+
+    // Função para calcular dias úteis entre duas datas
+    const calcularDiasUteis = (startDate, endDate) => {
+        let count = 0;
+        const curDate = new Date(startDate);
+        
+        while (curDate <= endDate) {
+            if (isDiaUtil(curDate)) {
+                count++;
+            }
+            curDate.setDate(curDate.getDate() + 1);
+        }
+        
+        return count;
+    };
+
+    // Função para obter a próxima data útil
+    const proximoDiaUtil = (date) => {
+        const newDate = new Date(date);
+        newDate.setDate(newDate.getDate() + 1);
+        
+        while (!isDiaUtil(newDate)) {
+            newDate.setDate(newDate.getDate() + 1);
+        }
+        
+        return newDate;
+    };
+    
+    // Modificação da função renderCronograma
     const renderCronograma = async () => {
         if (!currentObraId) return;
         // Carregar tarefas
@@ -890,23 +946,119 @@
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         // Carregar cronograma existente
         const cronograma = await getCronograma();
-        const dias = parseInt(cronogramaDias.value) || 30;
-
-        // Gerar grid do gráfico de Gantt
-        ganttChart.innerHTML = '';
-        // Criar header com dias da semana
-        const headerRow = document.createElement('div');
-        headerRow.className = 'gantt-row';
+        // Preencher lista de configuração de tarefas
+        const tarefasList = document.getElementById('tarefas-cronograma-list');
+        tarefasList.innerHTML = '';
+        tarefas.forEach(tarefa => {
+            const configTarefa = document.createElement('div');
+            configTarefa.className = 'card p-4';
+            configTarefa.innerHTML = `
+                <h4 class="font-semibold">${tarefa.nome}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Duração (dias úteis)</label>
+                        <input type="number" min="1" value="${cronograma && cronograma[tarefa.id] ? cronograma[tarefa.id].duration : 5}" 
+                               class="duracao-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Dependência</label>
+                        <select class="dependencia-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                            <option value="">Nenhuma</option>
+                            ${tarefas.filter(t => t.id !== tarefa.id).map(t => 
+                                `<option value="${t.id}" ${cronograma && cronograma[tarefa.id] && cronograma[tarefa.id].dependencia === t.id ? 'selected' : ''}>${t.nome}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+            tarefasList.appendChild(configTarefa);
+        });
         
+        // Se houver data de início salva, preencher o campo
+        if (cronograma && cronograma.dataInicio) {
+            document.getElementById('cronograma-data-inicio').value = cronograma.dataInicio;
+        }
+        
+        // Se já houver um cronograma, renderizar
+        if (cronograma && Object.keys(cronograma).length > 0) {
+            await renderizarGantt(tarefas, cronograma);
+        }
+    };
+
+    // Nova função para renderizar o gráfico de Gantt
+    const renderizarGantt = async (tarefas, cronograma) => {
+        const dataInicio = new Date(document.getElementById('cronograma-data-inicio').value);
+        const ganttChart = document.getElementById('gantt-chart');
+        const ganttCalendario = document.getElementById('gantt-calendario');
+        
+        ganttChart.innerHTML = '';
+        ganttCalendario.innerHTML = '';
+        // Calcular a data final baseada na tarefa com maior data de término
+        let dataFinal = new Date(dataInicio);
+        ganttTasks = [];
+        
+        // Primeiro, calcular as datas para cada tarefa
+        tarefas.forEach(tarefa => {
+            if (cronograma[tarefa.id]) {
+                const config = cronograma[tarefa.id];
+                let inicio = new Date(dataInicio);
+                
+                // Se houver dependência, começar após o término da tarefa dependente
+                if (config.dependencia && cronograma[config.dependencia]) {
+                    const tarefaDependente = cronograma[config.dependencia];
+                    inicio = new Date(tarefaDependente.fim);
+                    inicio = proximoDiaUtil(inicio);
+                }
+                
+                // Calcular data final baseada na duração em dias úteis
+                let diasUteisCount = 0;
+                const fim = new Date(inicio);
+                
+                while (diasUteisCount < config.duracao) {
+                    if (isDiaUtil(fim)) {
+                        diasUteisCount++;
+                    }
+                    if (diasUteisCount < config.duracao) {
+                        fim.setDate(fim.getDate() + 1);
+                    }
+                }
+                
+                // Atualizar cronograma
+                config.inicio = inicio;
+                config.fim = fim;
+                
+                // Atualizar data final se necessário
+                if (fim > dataFinal) {
+                    dataFinal = new Date(fim);
+                }
+                
+                ganttTasks.push({
+                    id: tarefa.id,
+                    name: tarefa.nome,
+                    start: inicio,
+                    end: fim,
+                    duration: config.duracao,
+                    progress: 0
+                });
+            }
+        });
+        
+        // Calcular número total de dias (úteis e não úteis)
+        const totalDias = Math.ceil((dataFinal - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
+        // Gerar calendário
+        const calendarioHeader = document.createElement('div');
+        calendarioHeader.className = 'gantt-row';
         // Célula vazia para alinhamento
         const emptyHeader = document.createElement('div');
         emptyHeader.className = 'gantt-row-label';
-        headerRow.appendChild(emptyHeader);
+        calendarioHeader.appendChild(emptyHeader);
         
-        const today = new Date();
-        for (let i = 0; i < dias; i++) {
-            const date = new Date();
-            date.setDate(today.getDate() + i);
+        columnDates = [];
+        let currentDate = new Date(dataInicio);
+        
+        for (let i = 0; i < totalDias; i++) {
+            const date = new Date(currentDate);
+            columnDates.push(new Date(date));
             
             const dayHeader = document.createElement('div');
             dayHeader.className = 'gantt-day-cell gantt-header';
@@ -922,18 +1074,65 @@
                 dayHeader.classList.add('weekend');
             }
             
+            // Destacar feriados
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                dayHeader.classList.add('feriado');
+                dayHeader.title = 'Feriado';
+            }
+            
             // Destacar hoje
+            const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 dayHeader.classList.add('today');
             }
             
-            headerRow.appendChild(dayHeader);
+            calendarioHeader.appendChild(dayHeader);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        ganttCalendario.appendChild(calendarioHeader);
+        
+        // Gerar grid do gráfico de Gantt
+        const headerRow = document.createElement('div');
+        headerRow.className = 'gantt-row';
+        
+        // Célula vazia para alinhamento
+        const emptyLabel = document.createElement('div');
+        emptyLabel.className = 'gantt-row-label';
+        headerRow.appendChild(emptyLabel);
+        for (let i = 0; i < totalDias; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'gantt-day-cell';
+            cell.dataset.day = i + 1;
+            
+            // Destacar fins de semana
+            const date = columnDates[i];
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                cell.classList.add('weekend');
+            }
+            
+            // Destacar feriados
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                cell.classList.add('feriado');
+            }
+            
+            // Destacar hoje
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                cell.classList.add('today');
+            }
+            
+            headerRow.appendChild(cell);
         }
         
         ganttChart.appendChild(headerRow);
+        
         // Adicionar tarefas ao gráfico
-        ganttTasks = [];
         tarefas.forEach((tarefa, index) => {
+            if (!cronograma[tarefa.id]) return;
+            
             const taskRow = document.createElement('div');
             taskRow.className = 'gantt-row';
             taskRow.dataset.id = tarefa.id;
@@ -944,48 +1143,28 @@
             taskLabel.textContent = tarefa.nome;
             taskRow.appendChild(taskLabel);
             
-            // Configuração do cronograma da tarefa
-            let startDay = 1;
-            let duration = 5; // Duração padrão de 5 dias
-            
-            if (cronograma && cronograma[tarefa.id]) {
-                startDay = cronograma[tarefa.id].start;
-                duration = cronograma[tarefa.id].end - cronograma[tarefa.id].start + 1;
-            } else {
-                // Posicionar tarefas de forma sequencial com sobreposição
-                startDay = index * 2 + 1;
-                duration = Math.min(5, Math.max(3, Math.floor(Math.random() * 8) + 1));
-                // Salvar configuração padrão
-                if (cronograma) {
-                    cronograma[tarefa.id] = { start: startDay, end: startDay + duration - 1 };
-                }
-            }
-            
-            // Armazenar dados da tarefa
-            ganttTasks.push({
-                id: tarefa.id,
-                name: tarefa.nome,
-                start: startDay,
-                end: startDay + duration - 1,
-                duration: duration,
-                progress: 0 // Será calculado com base nas medições
-            });
             // Criar células para cada dia
-            for (let i = 1; i <= dias; i++) {
+            for (let i = 0; i < totalDias; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'gantt-day-cell';
-                cell.dataset.day = i;
+                cell.dataset.day = i + 1;
                 cell.dataset.taskId = tarefa.id;
                 
                 // Destacar fins de semana
-                const cellDate = new Date();
-                cellDate.setDate(today.getDate() + i - 1);
-                if (cellDate.getDay() === 0 || cellDate.getDay() === 6) {
+                const date = columnDates[i];
+                if (date.getDay() === 0 || date.getDay() === 6) {
                     cell.classList.add('weekend');
                 }
                 
+                // Destacar feriados
+                const dateStr = date.toISOString().split('T')[0];
+                if (feriados.includes(dateStr)) {
+                    cell.classList.add('feriado');
+                }
+                
                 // Destacar hoje
-                if (cellDate.toDateString() === today.toDateString()) {
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
                     cell.classList.add('today');
                 }
                 
@@ -994,13 +1173,10 @@
             
             ganttChart.appendChild(taskRow);
         });
-        
         // Renderizar barras de tarefas
         renderGanttBars();
         // Renderizar Curva S
         renderCurvaS(tarefas);
-        // Adicionar event listeners para arrastar e soltar
-        setupDragAndDrop();
     };
 
     // Nova função para renderizar as barras do Gantt
@@ -1397,7 +1573,7 @@
                     <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
                 </div>
                 <div id="period-report-result" class="mt-6">
-                    </div>
+                </div>
             </div>
         `;
         const generateBtn = document.getElementById('generate-period-report-btn');
@@ -2166,12 +2342,44 @@
         }
         openTarefaForm();
     });
-    gerarCronogramaBtn.addEventListener('click', () => {
+    gerarCronogramaBtn.addEventListener('click', async () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-        renderCronograma();
+        
+        const dataInicio = document.getElementById('cronograma-data-inicio').value;
+        if (!dataInicio) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma data de início.</p>');
+            return;
+        }
+        
+        // Carregar tarefas
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Coletar configurações das tarefas
+        const cronogramaData = {
+            dataInicio: dataInicio
+        };
+        
+        document.querySelectorAll('.duracao-tarefa').forEach(input => {
+            const tarefaId = input.dataset.id;
+            const duracao = parseInt(input.value);
+            const dependenciaSelect = document.querySelector(`.dependencia-tarefa[data-id="${tarefaId}"]`);
+            const dependencia = dependenciaSelect ? dependenciaSelect.value : '';
+            cronogramaData[tarefaId] = {
+                duracao: duracao,
+                dependencia: dependencia
+            };
+        });
+        
+        // Salvar cronograma
+        await addOrUpdateCronograma(cronogramaData);
+        
+        // Renderizar gráfico de Gantt
+        await renderizarGantt(tarefas, cronogramaData);
     });
     addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
