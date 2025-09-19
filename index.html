@@ -172,6 +172,9 @@
             display: flex;
             align-items: center;
         }
+        .feriado {
+            background-color: #ffebee !important;
+        }
     </style>
 </head>
 <body>
@@ -266,12 +269,20 @@
                     </div>
                     
                     <div class="mb-6">
-                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
-                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início do Cronograma</label>
+                        <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+
+                    <div id="tarefas-cronograma-list" class="space-y-4 mb-6">
+                        <!-- As tarefas serão listadas aqui automaticamente -->
                     </div>
                     
                     <div class="gantt-container">
-                        <div id="gantt-chart" class="gantt-chart">
+                        <div id="gantt-calendario" class="gantt-grid">
+                            <!-- Cabeçalho do calendário será gerado aqui -->
+                        </div>
+                        <div id="gantt-chart" class="gantt-grid">
+                            <!-- Gráfico de Gantt será renderizado aqui -->
                         </div>
                     </div>
                     
@@ -361,97 +372,373 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    // ... (código Firebase existente) ...
 
-    setLogLevel('Debug');
+    // Defina alguns feriados (adicione conforme necessário)
+    const feriados = [
+        '2025-01-01', // Ano Novo
+        '2025-04-18', // Sexta-feira Santa
+        '2025-04-21', // Tiradentes
+        '2025-05-01', // Dia do Trabalho
+        '2025-09-07', // Independência do Brasil
+        '2025-10-12', // Nossa Senhora Aparecida
+        '2025-11-02', // Finados
+        '2025-11-15', // Proclamação da República
+        '2025-12-25'  // Natal
+    ];
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-      authDomain: "medicoes-ppci.firebaseapp.com",
-      projectId: "medicoes-ppci",
-      storageBucket: "medicoes-ppci.firebasestorage.app",
-      messagingSenderId: "408815173796",
-      appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-      measurementId: "G-9YW2XQH2HH"
+    // Função para verificar se um dia é útil
+    const isDiaUtil = (date) => {
+        const day = date.getDay();
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Verificar se é final de semana
+        if (day === 0 || day === 6) return false;
+        
+        // Verificar se é feriado
+        if (feriados.includes(dateStr)) return false;
+        
+        return true;
     };
 
-    const API_KEY = ''; 
-
-    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
-    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
-    const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
-
-    let app;
-    let auth;
-    let db;
-    let userId = null;
-    let audioContext;
-    let currentObraId = null;
-    let curvaSChart = null;
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const addObraBtn = document.getElementById('add-obra-btn');
-    const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
-    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
-    const addDespesaBtn = document.getElementById('add-despesa-btn');
-    const obrasList = document.getElementById('obras-list');
-    const tarefasList = document.getElementById('tarefas-list');
-    const relatorioContent = document.getElementById('relatorio-content');
-    const despesasList = document.getElementById('despesas-list');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const ganttChart = document.getElementById('gantt-chart');
-    const cronogramaDias = document.getElementById('cronograma-dias');
-    const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
-    const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
-    const loginView = document.getElementById('login-view');
-    const appView = document.getElementById('app-view');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginForm = document.getElementById('login-form');
-    const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-    let ganttTasks = [];
-    let isDragging = false;
-    let currentDragElement = null;
-    let dragStartX = 0;
-    let originalStartDay = 0;
-    let originalEndDay = 0;
-    let dragType = '';
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    };
-    const calculatePercentage = (numerator, denominator) => {
-        if (denominator === 0) return 0;
-        return (numerator / denominator) * 100;
-    };
-    const openModal = (title, content) => {
-        modalTitle.textContent = title;
-        modalBody.innerHTML = content;
-        modal.classList.remove('hidden');
-    };
-    const closeModal = () => {
-        modal.classList.add('hidden');
-        modalTitle.textContent = '';
-        modalBody.innerHTML = '';
-    };
-    document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
+    // Função para encontrar o próximo dia útil
+    const proximoDiaUtil = (date) => {
+        const newDate = new Date(date);
+        newDate.setDate(newDate.getDate() + 1);
+        
+        while (!isDiaUtil(newDate)) {
+            newDate.setDate(newDate.getDate() + 1);
         }
+        
+        return newDate;
+    };
+
+    // Função para renderizar o cronograma
+    const renderCronograma = async () => {
+        if (!currentObraId) return;
+        
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const cronograma = await getCronograma();
+        const tarefasList = document.getElementById('tarefas-cronograma-list');
+        tarefasList.innerHTML = '';
+        
+        if (tarefas.length === 0) {
+            tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa cadastrada. Adicione tarefas na aba "Tarefas".</p>';
+            return;
+        }
+        
+        tarefas.forEach(tarefa => {
+            const configTarefa = document.createElement('div');
+            configTarefa.className = 'card p-4';
+            configTarefa.innerHTML = `
+                <h4 class="font-semibold">${tarefa.nome}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Duração (dias úteis)</label>
+                        <input type="number" min="1" value="${cronograma && cronograma[tarefa.id] ? cronograma[tarefa.id].duracao : 5}" 
+                               class="duracao-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Dependência</label>
+                        <select class="dependencia-tarefa mt-1 block w-full rounded-md border-gray-300 shadow-sm" data-id="${tarefa.id}">
+                            <option value="">Nenhuma</option>
+                            ${tarefas.filter(t => t.id !== tarefa.id).map(t => 
+                                `<option value="${t.id}" ${cronograma && cronograma[tarefa.id] && cronograma[tarefa.id].dependencia === t.id ? 'selected' : ''}>${t.nome}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+            tarefasList.appendChild(configTarefa);
+        });
+        
+        if (cronograma && cronograma.dataInicio) {
+            document.getElementById('cronograma-data-inicio').value = cronograma.dataInicio;
+        }
+        
+        if (cronograma && Object.keys(cronograma).length > 0) {
+            await renderizarGantt(tarefas, cronograma);
+        }
+    };
+
+    // Função para renderizar o gráfico de Gantt
+    const renderizarGantt = async (tarefas, cronograma) => {
+        const dataInicio = new Date(document.getElementById('cronograma-data-inicio').value);
+        const ganttChart = document.getElementById('gantt-chart');
+        const ganttCalendario = document.getElementById('gantt-calendario');
+        ganttChart.innerHTML = '';
+        ganttCalendario.innerHTML = '';
+        
+        let dataFinal = new Date(dataInicio);
+        ganttTasks = [];
+        
+        // Calcular datas de início e fim para cada tarefa
+        tarefas.forEach(tarefa => {
+            if (cronograma[tarefa.id]) {
+                const config = cronograma[tarefa.id];
+                let inicio = new Date(dataInicio);
+                
+                // Se houver dependência, calcular a data de início com base na tarefa dependente
+                if (config.dependencia && cronograma[config.dependencia]) {
+                    const tarefaDependente = cronograma[config.dependencia];
+                    inicio = new Date(tarefaDependente.fim);
+                    inicio = proximoDiaUtil(inicio);
+                }
+                
+                let fim = new Date(inicio);
+                let diasUteisCount = 0;
+                
+                // Calcular a data final baseada em dias úteis
+                while (diasUteisCount < config.duracao) {
+                    if (isDiaUtil(fim)) {
+                        diasUteisCount++;
+                    }
+                    if (diasUteisCount < config.duracao) {
+                        fim.setDate(fim.getDate() + 1);
+                    }
+                }
+                
+                // Atualizar no cronograma
+                config.inicio = inicio;
+                config.fim = fim;
+                
+                if (fim > dataFinal) {
+                    dataFinal = new Date(fim);
+                }
+                
+                ganttTasks.push({
+                    id: tarefa.id,
+                    name: tarefa.nome,
+                    start: inicio,
+                    end: fim,
+                    duration: config.duracao,
+                    progress: 0
+                });
+            }
+        });
+        
+        // Calcular o número total de dias do cronograma
+        const totalDias = Math.ceil((dataFinal - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Gerar cabeçalho do calendário
+        const calendarioHeader = document.createElement('div');
+        calendarioHeader.className = 'gantt-row';
+        
+        const emptyHeader = document.createElement('div');
+        emptyHeader.className = 'gantt-row-label';
+        calendarioHeader.appendChild(emptyHeader);
+        
+        columnDates = [];
+        let currentDate = new Date(dataInicio);
+        
+        for (let i = 0; i < totalDias; i++) {
+            const date = new Date(currentDate);
+            columnDates.push(new Date(date));
+            
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'gantt-day-cell gantt-header';
+            dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
+            
+            const weekDay = document.createElement('div');
+            weekDay.style.fontSize = '10px';
+            weekDay.style.color = '#6c757d';
+            weekDay.textContent = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
+            dayHeader.appendChild(weekDay);
+            
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                dayHeader.classList.add('weekend');
+            }
+            
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                dayHeader.classList.add('feriado');
+                dayHeader.title = 'Feriado';
+            }
+            
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                dayHeader.classList.add('today');
+            }
+            
+            calendarioHeader.appendChild(dayHeader);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        ganttCalendario.appendChild(calendarioHeader);
+        
+        // Gerar linhas do gráfico de Gantt
+        const headerRow = document.createElement('div');
+        headerRow.className = 'gantt-row';
+        
+        const emptyLabel = document.createElement('div');
+        emptyLabel.className = 'gantt-row-label';
+        headerRow.appendChild(emptyLabel);
+        
+        for (let i = 0; i < totalDias; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'gantt-day-cell';
+            cell.dataset.day = i + 1;
+            
+            const date = columnDates[i];
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                cell.classList.add('weekend');
+            }
+            
+            const dateStr = date.toISOString().split('T')[0];
+            if (feriados.includes(dateStr)) {
+                cell.classList.add('feriado');
+            }
+            
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                cell.classList.add('today');
+            }
+            
+            headerRow.appendChild(cell);
+        }
+        
+        ganttChart.appendChild(headerRow);
+        
+        // Adicionar linhas para cada tarefa
+        tarefas.forEach((tarefa, index) => {
+            if (!cronograma[tarefa.id]) return;
+            
+            const taskRow = document.createElement('div');
+            taskRow.className = 'gantt-row';
+            taskRow.dataset.id = tarefa.id;
+            
+            const taskLabel = document.createElement('div');
+            taskLabel.className = 'gantt-row-label';
+            taskLabel.textContent = tarefa.nome;
+            taskRow.appendChild(taskLabel);
+            
+            for (let i = 0; i < totalDias; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'gantt-day-cell';
+                cell.dataset.day = i + 1;
+                cell.dataset.taskId = tarefa.id;
+                
+                const date = columnDates[i];
+                if (date.getDay() === 0 || date.getDay() === 6) {
+                    cell.classList.add('weekend');
+                }
+                
+                const dateStr = date.toISOString().split('T')[0];
+                if (feriados.includes(dateStr)) {
+                    cell.classList.add('feriado');
+                }
+                
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
+                    cell.classList.add('today');
+                }
+                
+                taskRow.appendChild(cell);
+            }
+            
+            ganttChart.appendChild(taskRow);
+        });
+        
+        renderGanttBars();
+        renderCurvaS(tarefas);
+    };
+
+    // Função para renderizar as barras do Gantt
+    const renderGanttBars = () => {
+        document.querySelectorAll('.gantt-task-bar').forEach(bar => bar.remove());
+        
+        const dayCells = document.querySelectorAll('.gantt-day-cell');
+        if (dayCells.length === 0) return;
+        
+        const cellWidth = dayCells[0].offsetWidth;
+        const cellHeight = dayCells[0].offsetHeight;
+        
+        ganttTasks.forEach(task => {
+            const taskRow = document.querySelector(`.gantt-row[data-id="${task.id}"]`);
+            if (!taskRow) return;
+            
+            const rowCells = taskRow.querySelectorAll('.gantt-day-cell');
+            const firstCell = rowCells[0];
+            if (!firstCell) return;
+            
+            const rowTop = firstCell.offsetTop;
+            const startDate = new Date(document.getElementById('cronograma-data-inicio').value);
+            const daysFromStart = Math.floor((task.start - startDate) / (1000 * 60 * 60 * 24));
+            
+            const barLeft = daysFromStart * cellWidth;
+            const barWidth = task.duration * cellWidth;
+            
+            const taskBar = document.createElement('div');
+            taskBar.className = 'gantt-task-bar';
+            taskBar.dataset.taskId = task.id;
+            taskBar.style.top = `${rowTop}px`;
+            taskBar.style.left = `${barLeft}px`;
+            taskBar.style.width = `${barWidth}px`;
+            taskBar.innerHTML = `
+                <div class="gantt-task-handle gantt-task-handle-left"></div>
+                <div class="gantt-task-handle gantt-task-handle-right"></div>
+                <span>${task.name}</span>
+            `;
+            
+            ganttChart.appendChild(taskBar);
+            
+            taskBar.addEventListener('mousedown', startDrag);
+        });
+    };
+
+    // Adicione este evento para o botão de gerar cronograma
+    document.getElementById('gerar-cronograma-btn').addEventListener('click', async () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        
+        const dataInicio = document.getElementById('cronograma-data-inicio').value;
+        if (!dataInicio) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, informe a data de início do cronograma.</p>');
+            return;
+        }
+        
+        // Coletar configurações de cada tarefa
+        const duracaoInputs = document.querySelectorAll('.duracao-tarefa');
+        const dependenciaSelects = document.querySelectorAll('.dependencia-tarefa');
+        const cronogramaData = { dataInicio: dataInicio };
+        
+        duracaoInputs.forEach(input => {
+            const tarefaId = input.dataset.id;
+            const duracao = parseInt(input.value);
+            const dependenciaSelect = document.querySelector(`.dependencia-tarefa[data-id="${tarefaId}"]`);
+            const dependencia = dependenciaSelect.value;
+            
+            cronogramaData[tarefaId] = {
+                duracao: duracao,
+                dependencia: dependencia
+            };
+        });
+        
+        // Salvar no Firestore
+        await addOrUpdateCronograma(cronogramaData);
+        
+        // Buscar tarefas para renderizar o Gantt
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Renderizar o Gantt
+        await renderizarGantt(tarefas, cronogramaData);
     });
+
+    // Inicialize o cronograma quando a aba for clicada
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tabContents.forEach(c => c.classList.add('hidden'));
             tab.classList.add('active');
             document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
+            
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
@@ -2038,3 +2325,4 @@
 </script>
 </body>
 </html>
+
