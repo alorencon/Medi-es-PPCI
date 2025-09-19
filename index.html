@@ -406,10 +406,6 @@
       measurementId: "G-9YW2XQH2HH"
     };
 
-    // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-    
     // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
     // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
     // const API_KEY = "YOUR_GEMINI_API_KEY";
@@ -437,6 +433,7 @@
     const modalBody = document.getElementById('modal-body');
     const addObraBtn = document.getElementById('add-obra-btn');
     const addTarefaBtn = document.getElementById('add-tarefa-btn');
+    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
     const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
     const addDespesaBtn = document.getElementById('add-despesa-btn');
     const obrasList = document.getElementById('obras-list');
@@ -445,6 +442,8 @@
     const despesasList = document.getElementById('despesas-list');
     const userIdDisplay = document.getElementById('userIdDisplay');
     const ganttChart = document.getElementById('gantt-chart');
+    const cronogramaDias = document.getElementById('cronograma-dias');
+
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
 
@@ -523,7 +522,7 @@
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click(); // Go back to obras tab
                 } else {
-                    loadCronogramaTarefasList();
+                    renderCronograma();
                 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
@@ -1031,223 +1030,6 @@ const stopDrag = async () => {
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
-
-
-// Função para carregar lista de tarefas (definir prazo em dias)
-const loadCronogramaTarefasList = async () => {
-    if (!currentObraId) return;
-    const listContainer = document.getElementById('cronograma-tarefas-list');
-    listContainer.innerHTML = '<p class="text-gray-500">Carregando tarefas...</p>';
-    const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-    const snapshot = await getDocs(tarefasRef);
-    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if (tarefas.length === 0) {
-        listContainer.innerHTML = '<p class="text-gray-500">Nenhuma tarefa cadastrada.</p>';
-        return;
-    }
-    listContainer.innerHTML = '';
-    tarefas.forEach(t => {
-        const card = document.createElement('div');
-        card.className = 'card flex items-center justify-between';
-        card.style.display = 'flex';
-        card.style.justifyContent = 'space-between';
-        card.innerHTML = `
-            <div>
-                <p class="font-bold">${t.nome}</p>
-                <p class="text-sm text-gray-500">Valor: ${formatCurrency(t.valorTotal || 0)}</p>
-            </div>
-            <div class="flex items-center space-x-2">
-                <label class="text-sm">Prazo (dias)</label>
-                <input type="number" min="1" value="${t.prazo || 5}" class="tarefa-prazo-input w-20 p-1 rounded border" data-id="${t.id}">
-                <button class="btn btn-primary btn-save-prazo" data-id="${t.id}">Salvar</button>
-            </div>
-        `;
-        listContainer.appendChild(card);
-    });
-
-    listContainer.querySelectorAll('.btn-save-prazo').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.dataset.id;
-            const input = listContainer.querySelector(`.tarefa-prazo-input[data-id="${id}"]`);
-            const prazo = parseInt(input.value) || 1;
-            const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, id);
-            await updateDoc(tarefaDocRef, { prazo: prazo });
-            e.currentTarget.textContent = 'Salvo';
-            setTimeout(() => e.currentTarget.textContent = 'Salvar', 1000);
-        });
-    });
-};
-
-// Gera o Gantt a partir das tarefas (usa 'prazo' de cada tarefa). As tarefas começam no dia 1 por padrão (permitindo sobreposição).
-const generateGanttFromTasks = async () => {
-    if (!currentObraId) return;
-    const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-    const snapshot = await getDocs(tarefasRef);
-    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if (tarefas.length === 0) {
-        openModal('Atenção', '<p class="text-center text-gray-700">Nenhuma tarefa para gerar cronograma.</p>');
-        return;
-    }
-
-    const maxPrazo = Math.max(...tarefas.map(t => t.prazo || 5));
-    const totalDias = Math.max(30, maxPrazo + 7);
-    const today = new Date();
-    ganttChart.innerHTML = '';
-
-    // Cabeçalho com dia da semana e dia/mês
-    const headerRow = document.createElement('div');
-    headerRow.className = 'gantt-row';
-    const emptyHeader = document.createElement('div');
-    emptyHeader.className = 'gantt-row-label';
-    headerRow.appendChild(emptyHeader);
-
-    for (let i = 0; i < totalDias; i++) {
-        const d = new Date();
-        d.setDate(today.getDate() + i);
-        const dayHeader = document.createElement('div');
-        dayHeader.className = 'gantt-day-cell gantt-header';
-        dayHeader.innerHTML = `<div style="font-size:12px;color:white;">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]}</div><div>${d.getDate()}/${d.getMonth()+1}</div>`;
-        headerRow.appendChild(dayHeader);
-    }
-    ganttChart.appendChild(headerRow);
-
-    // Linhas das tarefas
-    ganttTasks = [];
-    tarefas.forEach(tarefa => {
-        const row = document.createElement('div');
-        row.className = 'gantt-row';
-        row.dataset.id = tarefa.id;
-
-        const label = document.createElement('div');
-        label.className = 'gantt-row-label';
-        label.textContent = tarefa.nome;
-        row.appendChild(label);
-
-        for (let i = 1; i <= totalDias; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'gantt-day-cell';
-            cell.dataset.day = i;
-            cell.dataset.taskId = tarefa.id;
-            row.appendChild(cell);
-        }
-        ganttChart.appendChild(row);
-
-        const duration = tarefa.prazo || 5;
-        ganttTasks.push({
-            id: tarefa.id,
-            name: tarefa.nome,
-            start: 1,
-            end: 1 + duration - 1,
-            duration: duration
-        });
-    });
-
-    renderGanttBars();
-    renderCurvaS(tarefas, today, totalDias);
-};
-
-// Atualiza a Curva S com labels contendo dia da semana e dia/mês
-const renderCurvaS = (tarefas, minDate, totalDias) => {
-    const ctx = document.getElementById('curva-s-chart').getContext('2d');
-    if (curvaSChart) curvaSChart.destroy();
-
-    const labels = Array.from({ length: totalDias }, (_, i) => {
-        const d = new Date(minDate);
-        d.setDate(minDate.getDate() + i);
-        return `${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
-    });
-
-    const planned = new Array(totalDias).fill(0);
-    tarefas.forEach(t => {
-        const valor = t.valorTotal || 0;
-        const dur = t.prazo || 1;
-        const valorDia = valor / dur;
-        for (let i = 0; i < dur; i++) {
-            if (i < totalDias) planned[i] += valorDia;
-        }
-    });
-    let acum = 0;
-    const plannedAccum = planned.map(v => acum += v);
-
-    const actual = new Array(totalDias).fill(0);
-    tarefas.forEach(t => {
-        (t.medicoes || []).forEach(m => {
-            const d = new Date(m.data);
-            const offset = Math.floor((d - minDate) / (1000 * 60 * 60 * 24));
-            if (offset >= 0 && offset < totalDias) {
-                actual[offset] += m.valor || 0;
-            }
-        });
-    });
-    acum = 0;
-    const actualAccum = actual.map(v => acum += v);
-
-    curvaSChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Planejado',
-                    data: plannedAccum,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Realizado',
-                    data: actualAccum,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Curva S - Evolução Financeira'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Valor (R$)'
-                    },
-                    ticks: {
-                        callback: function (value) {
-                            return formatCurrency(value);
-                        }
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Tempo'
-                    }
-                }
-            }
-        }
-    });
-};
-
-// ligar o botão de gerar
-if (typeof gerarCronogramaBtn !== 'undefined' && gerarCronogramaBtn) {
-    gerarCronogramaBtn.addEventListener('click', generateGanttFromTasks);
-}
 
 // Renderização de Despesas
 
@@ -2168,7 +1950,7 @@ if (typeof gerarCronogramaBtn !== 'undefined' && gerarCronogramaBtn) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-        loadCronogramaTarefasList();
+        renderCronograma();
     });
     addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
@@ -2183,4 +1965,3 @@ if (typeof gerarCronogramaBtn !== 'undefined' && gerarCronogramaBtn) {
 </script>
 </body>
 </html>
-
