@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adicionando biblioteca para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -64,7 +66,7 @@
         }
 
         /* Estilos para campos de input para garantir visibilidade */
-        input[type="text"], input[type="number"], input[type="date"], textarea, select {
+        input[type="text"], input[type="number"], input[type="date"], textarea {
             color: #000;
         }
 
@@ -119,21 +121,13 @@
             border-left: 4px solid #E21B2F;
             padding-left: 1rem;
             margin-bottom: 1rem;
-            color: #000;
-        }
-        
-        /* Estilo para formulários de despesas */
-        .despesa-form label {
-            color: #000;
-        }
-        .despesa-form input, .despesa-form select, .despesa-form textarea {
-            color: #000;
         }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
+    <!-- Header -->
     <div id="header-container" class="flex items-center justify-between mb-8 flex-wrap">
         <div class="flex items-center space-x-4 mb-4 md:mb-0">
             <img src="https://storage.googleapis.com/ecdt-logo-saida/721cb85e8ac2d398795a63e738d194fd4ab80aca16543ac9858e119ba5215aa7/CASA-CASTILHO-COM-DE-EXTINTORES-E-EQUIPAMENTOS-DE-SEGUR.webp" alt="Logo" class="w-20 h-20">
@@ -144,11 +138,13 @@
         </div>
         <div class="flex items-center space-x-4">
             <span class="text-white">ID: <span id="userIdDisplay" class="font-mono"></span></span>
-            <button id="logout-btn" class="btn btn-secondary hidden">Sair</button>
+            <button id="logout-btn" class="btn btn-secondary">Sair</button>
         </div>
     </div>
     
+    <!-- Login/Main Content -->
     <div id="main-content">
+        <!-- Login Page (Default View) -->
         <div id="login-view" class="card">
             <h2 class="text-2xl font-semibold mb-4 text-center">Login</h2>
             <form id="login-form" class="space-y-4">
@@ -165,7 +161,9 @@
             </form>
         </div>
 
+        <!-- App Main Content (hidden by default) -->
         <div id="app-view" class="hidden">
+            <!-- Tabs -->
             <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
                 <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
@@ -174,22 +172,58 @@
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
             </div>
 
+            <!-- Main Content Area -->
             <div id="content" class="card">
+                <!-- Obras Section (Default View) -->
                 <div id="obras-view" class="tab-content active">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Gerenciar Obras</h2>
+                        <button id="add-obra-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Obra</span>
+                        </button>
                     </div>
+                    <div id="obras-list" class="space-y-4">
+                        <!-- Obra cards will be rendered here -->
+                    </div>
+                </div>
 
+                <!-- Tarefas Section -->
                 <div id="tarefas-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Tarefas da Obra</h2>
+                        <button id="add-tarefa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Tarefa</span>
+                        </button>
                     </div>
+                    <div id="tarefas-list" class="space-y-6">
+                        <!-- Tarefa cards will be rendered here -->
+                    </div>
+                </div>
 
+                <!-- Cronograma Section -->
                 <div id="cronograma-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
-                        <button id="gerar-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
-                            </svg>
-                            <span>Gerar Cronograma</span>
-                        </button>
+                        <div class="flex space-x-2">
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Adicionar Tarefa</span>
+                            </button>
+                            <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Gerar Cronograma</span>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="mb-6">
@@ -197,15 +231,10 @@
                         <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     </div>
                     
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold mb-2">Tarefas do Cronograma</h3>
-                        <div id="tarefas-cronograma" class="space-y-2">
-                            </div>
-                    </div>
-                    
                     <div class="gantt-container">
                         <div id="gantt-chart" class="gantt-chart">
-                            </div>
+                            <!-- Gráfico de Gantt será gerado aqui -->
+                        </div>
                     </div>
                     
                     <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
@@ -214,26 +243,24 @@
                     </div>
                 </div>
 
+                <!-- Relatórios Section -->
                 <div id="relatorios-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
+                    <div id="relatorio-content" class="space-y-6">
+                        <!-- Relatórios will be rendered here -->
                     </div>
+                </div>
 
+                <!-- Despesas Section -->
                 <div id="despesas-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Despesas da Obra</h2>
-                        <div class="flex space-x-2">
-                            <button id="add-despesa-btn" class="btn btn-primary flex items-center space-x-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Nova Despesa</span>
-                            </button>
-                            <button id="relatorio-despesas-btn" class="btn btn-secondary flex items-center space-x-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Relatório PDF</span>
-                            </button>
-                        </div>
+                        <button id="add-despesa-btn" class="btn btn-primary flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Nova Despesa</span>
+                        </button>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -252,13 +279,15 @@
                     </div>
                     
                     <div id="despesas-list" class="space-y-4">
-                        </div>
+                        <!-- Lista de despesas será renderizada aqui -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal -->
 <div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
         <div class="flex justify-between items-center mb-4">
@@ -266,7 +295,8 @@
             <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
         </div>
         <div id="modal-body">
-            </div>
+            <!-- Modal form will be rendered here -->
+        </div>
     </div>
 </div>
 
@@ -283,15 +313,23 @@
     // Set Firebase log level for debugging
     setLogLevel('Debug');
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-        authDomain: "medicoes-ppci.firebaseapp.com",
-        projectId: "medicoes-ppci",
-        storageBucket: "medicoes-ppci.firebasestorage.app",
-        messagingSenderId: "408815173796",
-        appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-        measurementId: "G-9YW2XQH2HH"
-    };
+    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
+    // Entre em "Configurações do projeto" > "Seus apps"
+    // Copie e cole o objeto de configuração aqui.
+    // Exemplo:
+   const firebaseConfig = {
+    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+    authDomain: "medicoes-ppci.firebaseapp.com",
+    projectId: "medicoes-ppci",
+    storageBucket: "medicoes-ppci.firebasestorage.app",
+    messagingSenderId: "408815173796",
+    appId: "1:408815173796:web:efd25d921a7f0ee923e631",
+    measurementId: "G-9YW2XQH2HH"
+  };
+
+    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
+    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
+    // const API_KEY = "YOUR_GEMINI_API_KEY";
 
     const API_KEY = ''; 
 
@@ -316,9 +354,9 @@
     const modalBody = document.getElementById('modal-body');
     const addObraBtn = document.getElementById('add-obra-btn');
     const addTarefaBtn = document.getElementById('add-tarefa-btn');
+    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
     const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
     const addDespesaBtn = document.getElementById('add-despesa-btn');
-    const relatorioDespesasBtn = document.getElementById('relatorio-despesas-btn');
     const obrasList = document.getElementById('obras-list');
     const tarefasList = document.getElementById('tarefas-list');
     const relatorioContent = document.getElementById('relatorio-content');
@@ -326,7 +364,6 @@
     const userIdDisplay = document.getElementById('userIdDisplay');
     const ganttChart = document.getElementById('gantt-chart');
     const cronogramaDias = document.getElementById('cronograma-dias');
-    const tarefasCronograma = document.getElementById('tarefas-cronograma');
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
@@ -397,7 +434,7 @@
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click(); // Go back to obras tab
                 } else {
-                    renderTarefasCronograma();
+                    renderCronograma();
                 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
@@ -424,14 +461,12 @@
                     userIdDisplay.textContent = userId;
                     loginView.classList.add('hidden');
                     appView.classList.remove('hidden');
-                    logoutBtn.classList.remove('hidden');
                     listenToObras();
                 } else {
                     userId = null;
                     userIdDisplay.textContent = "N/A";
                     loginView.classList.remove('hidden');
                     appView.classList.add('hidden');
-                    logoutBtn.classList.add('hidden');
                 }
             });
 
@@ -469,6 +504,7 @@
         tabs[0].click(); // Go back to obras tab
     });
 
+
     // Firestore CRUD Operations
     const listenToObras = () => {
         if (!db || !userId) {
@@ -482,7 +518,73 @@
         });
     };
 
-    // ... (outras funções CRUD existentes)
+    const addOrUpdateObra = async (obra) => {
+        if (!db) {
+            console.error("Firestore não inicializado.");
+            return;
+        }
+
+        const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+        if (obra.id) {
+            const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
+            await updateDoc(docRef, obra);
+        } else {
+            // Remove o campo 'id' para evitar o erro "Unsupported field value: undefined (found in field id)"
+            const { id, ...newObraData } = obra;
+            await addDoc(obrasRef, newObraData);
+        }
+        closeModal();
+    };
+
+    const addOrUpdateTarefa = async (tarefa) => {
+        if (!currentObraId) return;
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        if (tarefa.id) {
+            const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefa.id);
+            await updateDoc(docRef, tarefa);
+        } else {
+            const { id, ...newTarefaData } = tarefa;
+            await addDoc(tarefasRef, newTarefaData);
+        }
+        closeModal();
+    };
+
+    const addMedicaoToTarefa = async (tarefaId, medicao) => {
+        if (!currentObraId) return;
+        const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+        const tarefaDoc = await getDoc(tarefaDocRef);
+        const tarefa = tarefaDoc.data();
+        if (!tarefa.medicoes) {
+            tarefa.medicoes = [];
+        }
+        tarefa.medicoes.push(medicao);
+        await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
+    };
+
+    const updateMedicaoInTarefa = async (tarefaId, medicaoIndex, updatedMedicao) => {
+        if (!currentObraId) return;
+        const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+        const tarefaDoc = await getDoc(tarefaDocRef);
+        const tarefa = tarefaDoc.data();
+        if (tarefa.medicoes && tarefa.medicoes[medicaoIndex]) {
+            tarefa.medicoes[medicaoIndex] = updatedMedicao;
+            await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
+        }
+    }
+
+    // CRUD para Cronograma
+    const addOrUpdateCronograma = async (cronogramaData) => {
+        if (!currentObraId) return;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        await setDoc(cronogramaRef, cronogramaData, { merge: true });
+    };
+
+    const getCronograma = async () => {
+        if (!currentObraId) return null;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        const cronogramaDoc = await getDoc(cronogramaRef);
+        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
+    };
 
     // CRUD para Despesas
     const addOrUpdateDespesa = async (despesa) => {
@@ -505,36 +607,184 @@
 
     // Render functions
     const renderObras = (obras) => {
-        // Implementação existente
+        obrasList.innerHTML = '';
+        obras.forEach(obra => {
+            const obraCard = document.createElement('div');
+            obraCard.className = 'card cursor-pointer hover:bg-gray-50';
+            obraCard.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m2 0a2 2 0 01-2-2v-4m2 4v2m-6 2H9m1.5-12h3M9 16h6m-5-6h4"></path>
+                        </svg>
+                        <div>
+                            <p class="font-bold text-lg">${obra.nome}</p>
+                            <p class="text-gray-500 text-sm">${obra.localizacao}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="edit-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                            </svg>
+                        </button>
+                         <button class="delete-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
+                </div>
+            `;
+            obraCard.addEventListener('click', () => {
+                currentObraId = obra.id;
+                tabs[1].click(); // Switch to Tarefas tab
+            });
+            obrasList.appendChild(obraCard);
+        });
+        document.querySelectorAll('.edit-obra-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const obraId = e.currentTarget.dataset.id;
+                const obra = obras.find(o => o.id === obraId);
+                openObraForm(obra);
+            });
+        });
+        document.querySelectorAll('.delete-obra-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const obraId = e.currentTarget.dataset.id;
+                openModal('Confirmação', `
+                    <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta obra?</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
+                        <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                    </div>
+                `);
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                    deleteObra(obraId);
+                    closeModal();
+                });
+                document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
+            });
+        });
     };
+    
+    const deleteObra = async (obraId) => {
+        const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obraId);
+        await deleteDoc(docRef);
+    }
 
     const renderTarefas = () => {
-        // Implementação existente
-    };
-
-    // Renderização de Tarefas para Cronograma
-    const renderTarefasCronograma = async () => {
         if (!currentObraId) return;
 
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        onSnapshot(tarefasRef, (snapshot) => {
+            tarefasList.innerHTML = '';
+            let totalMedido = 0;
+            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        tarefasCronograma.innerHTML = '';
-        
-        tarefas.forEach(tarefa => {
-            const tarefaItem = document.createElement('div');
-            tarefaItem.className = 'flex items-center justify-between p-2 bg-gray-100 rounded';
-            tarefaItem.innerHTML = `
-                <span class="font-medium">${tarefa.nome}</span>
-                <div class="flex items-center">
-                    <label class="mr-2 text-sm">Duração (dias):</label>
-                    <input type="number" min="1" value="5" class="w-16 p-1 border rounded" data-id="${tarefa.id}">
-                </div>
-            `;
-            tarefasCronograma.appendChild(tarefaItem);
+            tarefas.forEach(tarefa => {
+                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
+                const porcentagemConcluida = calculatePercentage(valorMedido, tarefa.valorTotal);
+                const metragemConcluida = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0);
+                const valorUnitario = tarefa.metragemTotal > 0 ? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
+
+                totalMedido += valorMedido;
+
+                const tarefaCard = document.createElement('div');
+                tarefaCard.className = 'card w-full';
+                tarefaCard.innerHTML = `
+                    <div class="flex flex-wrap justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold mb-2 md:mb-0">${tarefa.nome}</h3>
+                        <p class="text-sm text-gray-600">${porcentagemConcluida.toFixed(1)}% concluído</p>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${porcentagemConcluida}%;"></div>
+                    </div>
+                    <div class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4">
+                        <span class="mb-2 md:mb-0">Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
+                        <span>Unidade: ${tarefa.unidade}</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Valor Unitário</p>
+                            <p class="font-semibold">${formatCurrency(valorUnitario)}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Valor Total</p>
+                            <p class="font-semibold">${formatCurrency(tarefa.valorTotal)}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Valor Medido</p>
+                            <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap justify-start space-x-2 mt-4">
+                        <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
+                        <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
+                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
+                        <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
+                    </div>
+                `;
+                tarefasList.appendChild(tarefaCard);
+            });
+
+            document.querySelectorAll('.add-medicao-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    const tarefa = tarefas.find(t => t.id === tarefaId);
+                    openMedicaoForm(tarefa);
+                });
+            });
+
+            document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    const tarefa = tarefas.find(t => t.id === tarefaId);
+                    openMedicoesList(tarefa.id, tarefa.medicoes || []);
+                });
+            });
+
+            document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    const tarefa = tarefas.find(t => t.id === tarefaId);
+                    openTarefaForm(tarefa);
+                });
+            });
+
+            document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    openModal('Confirmação', `
+                        <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta tarefa?</p>
+                        <div class="flex justify-center space-x-4">
+                            <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
+                            <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                        </div>
+                    `);
+                    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                        deleteTarefa(tarefaId);
+                        closeModal();
+                    });
+                    document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
+                });
+            });
+
+            // Update valor total da obra
+            const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+            updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
+
+    const deleteTarefa = async (tarefaId) => {
+        const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+        await deleteDoc(docRef);
+    }
 
     // Renderização do Cronograma
     const renderCronograma = async () => {
@@ -545,12 +795,8 @@
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // Obter durações das tarefas
-        const duracoes = {};
-        document.querySelectorAll('#tarefas-cronograma input').forEach(input => {
-            duracoes[input.dataset.id] = parseInt(input.value) || 1;
-        });
-
+        // Carregar cronograma existente
+        const cronograma = await getCronograma();
         const dias = parseInt(cronogramaDias.value) || 30;
 
         // Gerar cabeçalho do gráfico de Gantt
@@ -570,73 +816,109 @@
         }
 
         // Adicionar tarefas ao gráfico
-        let startDay = 1;
         tarefas.forEach(tarefa => {
-            const duracao = duracoes[tarefa.id] || 1;
-            
             // Linha da tarefa
             const taskRow = document.createElement('div');
             taskRow.className = 'gantt-task';
             taskRow.textContent = tarefa.nome;
+            taskRow.setAttribute('draggable', 'true');
+            taskRow.dataset.id = tarefa.id;
             ganttChart.appendChild(taskRow);
 
-            // Células para cada dia
-            for (let i = 1; i <= dias; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'gantt-cell';
-                if (i >= startDay && i < startDay + duracao) {
-                    cell.classList.add('active');
+            // Configuração inicial do cronograma (se não existir)
+            if (!cronograma || !cronograma[tarefa.id]) {
+                // Posicionar aleatoriamente para demonstração
+                const startDay = Math.floor(Math.random() * (dias - 5)) + 1;
+                const duration = Math.floor(Math.random() * 10) + 3;
+                
+                for (let i = 1; i <= dias; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'gantt-cell';
+                    if (i >= startDay && i < startDay + duration) {
+                        cell.classList.add('active');
+                    }
+                    ganttChart.appendChild(cell);
                 }
-                ganttChart.appendChild(cell);
+            } else {
+                // Usar configuração existente
+                const taskSchedule = cronograma[tarefa.id];
+                for (let i = 1; i <= dias; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'gantt-cell';
+                    if (i >= taskSchedule.start && i <= taskSchedule.end) {
+                        cell.classList.add('active');
+                    }
+                    ganttChart.appendChild(cell);
+                }
             }
-            
-            startDay += duracao;
         });
 
+        // Adicionar funcionalidade de arrastar e soltar
+        setupDragAndDrop();
+
         // Renderizar Curva S
-        renderCurvaS(tarefas, duracoes, dias);
+        renderCurvaS(tarefas);
     };
 
-    const renderCurvaS = (tarefas, duracoes, diasTotal) => {
+    const setupDragAndDrop = () => {
+        const tasks = document.querySelectorAll('.gantt-task');
+        const cells = document.querySelectorAll('.gantt-cell');
+        
+        let draggedTask = null;
+        
+        tasks.forEach(task => {
+            task.addEventListener('dragstart', (e) => {
+                draggedTask = task;
+                e.dataTransfer.setData('text/plain', task.dataset.id);
+            });
+        });
+        
+        cells.forEach(cell => {
+            cell.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedTask) {
+                    // Encontrar a coluna da célula
+                    const allCells = Array.from(document.querySelectorAll('.gantt-cell'));
+                    const cellIndex = allCells.indexOf(cell);
+                    const day = (cellIndex % (parseInt(cronogramaDias.value) || 30)) + 1;
+                    
+                    // Atualizar visualmente (simplificado para demonstração)
+                    cell.classList.add('active');
+                    
+                    // Aqui você salvaria a nova posição no Firestore
+                    // saveTaskPosition(draggedTask.dataset.id, day);
+                }
+            });
+        });
+    };
+
+    const renderCurvaS = (tarefas) => {
+        // Calcular a curva S baseada no progresso das tarefas
         const ctx = document.getElementById('curva-s-chart').getContext('2d');
         
         if (curvaSChart) {
             curvaSChart.destroy();
         }
         
-        // Calcular a curva S baseada nas tarefas e durações
-        const labels = Array.from({length: diasTotal}, (_, i) => `Dia ${i+1}`);
-        
-        // Calcular o valor total da obra
-        const valorTotal = tarefas.reduce((sum, t) => sum + (t.valorTotal || 0), 0);
-        
-        // Calcular o valor planejado por dia
-        const plannedData = new Array(diasTotal).fill(0);
-        let day = 0;
-        
-        tarefas.forEach(tarefa => {
-            const duracao = duracoes[tarefa.id] || 1;
-            const valorPorDia = (tarefa.valorTotal || 0) / duracao;
-            
-            for (let i = 0; i < duracao && day < diasTotal; i++, day++) {
-                plannedData[day] = (day > 0 ? plannedData[day-1] : 0) + valorPorDia;
-            }
+        // Dados de exemplo para a curva S
+        const labels = Array.from({length: 30}, (_, i) => `Dia ${i+1}`);
+        const plannedData = labels.map((_, i) => {
+            // Simulação de uma curva S típica
+            if (i < 5) return i * 2;
+            if (i < 20) return 10 + (i - 5) * 4;
+            return 70 + (i - 20) * 1.5;
         });
         
-        // Calcular o valor realizado (baseado nas medições)
-        const actualData = new Array(diasTotal).fill(0);
-        let currentValor = 0;
-        
-        tarefas.forEach(tarefa => {
-            const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-            currentValor += valorMedido;
+        const actualData = labels.map((_, i) => {
+            // Dados reais (simulados) - normalmente viriam das medições
+            if (i < 7) return i * 1.5;
+            if (i < 22) return 10.5 + (i - 7) * 3.5;
+            return 63 + (i - 22) * 1.2;
         });
-        
-        // Distribuir o valor realizado ao longo do tempo (simulação)
-        for (let i = 0; i < diasTotal; i++) {
-            const progresso = Math.min(1, i / (diasTotal * 0.8)); // Simulação de progresso
-            actualData[i] = currentValor * progresso;
-        }
         
         curvaSChart = new Chart(ctx, {
             type: 'line',
@@ -647,17 +929,13 @@
                         label: 'Planejado',
                         data: plannedData,
                         borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        fill: true,
-                        tension: 0.4
+                        tension: 0.1
                     },
                     {
                         label: 'Realizado',
                         data: actualData,
                         borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: true,
-                        tension: 0.4
+                        tension: 0.1
                     }
                 ]
             },
@@ -719,7 +997,7 @@
                             <div class="flex space-x-2 mt-2">
                                 <button class="edit-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5 5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5 5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
                                     </svg>
                                 </button>
                                 <button class="delete-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
@@ -754,7 +1032,7 @@
             document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const despesaId = e.currentTarget.dataset.id;
-                    openModal('Confirmar Exclusão', `
+                    openModal('Confirmação', `
                         <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta despesa?</p>
                         <div class="flex justify-center space-x-4">
                             <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
@@ -776,10 +1054,455 @@
         });
     };
 
+    const renderRelatorios = async () => {
+        if (!currentObraId) {
+            relatorioContent.innerHTML = '<p class="text-center text-gray-600">Selecione uma obra na aba "Obras" para visualizar os relatórios.</p>';
+            return;
+        }
+
+        const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+        const obraDoc = await getDoc(obraDocRef);
+        const obra = obraDoc.data();
+
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        let totalTarefas = tarefas.length;
+        let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
+        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
+        let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
+
+        relatorioContent.innerHTML = `
+            <h3 class="text-xl font-semibold mb-4">Relatório Geral da Obra</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Total de Tarefas</p>
+                    <p class="text-3xl font-bold">${totalTarefas}</p>
+                    <p class="text-sm text-gray-500">${totalConcluidas} concluídas</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Valor Total Medido</p>
+                    <p class="text-3xl font-bold text-green-600">${formatCurrency(valorMedidoTotal)}</p>
+                    <p class="text-sm text-gray-500">de ${formatCurrency(obra.valorTotal)} total</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Progresso Geral</p>
+                    <p class="text-3xl font-bold">${progressoGeral.toFixed(1)}%</p>
+                    <p class="text-sm text-gray-500">média das tarefas</p>
+                </div>
+            </div>
+
+            <hr class="my-8">
+
+            <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
+                Relatório por Período
+                <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
+            </h3>
+            <div class="space-y-4">
+                <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
+                    <div class="flex-1">
+                        <label for="start-date" class="block text-sm font-medium text-gray-700">Data de Início</label>
+                        <input type="date" id="start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label for="end-date" class="block text-sm font-medium text-gray-700">Data de Fim</label>
+                        <input type="date" id="end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
+                </div>
+                <div id="period-report-result" class="mt-6">
+                    <!-- O resultado do relatório por período será renderizado aqui -->
+                </div>
+            </div>
+        `;
+        
+        const generateBtn = document.getElementById('generate-period-report-btn');
+        generateBtn.addEventListener('click', () => {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            renderRelatorioPorPeriodo(startDate, endDate, tarefas, obra.nome);
+        });
+
+        document.getElementById('read-summary-btn').addEventListener('click', async () => {
+            const summaryText = `Resumo da obra ${obra.nome}. Total de tarefas: ${totalTarefas}. ${totalConcluidas} concluídas. Valor total medido: ${formatCurrency(valorMedidoTotal)}. Progresso geral: ${progressoGeral.toFixed(1)}%`;
+            await speakText(summaryText);
+        });
+
+    };
+
+    // Função para converter ArrayBuffer para Blob
+    const pcmToWav = (pcm16, sampleRate) => {
+        const pcmData = pcm16.buffer;
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+        const blockAlign = numChannels * bitsPerSample / 8;
+        const wavDataSize = pcmData.byteLength;
+        const fileSize = wavDataSize + 44;
+
+        const buffer = new ArrayBuffer(fileSize);
+        const view = new DataView(buffer);
+
+        // RIFF chunk
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, fileSize - 8, true);
+        writeString(view, 8, 'WAVE');
+
+        // fmt chunk
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitsPerSample, true);
+
+        // data chunk
+        writeString(view, 36, 'data');
+        view.setUint32(40, wavDataSize, true);
+
+        // PCM data
+        const pcmView = new Int16Array(pcmData);
+        for (let i = 0; i < pcmView.length; i++) {
+            view.setInt16(44 + i * 2, pcmView[i], true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    };
+
+    const writeString = (view, offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    };
+
+    // Function to convert Base64 to ArrayBuffer
+    const base64ToArrayBuffer = (base64) => {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    };
+
+    // Speak text with TTS API
+    const speakText = async (text) => {
+        const payload = {
+            contents: [{ parts: [{ text: text }] }],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: "Iapetus" }
+                    }
+                }
+            }
+        };
+
+        try {
+            const response = await fetch(`${GEMINI_API_URL_TTS}${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                console.error('API call failed:', response.status, response.statusText);
+                return;
+            }
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType;
+
+            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                
+                const audio = new Audio(audioUrl);
+                audio.play();
+
+            } else {
+                console.error('Invalid audio data received');
+            }
+        } catch (error) {
+            console.error('Error in TTS API call:', error);
+        }
+    };
+
+
+    const renderRelatorioPorPeriodo = (startDate, endDate, tarefas, nomeObra) => {
+        const reportResultDiv = document.getElementById('period-report-result');
+        reportResultDiv.innerHTML = '';
+
+        if (!startDate || !endDate) {
+            reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
+            return;
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
+
+        let totalPeriodo = 0;
+        let relatorioHtml = '';
+        let hasData = false;
+
+        const reportData = [];
+        const taskTotals = {};
+
+        tarefas.forEach(tarefa => {
+            const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
+                const medicaoDate = new Date(medicao.data);
+                return medicaoDate >= start && medicaoDate < end;
+            });
+
+            if (medicoesPeriodo.length > 0) {
+                hasData = true;
+                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
+                totalPeriodo += valorPeriodoTarefa;
+                
+                if (!taskTotals[tarefa.nome]) {
+                    taskTotals[tarefa.nome] = 0;
+                }
+                taskTotals[tarefa.nome] += valorPeriodoTarefa;
+
+
+                relatorioHtml += `
+                    <div class="card p-4 mb-4">
+                        <p class="font-semibold text-lg">${tarefa.nome}</p>
+                        <p class="text-sm text-gray-500 mb-2">Medições realizadas no período:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            ${medicoesPeriodo.map(m => {
+                                const medicaoInfo = `Metragem: ${m.metragem.toFixed(2)} ${tarefa.unidade} - ${formatCurrency(m.valor)} em ${new Date(m.data).toLocaleDateString()}`;
+                                reportData.push({
+                                    'Tarefa': tarefa.nome,
+                                    'Metragem': m.metragem,
+                                    'Unidade': tarefa.unidade,
+                                    'Valor': m.valor,
+                                    'Data': new Date(m.data).toLocaleDateString(),
+                                    'Observacoes': m.observacoes || ''
+                                });
+                                return `<li>${medicaoInfo}</li>`;
+                            }).join('')}
+                        </ul>
+                        <div class="mt-2 text-sm">
+                            <p class="font-bold">Total Medido nesta tarefa: <span class="text-green-600">${formatCurrency(valorPeriodoTarefa)}</span></p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (!hasData) {
+            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada no período selecionado.</p>';
+        } else {
+            reportResultDiv.innerHTML = `
+                <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-bold text-xl">Total a Receber no Período:</p>
+                        <p class="text-4xl font-extrabold text-green-700 mt-2">${formatCurrency(totalPeriodo)}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button id="export-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
+                        <button id="export-excel-btn" class="btn btn-secondary">Exportar Excel</button>
+                    </div>
+                </div>
+                ${relatorioHtml}
+            `;
+
+            document.getElementById('export-pdf-btn').addEventListener('click', () => {
+                exportPDF(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
+            document.getElementById('export-excel-btn').addEventListener('click', () => {
+                exportExcel(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
+        }
+    };
+
+    const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
+
+        doc.setFontSize(12);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
+        doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
+
+        // First table: detailed report
+        const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
+        const rows = data.map(item => [
+            item.Tarefa,
+            item.Metragem.toFixed(2),
+            item.Unidade,
+            item.Valor.toFixed(2),
+            item.Data,
+            item.Observacoes
+        ]);
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: 45
+        });
+
+        // Second table: task totals
+        const taskTotalColumns = ["Tarefa", "Total a Receber"];
+        const taskTotalRows = Object.keys(taskTotals).map(taskName => [
+            taskName,
+            formatCurrency(taskTotals[taskName])
+        ]);
+        doc.autoTable({
+            head: [taskTotalColumns],
+            body: taskTotalRows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor: [52, 58, 64] },
+            bodyStyles: { textColor: [33, 37, 41] },
+        });
+
+        doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
+    };
+
+    const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        // Prepare detailed data
+        const detailedData = [
+            ["Relatório de Medições"],
+            [`Obra: ${nomeObra}`],
+            [`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`],
+            [`Total a Receber: ${formatCurrency(total)}`],
+            [],
+            ["Relatório Detalhado"],
+            ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"]
+        ].concat(data.map(item => [
+            item.Tarefa,
+            item.Metragem,
+            item.Unidade,
+            item.Valor,
+            item.Data,
+            item.Observacoes
+        ]));
+
+        // Prepare task totals data
+        const taskTotalData = [
+            [],
+            [],
+            ["Totais por Tarefa"],
+            ["Tarefa", "Total a Receber"]
+        ].concat(Object.keys(taskTotals).map(taskName => [
+            taskName,
+            taskTotals[taskName]
+        ]));
+
+        const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio");
+        XLSX.writeFile(workbook, `relatorio_${nomeObra}_${startDate}_${endDate}.xlsx`);
+    };
+
+    // Forms
+    const openObraForm = (obra = {}) => {
+        const formHtml = `
+            <form id="obra-form" class="space-y-4">
+                <div>
+                    <label for="obra-nome" class="block text-sm font-medium text-gray-700">Nome da Obra</label>
+                    <input type="text" id="obra-nome" name="nome" value="${obra.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <div>
+                    <label for="obra-localizacao" class="block text-sm font-medium text-gray-700">Localização</label>
+                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <div>
+                    <label for="obra-valor" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
+                    <input type="number" id="obra-valor" name="valorTotal" value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${obra.id ? 'Atualizar' : 'Salvar'}</button>
+            </form>
+        `;
+        openModal(obra.id ? 'Editar Obra' : 'Nova Obra', formHtml);
+        document.getElementById('obra-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newObra = {
+                nome: formData.get('nome'),
+                localizacao: formData.get('localizacao'),
+                valorTotal: parseFloat(formData.get('valorTotal')),
+                valorMedido: obra.valorMedido || 0
+            };
+            addOrUpdateObra({ ...newObra, id: obra.id });
+        });
+    };
+    
+    const openTarefaForm = (tarefa = {}) => {
+        const formHtml = `
+            <form id="tarefa-form" class="space-y-4">
+                <div>
+                    <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
+                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
+                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade (m, un, etc.)</label>
+                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
+                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
+                    <button type="button" id="gerar-descricao-btn" class="btn btn-secondary mt-2">Gerar Descrição ✨</button>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
+            </form>
+        `;
+        openModal(tarefa.id ? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
+        document.getElementById('tarefa-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const metragemTotal = parseFloat(formData.get('metragemTotal'));
+            const valorTotal = parseFloat(formData.get('valorTotal'));
+            const valorUnitario = metragemTotal > 0 ? (valorTotal / metragemTotal) : 0;
+            const newTarefa = {
+                nome: formData.get('nome'),
+                metragemTotal: metragemTotal,
+                unidade: formData.get('unidade'),
+                valorUnitario: valorUnitario,
+                valorTotal: valorTotal,
+                descricao: formData.get('descricao'),
+                medicoes: tarefa.medicoes || []
+            };
+            addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
+        });
+
+        document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
+            const nome = document.getElementById('tarefa-nome').value;
+            const unidade = document.getElementById('tarefa-unidade').value;
+            if (nome && unidade) {
+                generateTaskDescription(nome, unidade);
+            } else {
+                openModal('Atenção', 'Por favor, preencha o nome da tarefa e a unidade primeiro.');
+            }
+        });
+    };
+
     // Formulário para Despesas
     const openDespesaForm = (despesa = {}) => {
         const formHtml = `
-            <form id="despesa-form" class="space-y-4 despesa-form">
+            <form id="despesa-form" class="space-y-4">
                 <div>
                     <label for="despesa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
                     <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
@@ -824,54 +1547,193 @@
         });
     };
 
-    // Relatório de Despesas em PDF
-    const exportDespesasPDF = async () => {
-        if (!currentObraId) return;
+    // LLM - Gerador de Descrição de Tarefa
+    const generateTaskDescription = async (nome, unidade) => {
+        const descricaoTextarea = document.getElementById('tarefa-descricao');
+        const generateBtn = document.getElementById('gerar-descricao-btn');
+        const originalBtnText = generateBtn.textContent;
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Gerando...';
         
-        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
-        const snapshot = await getDocs(despesasRef);
-        const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-        const obraDoc = await getDoc(obraDocRef);
-        const obra = obraDoc.data();
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        doc.setFontSize(18);
-        doc.text(`Relatório de Despesas - ${obra.nome}`, 14, 22);
-        
-        doc.setFontSize(12);
-        doc.text(`Data de emissão: ${new Date().toLocaleDateString()}`, 14, 30);
-        
-        // Calcular totais
-        const total = despesas.reduce((sum, d) => sum + d.valor, 0);
-        doc.text(`Total de despesas: ${formatCurrency(total)}`, 14, 38);
-        
-        // Tabela de despesas
-        const columns = ["Descrição", "Categoria", "Data", "Valor (R$)"];
-        const rows = despesas.map(item => [
-            item.descricao,
-            item.categoria,
-            new Date(item.data).toLocaleDateString(),
-            item.valor.toFixed(2)
-        ]);
-        
-        doc.autoTable({
-            head: [columns],
-            body: rows,
-            startY: 45,
-            theme: 'grid',
-            headStyles: { fillColor: [226, 27, 47] }, // Vermelho da empresa
-        });
-        
-        doc.save(`relatorio_despesas_${obra.nome}_${new Date().toISOString().split('T')[0]}.pdf`);
+        const prompt = `Gere uma descrição concisa e profissional para uma tarefa de engenharia de combate a incêndio. O nome da tarefa é "${nome}" e a unidade de medição é "${unidade}". A descrição deve ser focada em detalhes técnicos relevantes para a medição da obra, como "Instalação da tubulação principal de 4 polegadas. A medição será por metro linear (m)."`;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+        };
+
+        try {
+            const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            descricaoTextarea.value = description.trim();
+
+        } catch (error) {
+            console.error("Erro ao gerar descrição:", error);
+            descricaoTextarea.value = "Erro ao gerar descrição. Tente novamente.";
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.textContent = originalBtnText;
+        }
     };
+
+    const openMedicaoForm = (tarefa) => {
+        const formHtml = `
+            <form id="medicao-form" class="space-y-4">
+                <div>
+                    <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
+                    <input type="number" step="0.01" id="medicao-metragem" name="metragem" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Adicionar Medição</button>
+            </form>
+        `;
+        openModal('Nova Medição', formHtml);
+        document.getElementById('medicao-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const metragem = parseFloat(formData.get('metragem'));
+            const observacoes = formData.get('observacoes');
+            
+            // Calculate valor automatically based on valorUnitario
+            const valor = tarefa.valorUnitario * metragem;
+
+            const newMedicao = {
+                metragem: metragem,
+                valor: valor,
+                observacoes: observacoes,
+                data: new Date().toISOString()
+            };
+            addMedicaoToTarefa(tarefa.id, newMedicao);
+            closeModal();
+        });
+    };
+
+    const openMedicoesList = (tarefaId, medicoes) => {
+        const listHtml = `
+            <ul class="space-y-2" id="medicao-list">
+                ${medicoes.map((medicao, index) => `
+                    <li class="p-4 bg-gray-100 rounded-lg flex flex-wrap justify-between items-center medicoes-list-item">
+                        <div class="mb-2 md:mb-0">
+                            <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
+                            <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
+                            <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
+                            <p class="text-xs text-gray-500">${new Date(medicao.data).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
+
+        document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const medicaoIndex = e.currentTarget.dataset.index;
+                const medicao = medicoes[medicaoIndex];
+                openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
+            });
+        });
+        document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const medicaoIndex = e.currentTarget.dataset.index;
+                openModal('Confirmar Exclusão', `
+                    <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta medição?</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
+                        <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                    </div>
+                `);
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                    deleteMedicao(tarefaId, medicaoIndex);
+                    closeModal();
+                });
+                document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
+            });
+        });
+    };
+    
+    const deleteMedicao = async (tarefaId, medicaoIndex) => {
+        const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+        const tarefaDoc = await getDoc(tarefaDocRef);
+        const tarefa = tarefaDoc.data();
+        
+        if (tarefa.medicoes && tarefa.medicoes[medicaoIndex]) {
+            tarefa.medicoes.splice(medicaoIndex, 1);
+            await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
+            // Re-render the list to show the change
+            openMedicoesList(tarefaId, tarefa.medicoes);
+        }
+    };
+
+    const openEditMedicaoForm = (tarefaId, medicaoIndex, medicao) => {
+        const formHtml = `
+            <form id="edit-medicao-form" class="space-y-4">
+                <div>
+                    <label for="edit-medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
+                    <input type="number" step="0.01" id="edit-medicao-metragem" name="metragem" value="${medicao.metragem}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${medicao.observacoes || ''}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
+            </form>
+        `;
+        openModal('Editar Medição', formHtml);
+        document.getElementById('edit-medicao-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const metragem = parseFloat(formData.get('metragem'));
+            const observacoes = formData.get('observacoes');
+            
+            const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+            const tarefaDoc = await getDoc(tarefaDocRef);
+            const tarefa = tarefaDoc.data();
+            
+            const valor = tarefa.valorUnitario * metragem;
+            
+            const updatedMedicao = {
+                metragem: metragem,
+                valor: valor,
+                observacoes: observacoes,
+                data: medicao.data
+            };
+            
+            await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
+            closeModal();
+        });
+    }
 
     // Event listeners for main buttons
     addObraBtn.addEventListener('click', () => openObraForm());
     addTarefaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        openTarefaForm();
+    });
+    
+    addTarefaCronogramaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
@@ -893,14 +1755,6 @@
             return;
         }
         openDespesaForm();
-    });
-    
-    relatorioDespesasBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        exportDespesasPDF();
     });
 
     // Run app
