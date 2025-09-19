@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed;
+            background: url('https://i.ibb.co/Kz2Bk089/Apresenta-o-Casa-Castilho-17-Editado.png') no-repeat center center fixed; /* Fundo com a nova imagem */
             background-size: cover;
             color: #fff;
         }
@@ -34,11 +34,11 @@
             transition: background-color 0.3s;
         }
         .btn-primary {
-            background-color: #E21B2F;
+            background-color: #E21B2F; /* Vermelho do logo */
             color: #fff;
         }
         .btn-primary:hover {
-            background-color: #c7172a;
+            background-color: #c7172a; /* Tom mais escuro */
         }
         .btn-secondary {
             background-color: #e9ecef;
@@ -58,21 +58,19 @@
             cursor: pointer;
         }
         .tab-btn.active {
-            background-color: #494C4F;
+            background-color: #494C4F; /* Cinza do logo */
             color: #fff;
         }
+
+        /* Estilos para campos de input para garantir visibilidade */
         input[type="text"], input[type="number"], input[type="date"], textarea {
             color: #000;
         }
+
         .medicoes-list-item {
             color: #000;
         }
-        .gantt-container {
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
     </style>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
 </head>
 <body>
 
@@ -117,7 +115,6 @@
             <div class="flex flex-wrap bg-gray-200 p-2 rounded-full space-x-2 mb-8">
                 <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
-                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
             </div>
 
@@ -155,23 +152,6 @@
                     </div>
                 </div>
 
-                <!-- Cronograma Section -->
-                <div id="cronograma-view" class="tab-content hidden">
-                    <h2 class="text-2xl font-semibold mb-6">Cronograma da Obra</h2>
-                    <div class="gantt-container">
-                        <div id="gantt"></div>
-                    </div>
-
-                    <div class="flex justify-end space-x-2 mt-6">
-                        <button id="export-curvaS-pdf" class="btn btn-secondary">Exportar Curva S (PDF)</button>
-                        <button id="export-curvaS-excel" class="btn btn-secondary">Exportar Curva S (Excel)</button>
-                        <button id="export-gantt-pdf" class="btn btn-secondary">Exportar Gantt (PDF)</button>
-                        <button id="export-gantt-png" class="btn btn-secondary">Exportar Gantt (PNG)</button>
-                    </div>
-
-                    <canvas id="curvaS" class="mt-10 w-full h-64"></canvas>
-                </div>
-
                 <!-- Relatórios Section -->
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
@@ -200,9 +180,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script type="module">
     // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -213,15 +190,23 @@
     // Set Firebase log level for debugging
     setLogLevel('Debug');
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-        authDomain: "medicoes-ppci.firebaseapp.com",
-        projectId: "medicoes-ppci",
-        storageBucket: "medicoes-ppci.firebasestorage.app",
-        messagingSenderId: "408815173796",
-        appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-        measurementId: "G-9YW2XQH2HH"
-    };
+    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
+    // Entre em "Configurações do projeto" > "Seus apps"
+    // Copie e cole o objeto de configuração aqui.
+    // Exemplo:
+   const firebaseConfig = {
+    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+    authDomain: "medicoes-ppci.firebaseapp.com",
+    projectId: "medicoes-ppci",
+    storageBucket: "medicoes-ppci.firebasestorage.app",
+    messagingSenderId: "408815173796",
+    appId: "1:408815173796:web:efd25d921a7f0ee923e631",
+    measurementId: "G-9YW2XQH2HH"
+  };
+
+    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
+    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
+    // const API_KEY = "YOUR_GEMINI_API_KEY";
 
     const API_KEY = ''; 
 
@@ -302,22 +287,17 @@
 
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
+                    // Crie um modal customizado no lugar do alert() para melhorar a UX
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click();
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderTarefas();
                 }
-            } else if (tab.dataset.tab === 'cronograma') {
-                if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click();
-                } else {
-                    renderCronograma();
-                }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
+                    // Crie um modal customizado no lugar do alert() para melhorar a UX
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click();
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
                 }
@@ -378,8 +358,8 @@
 
     logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
-        currentObraId = null;
-        tabs[0].click();
+        currentObraId = null; // Reset current obra
+        tabs[0].click(); // Go back to obras tab
     });
 
 
@@ -407,6 +387,7 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
             await updateDoc(docRef, obra);
         } else {
+            // Remove o campo 'id' para evitar o erro "Unsupported field value: undefined (found in field id)"
             const { id, ...newObraData } = obra;
             await addDoc(obrasRef, newObraData);
         }
@@ -449,6 +430,7 @@
         }
     }
 
+
     // Render functions
     const renderObras = (obras) => {
         obrasList.innerHTML = '';
@@ -485,7 +467,7 @@
             `;
             obraCard.addEventListener('click', () => {
                 currentObraId = obra.id;
-                tabs[1].click();
+                tabs[1].click(); // Switch to Tarefas tab
             });
             obrasList.appendChild(obraCard);
         });
@@ -501,6 +483,7 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const obraId = e.currentTarget.dataset.id;
+                // Crie um modal customizado no lugar do confirm()
                 openModal('Confirmação', `
                     <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta obra?</p>
                     <div class="flex justify-center space-x-4">
@@ -604,6 +587,7 @@
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
+                    // Crie um modal customizado no lugar do confirm()
                     openModal('Confirmação', `
                         <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta tarefa?</p>
                         <div class="flex justify-center space-x-4">
@@ -630,615 +614,641 @@
         await deleteDoc(docRef);
     }
 
-    // Função para renderizar Cronograma (Gantt + Curva S)
-    const renderCronograma = async () => {
+    const renderRelatorios = async () => {
         if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            tabs[0].click(); 
+            relatorioContent.innerHTML = '<p class="text-center text-gray-600">Selecione uma obra na aba "Obras" para visualizar os relatórios.</p>';
             return;
         }
+
+        const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+        const obraDoc = await getDoc(obraDocRef);
+        const obra = obraDoc.data();
 
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // Renderizar Gantt
-        const ganttContainer = document.getElementById('gantt');
-        ganttContainer.innerHTML = ''; // Limpar conteúdo anterior
+        let totalTarefas = tarefas.length;
+        let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
+        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
+        let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
 
-        // Filtrar tarefas que têm datas de início e fim
-        const tarefasComDatas = tarefas.filter(t => t.dataInicio && t.dataFim);
+        relatorioContent.innerHTML = `
+            <h3 class="text-xl font-semibold mb-4">Relatório Geral da Obra</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Total de Tarefas</p>
+                    <p class="text-3xl font-bold">${totalTarefas}</p>
+                    <p class="text-sm text-gray-500">${totalConcluidas} concluídas</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Valor Total Medido</p>
+                    <p class="text-3xl font-bold text-green-600">${formatCurrency(valorMedidoTotal)}</p>
+                    <p class="text-sm text-gray-500">de ${formatCurrency(obra.valorTotal)} total</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">Progresso Geral</p>
+                    <p class="text-3xl font-bold">${progressoGeral.toFixed(1)}%</p>
+                    <p class="text-sm text-gray-500">média das tarefas</p>
+                </div>
+            </div>
+
+            <hr class="my-8">
+
+            <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
+                Relatório por Período
+                <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
+            </h3>
+            <div class="space-y-4">
+                <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
+                    <div class="flex-1">
+                        <label for="start-date" class="block text-sm font-medium text-gray-700">Data de Início</label>
+                        <input type="date" id="start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label for="end-date" class="block text-sm font-medium text-gray-700">Data de Fim</label>
+                        <input type="date" id="end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
+                </div>
+                <div id="period-report-result" class="mt-6">
+                    <!-- O resultado do relatório por período será renderizado aqui -->
+                </div>
+            </div>
+        `;
         
-        if (tarefasComDatas.length === 0) {
-            ganttContainer.innerHTML = '<p class="text-center text-gray-700">Nenhuma tarefa com datas definidas para exibir no cronograma.</p>';
+        const generateBtn = document.getElementById('generate-period-report-btn');
+        generateBtn.addEventListener('click', () => {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            renderRelatorioPorPeriodo(startDate, endDate, tarefas, obra.nome);
+        });
+
+        document.getElementById('read-summary-btn').addEventListener('click', async () => {
+            const summaryText = `Resumo da obra ${obra.nome}. Total de tarefas: ${totalTarefas}. ${totalConcluidas} concluídas. Valor total medido: ${formatCurrency(valorMedidoTotal)}. Progresso geral: ${progressoGeral.toFixed(1)}%`;
+            await speakText(summaryText);
+        });
+
+    };
+
+    // Função para converter ArrayBuffer para Blob
+    const pcmToWav = (pcm16, sampleRate) => {
+        const pcmData = pcm16.buffer;
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+        const blockAlign = numChannels * bitsPerSample / 8;
+        const wavDataSize = pcmData.byteLength;
+        const fileSize = wavDataSize + 44;
+
+        const buffer = new ArrayBuffer(fileSize);
+        const view = new DataView(buffer);
+
+        // RIFF chunk
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, fileSize - 8, true);
+        writeString(view, 8, 'WAVE');
+
+        // fmt chunk
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitsPerSample, true);
+
+        // data chunk
+        writeString(view, 36, 'data');
+        view.setUint32(40, wavDataSize, true);
+
+        // PCM data
+        const pcmView = new Int16Array(pcmData);
+        for (let i = 0; i < pcmView.length; i++) {
+            view.setInt16(44 + i * 2, pcmView[i], true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    };
+
+    const writeString = (view, offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    };
+
+    // Function to convert Base64 to ArrayBuffer
+    const base64ToArrayBuffer = (base64) => {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    };
+
+    // Speak text with TTS API
+    const speakText = async (text) => {
+        const payload = {
+            contents: [{ parts: [{ text: text }] }],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: "Iapetus" }
+                    }
+                }
+            }
+        };
+
+        try {
+            const response = await fetch(`${GEMINI_API_URL_TTS}${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                console.error('API call failed:', response.status, response.statusText);
+                return;
+            }
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType;
+
+            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                
+                const audio = new Audio(audioUrl);
+                audio.play();
+
+            } else {
+                console.error('Invalid audio data received');
+            }
+        } catch (error) {
+            console.error('Error in TTS API call:', error);
+        }
+    };
+
+
+    const renderRelatorioPorPeriodo = (startDate, endDate, tarefas, nomeObra) => {
+        const reportResultDiv = document.getElementById('period-report-result');
+        reportResultDiv.innerHTML = '';
+
+        if (!startDate || !endDate) {
+            reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
             return;
         }
 
-        // Converter para formato que o Frappe Gantt entende
-        const tasks = tarefasComDatas.map(tarefa => ({
-            id: tarefa.id,
-            name: tarefa.nome,
-            start: tarefa.dataInicio,
-            end: tarefa.dataFim,
-            progress: calculatePercentage(
-                (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0),
-                tarefa.valorTotal
-            ),
-            dependencies: tarefa.dependencias || ''
-        }));
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
 
-        // Inicializar gráfico Gantt
-        const gantt = new Gantt(ganttContainer, tasks, {
-            on_click: function (task) {
-                console.log("Tarefa clicada:", task);
-            },
-            on_date_change: function (task, start, end) {
-                console.log("Data alterada:", task, start, end);
-                // Atualizar data no Firebase
-                updateTarefaDate(task.id, start, end);
-            },
-            on_progress_change: function (task, progress) {
-                console.log("Progresso alterado:", task, progress);
-            },
-            view_mode: 'Month',
-            language: 'pt'
+        let totalPeriodo = 0;
+        let relatorioHtml = '';
+        let hasData = false;
+
+        const reportData = [];
+        const taskTotals = {};
+
+        tarefas.forEach(tarefa => {
+            const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
+                const medicaoDate = new Date(medicao.data);
+                return medicaoDate >= start && medicaoDate < end;
+            });
+
+            if (medicoesPeriodo.length > 0) {
+                hasData = true;
+                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
+                totalPeriodo += valorPeriodoTarefa;
+                
+                if (!taskTotals[tarefa.nome]) {
+                    taskTotals[tarefa.nome] = 0;
+                }
+                taskTotals[tarefa.nome] += valorPeriodoTarefa;
+
+
+                relatorioHtml += `
+                    <div class="card p-4 mb-4">
+                        <p class="font-semibold text-lg">${tarefa.nome}</p>
+                        <p class="text-sm text-gray-500 mb-2">Medições realizadas no período:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            ${medicoesPeriodo.map(m => {
+                                const medicaoInfo = `Metragem: ${m.metragem.toFixed(2)} ${tarefa.unidade} - ${formatCurrency(m.valor)} em ${new Date(m.data).toLocaleDateString()}`;
+                                reportData.push({
+                                    'Tarefa': tarefa.nome,
+                                    'Metragem': m.metragem,
+                                    'Unidade': tarefa.unidade,
+                                    'Valor': m.valor,
+                                    'Data': new Date(m.data).toLocaleDateString(),
+                                    'Observacoes': m.observacoes || ''
+                                });
+                                return `<li>${medicaoInfo}</li>`;
+                            }).join('')}
+                        </ul>
+                        <div class="mt-2 text-sm">
+                            <p class="font-bold">Total Medido nesta tarefa: <span class="text-green-600">${formatCurrency(valorPeriodoTarefa)}</span></p>
+                        </div>
+                    </div>
+                `;
+            }
         });
 
-        // Renderizar Curva S
-        renderCurvaS(tarefas);
+        if (!hasData) {
+            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada no período selecionado.</p>';
+        } else {
+            reportResultDiv.innerHTML = `
+                <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-bold text-xl">Total a Receber no Período:</p>
+                        <p class="text-4xl font-extrabold text-green-700 mt-2">${formatCurrency(totalPeriodo)}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button id="export-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
+                        <button id="export-excel-btn" class="btn btn-secondary">Exportar Excel</button>
+                    </div>
+                </div>
+                ${relatorioHtml}
+            `;
+
+            document.getElementById('export-pdf-btn').addEventListener('click', () => {
+                exportPDF(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
+            document.getElementById('export-excel-btn').addEventListener('click', () => {
+                exportExcel(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
+        }
     };
 
-    // Função para atualizar datas da tarefa no Firebase
-    const updateTarefaDate = async (tarefaId, start, end) => {
-        const tarefaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
-        await updateDoc(tarefaRef, {
-            dataInicio: start.toISOString().split('T')[0],
-            dataFim: end.toISOString().split('T')[0]
+    const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
+
+        doc.setFontSize(12);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
+        doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
+
+        // First table: detailed report
+        const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
+        const rows = data.map(item => [
+            item.Tarefa,
+            item.Metragem.toFixed(2),
+            item.Unidade,
+            item.Valor.toFixed(2),
+            item.Data,
+            item.Observacoes
+        ]);
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: 45
+        });
+
+        // Second table: task totals
+        const taskTotalColumns = ["Tarefa", "Total a Receber"];
+        const taskTotalRows = Object.keys(taskTotals).map(taskName => [
+            taskName,
+            formatCurrency(taskTotals[taskName])
+        ]);
+        doc.autoTable({
+            head: [taskTotalColumns],
+            body: taskTotalRows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor: [52, 58, 64] },
+            bodyStyles: { textColor: [33, 37, 41] },
+        });
+
+        doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
+    };
+
+    const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        // Prepare detailed data
+        const detailedData = [
+            ["Relatório de Medições"],
+            [`Obra: ${nomeObra}`],
+            [`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`],
+            [`Total a Receber: ${formatCurrency(total)}`],
+            [],
+            ["Relatório Detalhado"],
+            ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"]
+        ].concat(data.map(item => [
+            item.Tarefa,
+            item.Metragem,
+            item.Unidade,
+            item.Valor,
+            item.Data,
+            item.Observacoes
+        ]));
+
+        // Prepare task totals data
+        const taskTotalData = [
+            [],
+            [],
+            ["Totais por Tarefa"],
+            ["Tarefa", "Total a Receber"]
+        ].concat(Object.keys(taskTotals).map(taskName => [
+            taskName,
+            taskTotals[taskName]
+        ]));
+
+        const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio");
+        XLSX.writeFile(workbook, `relatorio_${nomeObra}_${startDate}_${endDate}.xlsx`);
+    };
+
+    // Forms
+    const openObraForm = (obra = {}) => {
+        const formHtml = `
+            <form id="obra-form" class="space-y-4">
+                <div>
+                    <label for="obra-nome" class="block text-sm font-medium text-gray-700">Nome da Obra</label>
+                    <input type="text" id="obra-nome" name="nome" value="${obra.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <div>
+                    <label for="obra-localizacao" class="block text-sm font-medium text-gray-700">Localização</label>
+                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <div>
+                    <label for="obra-valor" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
+                    <input type="number" id="obra-valor" name="valorTotal" value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${obra.id ? 'Atualizar' : 'Salvar'}</button>
+            </form>
+        `;
+        openModal(obra.id ? 'Editar Obra' : 'Nova Obra', formHtml);
+        document.getElementById('obra-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newObra = {
+                nome: formData.get('nome'),
+                localizacao: formData.get('localizacao'),
+                valorTotal: parseFloat(formData.get('valorTotal')),
+                valorMedido: obra.valorMedido || 0
+            };
+            addOrUpdateObra({ ...newObra, id: obra.id });
         });
     };
+    
+    const openTarefaForm = (tarefa = {}) => {
+        const formHtml = `
+            <form id="tarefa-form" class="space-y-4">
+                <div>
+                    <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
+                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
+                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade (m, un, etc.)</label>
+                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
+                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
+                    <button type="button" id="gerar-descricao-btn" class="btn btn-secondary mt-2">Gerar Descrição ✨</button>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
+            </form>
+        `;
+        openModal(tarefa.id ? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
+        document.getElementById('tarefa-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const metragemTotal = parseFloat(formData.get('metragemTotal'));
+            const valorTotal = parseFloat(formData.get('valorTotal'));
+            const valorUnitario = metragemTotal > 0 ? (valorTotal / metragemTotal) : 0;
+            const newTarefa = {
+                nome: formData.get('nome'),
+                metragemTotal: metragemTotal,
+                unidade: formData.get('unidade'),
+                valorUnitario: valorUnitario,
+                valorTotal: valorTotal,
+                descricao: formData.get('descricao'),
+                medicoes: tarefa.medicoes || []
+            };
+            addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
+        });
 
-    // Função para renderizar Curva S
-    const renderCurvaS = (tarefas) => {
-        const canvas = document.getElementById('curvaS');
-        if (!canvas) return;
-        
-        // Limpar canvas anterior
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Calcular dados para a Curva S
-        const datas = [];
-        const valoresPlanejados = [];
-        const valoresReais = [];
-        
-        // Ordenar tarefas por data
-        const tarefasOrdenadas = tarefas
-            .filter(t => t.dataInicio && t.dataFim)
-            .sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio));
-        
-        if (tarefasOrdenadas.length === 0) return;
-        
-        // Calcular datas do projeto
-        const primeiraData = new Date(tarefasOrdenadas[0].dataInicio);
-        const ultimaData = new Date(tarefasOrdenadas.reduce((latest, tarefa) => {
-            const dataFim = new Date(tarefa.dataFim);
-            return dataFim > latest ? dataFim : latest;
-        }, new Date(tarefasOrdenadas[0].dataFim)));
-        
-        // Gerar array de datas (mensal)
-        let dataAtual = new Date(primeiraData);
-        while (dataAtual <= ultimaData) {
-            datas.push(new Date(dataAtual));
-            dataAtual.setMonth(dataAtual.getMonth() + 1);
-        }
-        
-        // Calcular valores planejados (acumulado)
-        let acumuladoPlanejado = 0;
-        for (const data of datas) {
-            // Soma o valor das tarefas que deveriam estar concluídas até esta data
-            const valorMes = tarefasOrdenadas.reduce((sum, tarefa) => {
-                const dataInicioTarefa = new Date(tarefa.dataInicio);
-                const dataFimTarefa = new Date(tarefa.dataFim);
-                
-                if (dataFimTarefa <= data) {
-                    // Tarefa totalmente concluída até esta data
-                    return sum + (tarefa.valorTotal || 0);
-                } else if (dataInicioTarefa <= data) {
-                    // Tarefa parcialmente concluída (progresso linear)
-                    const diasTotais = (dataFimTarefa - dataInicioTarefa) / (1000 * 60 * 60 * 24);
-                    const diasAteData = (data - dataInicioTarefa) / (1000 * 60 * 60 * 24);
-                    const percentual = Math.min(diasAteData / diasTotais, 1);
-                    return sum + (tarefa.valorTotal || 0) * percentual;
-                }
-                return sum;
-            }, 0);
-            
-            acumuladoPlanejado = valorMes;
-            valoresPlanejados.push(acumuladoPlanejado);
-        }
-        
-        // Calcular valores reais (baseado nas medições)
-        let acumuladoReal = 0;
-        for (const data of datas) {
-            // Soma o valor das medições feitas até esta data
-            const valorMes = tarefasOrdenadas.reduce((sum, tarefa) => {
-                if (!tarefa.medicoes) return sum;
-                
-                const medicoesAteData = tarefa.medicoes.filter(medicao => {
-                    const dataMedicao = new Date(medicao.data);
-                    return dataMedicao <= data;
-                });
-                
-                const valorMedido = medicoesAteData.reduce((medSum, medicao) => medSum + (medicao.valor || 0), 0);
-                return sum + Math.min(valorMedido, tarefa.valorTotal || 0);
-            }, 0);
-            
-            acumuladoReal = valorMes;
-            valoresReais.push(acumuladoReal);
-        }
-        
-        // Criar gráfico da Curva S
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: datas.map(d => d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })),
-                datasets: [
-                    {
-                        label: 'Planejado',
-                        data: valoresPlanejados,
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Realizado',
-                        data: valoresReais,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Curva S - Evolução do Projeto'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Valor (R$)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Tempo'
-                        }
-                    }
-                }
+        document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
+            const nome = document.getElementById('tarefa-nome').value;
+            const unidade = document.getElementById('tarefa-unidade').value;
+            if (nome && unidade) {
+                generateTaskDescription(nome, unidade);
+            } else {
+                openModal('Atenção', 'Por favor, preencha o nome da tarefa e a unidade primeiro.');
             }
         });
     };
 
-    const renderRelatorios = async () => {
-        if (!currentObraId) return;
+    // LLM - Gerador de Descrição de Tarefa
+    const generateTaskDescription = async (nome, unidade) => {
+        const descricaoTextarea = document.getElementById('tarefa-descricao');
+        const generateBtn = document.getElementById('gerar-descricao-btn');
+        const originalBtnText = generateBtn.textContent;
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Gerando...';
         
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        const obraDoc = await getDoc(doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId));
-        const obra = obraDoc.data();
-        
-        let totalPlanejado = 0;
-        let totalMedido = 0;
-        
-        tarefas.forEach(tarefa => {
-            totalPlanejado += tarefa.valorTotal || 0;
-            totalMedido += (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-        });
-        
-        const percentualConcluido = calculatePercentage(totalMedido, totalPlanejado);
-        
-        relatorioContent.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Valor Total Planejado</h3>
-                    <p class="text-2xl font-bold text-blue-600">${formatCurrency(totalPlanejado)}</p>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Valor Total Medido</h3>
-                    <p class="text-2xl font-bold text-green-600">${formatCurrency(totalMedido)}</p>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Percentual Concluído</h3>
-                    <p class="text-2xl font-bold text-purple-600">${percentualConcluido.toFixed(1)}%</p>
-                </div>
-            </div>
-            
-            <div class="mt-8">
-                <h3 class="text-xl font-semibold mb-4">Detalhamento por Tarefa</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-4 border-b">Tarefa</th>
-                                <th class="py-2 px-4 border-b">Valor Planejado</th>
-                                <th class="py-2 px-4 border-b">Valor Medido</th>
-                                <th class="py-2 px-4 border-b">% Concluído</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tarefas.map(tarefa => {
-                                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-                                const percentual = calculatePercentage(valorMedido, tarefa.valorTotal);
-                                return `
-                                    <tr>
-                                        <td class="py-2 px-4 border-b">${tarefa.nome}</td>
-                                        <td class="py-2 px-4 border-b">${formatCurrency(tarefa.valorTotal)}</td>
-                                        <td class="py-2 px-4 border-b">${formatCurrency(valorMedido)}</td>
-                                        <td class="py-2 px-4 border-b">${percentual.toFixed(1)}%</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="mt-8 flex justify-center space-x-4">
-                <button id="export-relatorio-pdf" class="btn btn-primary">Exportar PDF</button>
-                <button id="export-relatorio-excel" class="btn btn-primary">Exportar Excel</button>
-            </div>
-        `;
-        
-        document.getElementById('export-relatorio-pdf').addEventListener('click', () => exportRelatorioPDF(obra, tarefas));
-        document.getElementById('export-relatorio-excel').addEventListener('click', () => exportRelatorioExcel(obra, tarefas));
-    };
+        const prompt = `Gere uma descrição concisa e profissional para uma tarefa de engenharia de combate a incêndio. O nome da tarefa é "${nome}" e a unidade de medição é "${unidade}". A descrição deve ser focada em detalhes técnicos relevantes para a medição da obra, como "Instalação da tubulação principal de 4 polegadas. A medição será por metro linear (m)."`;
 
-    // Form functions
-    const openObraForm = (obra = null) => {
-        const isEdit = !!obra;
-        const title = isEdit ? 'Editar Obra' : 'Nova Obra';
-        const content = `
-            <form id="obra-form" class="space-y-4">
-                <input type="hidden" id="obra-id" value="${obra?.id || ''}">
-                <div>
-                    <label for="obra-nome" class="block text-sm font-medium text-gray-700">Nome da Obra</label>
-                    <input type="text" id="obra-nome" value="${obra?.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="obra-localizacao" class="block text-sm font-medium text-gray-700">Localização</label>
-                    <input type="text" id="obra-localizacao" value="${obra?.localizacao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="obra-valorTotal" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
-                    <input type="number" id="obra-valorTotal" value="${obra?.valorTotal || ''}" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="obra-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="obra-descricao" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${obra?.descricao || ''}</textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">${isEdit ? 'Atualizar' : 'Criar'} Obra</button>
-            </form>
-        `;
-        openModal(title, content);
-        
-        document.getElementById('obra-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const obraData = {
-                id: document.getElementById('obra-id').value || null,
-                nome: document.getElementById('obra-nome').value,
-                localizacao: document.getElementById('obra-localizacao').value,
-                valorTotal: parseFloat(document.getElementById('obra-valorTotal').value),
-                descricao: document.getElementById('obra-descricao').value
-            };
-            addOrUpdateObra(obraData);
-        });
-    };
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+        };
 
-    const openTarefaForm = (tarefa = null) => {
-        const isEdit = !!tarefa;
-        const title = isEdit ? 'Editar Tarefa' : 'Nova Tarefa';
-        const content = `
-            <form id="tarefa-form" class="space-y-4">
-                <input type="hidden" id="tarefa-id" value="${tarefa?.id || ''}">
-                <div>
-                    <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
-                    <input type="text" id="tarefa-nome" value="${tarefa?.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="tarefa-descricao" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa?.descricao || ''}</textarea>
-                </div>
-                <div>
-                    <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade de Medida</label>
-                    <input type="text" id="tarefa-unidade" value="${tarefa?.unidade || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="tarefa-metragemTotal" class="block text-sm font-medium text-gray-700">Metragem Total</label>
-                    <input type="number" id="tarefa-metragemTotal" value="${tarefa?.metragemTotal || ''}" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="tarefa-valorTotal" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
-                    <input type="number" id="tarefa-valorTotal" value="${tarefa?.valorTotal || ''}" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="tarefa-dataInicio" class="block text-sm font-medium text-gray-700">Data de Início</label>
-                        <input type="date" id="tarefa-dataInicio" value="${tarefa?.dataInicio || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    </div>
-                    <div>
-                        <label for="tarefa-dataFim" class="block text-sm font-medium text-gray-700">Data de Fim</label>
-                        <input type="date" id="tarefa-dataFim" value="${tarefa?.dataFim || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">${isEdit ? 'Atualizar' : 'Criar'} Tarefa</button>
-            </form>
-        `;
-        openModal(title, content);
-        
-        document.getElementById('tarefa-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const tarefaData = {
-                id: document.getElementById('tarefa-id').value || null,
-                nome: document.getElementById('tarefa-nome').value,
-                descricao: document.getElementById('tarefa-descricao').value,
-                unidade: document.getElementById('tarefa-unidade').value,
-                metragemTotal: parseFloat(document.getElementById('tarefa-metragemTotal').value),
-                valorTotal: parseFloat(document.getElementById('tarefa-valorTotal').value),
-                dataInicio: document.getElementById('tarefa-dataInicio').value,
-                dataFim: document.getElementById('tarefa-dataFim').value
-            };
-            addOrUpdateTarefa(tarefaData);
-        });
+        try {
+            const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            descricaoTextarea.value = description.trim();
+
+        } catch (error) {
+            console.error("Erro ao gerar descrição:", error);
+            descricaoTextarea.value = "Erro ao gerar descrição. Tente novamente.";
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.textContent = originalBtnText;
+        }
     };
 
     const openMedicaoForm = (tarefa) => {
-        const content = `
+        const formHtml = `
             <form id="medicao-form" class="space-y-4">
-                <input type="hidden" id="tarefa-id" value="${tarefa.id}">
                 <div>
-                    <label for="medicao-data" class="block text-sm font-medium text-gray-700">Data da Medição</label>
-                    <input type="date" id="medicao-data" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
+                    <input type="number" step="0.01" id="medicao-metragem" name="metragem" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
-                    <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem</label>
-                    <input type="number" id="medicao-metragem" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="medicao-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="medicao-descricao" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                    <label for="medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Adicionar Medição</button>
             </form>
         `;
-        openModal('Nova Medição', content);
-        
+        openModal('Nova Medição', formHtml);
         document.getElementById('medicao-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const valorUnitario = tarefa.valorTotal / tarefa.metragemTotal;
-            const medicaoData = {
-                data: document.getElementById('medicao-data').value,
-                metragem: parseFloat(document.getElementById('medicao-metragem').value),
-                valor: parseFloat(document.getElementById('medicao-metragem').value) * valorUnitario,
-                descricao: document.getElementById('medicao-descricao').value
+            const formData = new FormData(e.target);
+            const metragem = parseFloat(formData.get('metragem'));
+            const observacoes = formData.get('observacoes');
+            
+            // Calculate valor automatically based on valorUnitario
+            const valor = tarefa.valorUnitario * metragem;
+
+            const newMedicao = {
+                metragem: metragem,
+                valor: valor,
+                observacoes: observacoes,
+                data: new Date().toISOString()
             };
-            addMedicaoToTarefa(tarefa.id, medicaoData);
+            addMedicaoToTarefa(tarefa.id, newMedicao);
+            closeModal();
         });
     };
 
     const openMedicoesList = (tarefaId, medicoes) => {
-        const content = `
-            <div class="max-h-96 overflow-y-auto">
-                <h4 class="font-semibold mb-4">Medições da Tarefa</h4>
-                ${medicoes.length === 0 ? 
-                    '<p class="text-center text-gray-500">Nenhuma medição registrada.</p>' : 
-                    `<table class="min-w-full">
-                        <thead>
-                            <tr>
-                                <th class="text-left py-2 px-4 border-b">Data</th>
-                                <th class="text-left py-2 px-4 border-b">Metragem</th>
-                                <th class="text-left py-2 px-4 border-b">Valor</th>
-                                <th class="text-left py-2 px-4 border-b">Descrição</th>
-                                <th class="text-left py-2 px-4 border-b">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${medicoes.map((medicao, index) => `
-                                <tr>
-                                    <td class="py-2 px-4 border-b">${new Date(medicao.data).toLocaleDateString('pt-BR')}</td>
-                                    <td class="py-2 px-4 border-b">${medicao.metragem}</td>
-                                    <td class="py-2 px-4 border-b">${formatCurrency(medicao.valor)}</td>
-                                    <td class="py-2 px-4 border-b">${medicao.descricao || '-'}</td>
-                                    <td class="py-2 px-4 border-b">
-                                        <button class="text-blue-500 hover:text-blue-700 edit-medicao-btn" data-index="${index}">Editar</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>`
-                }
-            </div>
+        const listHtml = `
+            <ul class="space-y-2" id="medicao-list">
+                ${medicoes.map((medicao, index) => `
+                    <li class="p-4 bg-gray-100 rounded-lg flex flex-wrap justify-between items-center medicoes-list-item">
+                        <div class="mb-2 md:mb-0">
+                            <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
+                            <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
+                            <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
+                            <p class="text-xs text-gray-500">${new Date(medicao.data).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>
         `;
-        openModal('Medições da Tarefa', content);
-        
+        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
+
         document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const index = parseInt(e.currentTarget.dataset.index);
-                openEditMedicaoForm(tarefaId, medicoes[index], index);
+                const medicaoIndex = e.currentTarget.dataset.index;
+                const medicao = medicoes[medicaoIndex];
+                openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
+            });
+        });
+        document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const medicaoIndex = e.currentTarget.dataset.index;
+                openModal('Confirmar Exclusão', `
+                    <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta medição?</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
+                        <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                    </div>
+                `);
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                    deleteMedicao(tarefaId, medicaoIndex);
+                    closeModal();
+                });
+                document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
             });
         });
     };
+    
+    const deleteMedicao = async (tarefaId, medicaoIndex) => {
+        const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+        const tarefaDoc = await getDoc(tarefaDocRef);
+        const tarefa = tarefaDoc.data();
+        
+        if (tarefa.medicoes && tarefa.medicoes[medicaoIndex]) {
+            tarefa.medicoes.splice(medicaoIndex, 1);
+            await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
+            // Re-render the list to show the change
+            openMedicoesList(tarefaId, tarefa.medicoes);
+        }
+    };
 
-    const openEditMedicaoForm = (tarefaId, medicao, index) => {
-        const content = `
+    const openEditMedicaoForm = (tarefaId, medicaoIndex, medicao) => {
+        const formHtml = `
             <form id="edit-medicao-form" class="space-y-4">
-                <input type="hidden" id="medicao-index" value="${index}">
                 <div>
-                    <label for="edit-medicao-data" class="block text-sm font-medium text-gray-700">Data da Medição</label>
-                    <input type="date" id="edit-medicao-data" value="${medicao.data}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <label for="edit-medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
+                    <input type="number" step="0.01" id="edit-medicao-metragem" name="metragem" value="${medicao.metragem}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
-                    <label for="edit-medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem</label>
-                    <input type="number" id="edit-medicao-metragem" value="${medicao.metragem}" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${medicao.observacoes || ''}</textarea>
                 </div>
-                <div>
-                    <label for="edit-medicao-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="edit-medicao-descricao" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.descricao || ''}</textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">Atualizar Medição</button>
+                <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
         `;
-        openModal('Editar Medição', content);
-        
-        document.getElementById('edit-medicao-form').addEventListener('submit', (e) => {
+        openModal('Editar Medição', formHtml);
+        document.getElementById('edit-medicao-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const formData = new FormData(e.target);
+            const metragem = parseFloat(formData.get('metragem'));
+            const observacoes = formData.get('observacoes');
+            
             const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
-            getDoc(tarefaDocRef).then((doc) => {
-                if (doc.exists()) {
-                    const tarefa = doc.data();
-                    const updatedMedicao = {
-                        data: document.getElementById('edit-medicao-data').value,
-                        metragem: parseFloat(document.getElementById('edit-medicao-metragem').value),
-                        descricao: document.getElementById('edit-medicao-descricao').value
-                    };
-                    // Recalcular o valor baseado na metragem
-                    const valorUnitario = tarefa.valorTotal / tarefa.metragemTotal;
-                    updatedMedicao.valor = updatedMedicao.metragem * valorUnitario;
-                    
-                    tarefa.medicoes[index] = updatedMedicao;
-                    updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes }).then(() => {
-                        closeModal();
-                        openMedicoesList(tarefaId, tarefa.medicoes);
-                    });
-                }
-            });
-        });
-    };
-
-    // Export functions
-    const exportRelatorioPDF = (obra, tarefas) => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        doc.setFontSize(20);
-        doc.text(`Relatório da Obra: ${obra.nome}`, 105, 15, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text(`Localização: ${obra.localizacao}`, 20, 25);
-        doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 20, 32);
-        
-        let totalPlanejado = 0;
-        let totalMedido = 0;
-        
-        tarefas.forEach(tarefa => {
-            totalPlanejado += tarefa.valorTotal || 0;
-            totalMedido += (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-        });
-        
-        const percentualConcluido = calculatePercentage(totalMedido, totalPlanejado);
-        
-        doc.setFontSize(14);
-        doc.text('Resumo Geral', 20, 45);
-        doc.setFontSize(12);
-        doc.text(`Valor Total Planejado: ${formatCurrency(totalPlanejado)}`, 20, 55);
-        doc.text(`Valor Total Medido: ${formatCurrency(totalMedido)}`, 20, 62);
-        doc.text(`Percentual Concluído: ${percentualConcluido.toFixed(1)}%`, 20, 69);
-        
-        // Tabela de tarefas
-        let y = 85;
-        doc.setFontSize(14);
-        doc.text('Detalhamento por Tarefa', 20, y);
-        y += 10;
-        
-        doc.setFontSize(10);
-        doc.text('Tarefa', 20, y);
-        doc.text('Valor Planejado', 80, y);
-        doc.text('Valor Medido', 120, y);
-        doc.text('% Concluído', 160, y);
-        y += 7;
-        
-        doc.line(20, y, 190, y);
-        y += 5;
-        
-        tarefas.forEach(tarefa => {
-            const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-            const percentual = calculatePercentage(valorMedido, tarefa.valorTotal);
+            const tarefaDoc = await getDoc(tarefaDocRef);
+            const tarefa = tarefaDoc.data();
             
-            if (y > 270) {
-                doc.addPage();
-                y = 20;
-            }
+            const valor = tarefa.valorUnitario * metragem;
             
-            doc.text(tarefa.nome.substring(0, 30), 20, y);
-            doc.text(formatCurrency(tarefa.valorTotal), 80, y);
-            doc.text(formatCurrency(valorMedido), 120, y);
-            doc.text(`${percentual.toFixed(1)}%`, 160, y);
-            y += 7;
+            const updatedMedicao = {
+                metragem: metragem,
+                valor: valor,
+                observacoes: observacoes,
+                data: medicao.data
+            };
+            
+            await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
+            closeModal();
         });
-        
-        doc.save(`relatorio-${obra.nome}.pdf`);
-    };
+    }
 
-    const exportRelatorioExcel = (obra, tarefas) => {
-        const data = [
-            ['Tarefa', 'Valor Planejado', 'Valor Medido', '% Concluído']
-        ];
-        
-        tarefas.forEach(tarefa => {
-            const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-            const percentual = calculatePercentage(valorMedido, tarefa.valorTotal);
-            data.push([
-                tarefa.nome,
-                tarefa.valorTotal,
-                valorMedido,
-                percentual
-            ]);
-        });
-        
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
-        XLSX.writeFile(wb, `relatorio-${obra.nome}.xlsx`);
-    };
-
-    // Event Listeners
+    // Event listeners for main buttons
     addObraBtn.addEventListener('click', () => openObraForm());
-    addTarefaBtn.addEventListener('click', () => openTarefaForm());
+    addTarefaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            // Crie um modal customizado no lugar do alert()
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        openTarefaForm();
+    });
 
-    // Initialize Firebase
+    // Run app
     initFirebase();
-
-    // Adicionar event listeners para os botões de exportação do cronograma
-    document.getElementById('export-gantt-pdf')?.addEventListener('click', exportGanttPDF);
-    document.getElementById('export-gantt-png')?.addEventListener('click', exportGanttPNG);
-    document.getElementById('export-curvaS-pdf')?.addEventListener('click', exportCurvaSPDF);
-    document.getElementById('export-curvaS-excel')?.addEventListener('click', exportCurvaSExcel);
-
-    // Funções de exportação do cronograma
-    function exportGanttPDF() {
-        openModal('Exportar Gantt', '<p class="text-center text-gray-700">Funcionalidade de exportação PDF do Gantt será implementada em breve.</p>');
-    }
-
-    function exportGanttPNG() {
-        openModal('Exportar Gantt', '<p class="text-center text-gray-700">Funcionalidade de exportação PNG do Gantt será implementada em breve.</p>');
-    }
-
-    function exportCurvaSPDF() {
-        openModal('Exportar Curva S', '<p class="text-center text-gray-700">Funcionalidade de exportação PDF da Curva S será implementada em breve.</p>');
-    }
-
-    function exportCurvaSExcel() {
-        openModal('Exportar Curva S', '<p class="text-center text-gray-700">Funcionalidade de exportação Excel da Curva S será implementada em breve.</p>');
-    }
 </script>
 </body>
 </html>
+
