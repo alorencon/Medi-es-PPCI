@@ -541,30 +541,37 @@ initFirebase();
 
     // Firebase Initialization & Auth
     const initFirebase = async () => {
-        try {
-            app = initializeApp(__firebase_config);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    userIdDisplay.textContent = userId;
-                    loginView.classList.add('hidden');
-                    appView.classList.remove('hidden');
-                    listenToObras();
-                } else {
-                    userId = null;
-                    userIdDisplay.textContent = "N/A";
-                    loginView.classList.remove('hidden');
-                    appView.classList.add('hidden');
-                }
-            });
+    try {
+        app = initializeApp(__firebase_config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        } catch (error) {
-            console.error("Erro ao inicializar Firebase ou autenticar:", error);
-        }
-    };
+        let alreadyInitialized = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                userIdDisplay.textContent = userId;
+                loginView.classList.add('hidden');
+                appView.classList.remove('hidden');
+
+                if (!alreadyInitialized) {
+                    listenToObras();
+                    alreadyInitialized = true;
+                }
+            } else {
+                userId = null;
+                userIdDisplay.textContent = "N/A";
+                loginView.classList.remove('hidden');
+                appView.classList.add('hidden');
+                alreadyInitialized = false;
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao inicializar Firebase ou autenticar:", error);
+    }
+};
     
     loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
