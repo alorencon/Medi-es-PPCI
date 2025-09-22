@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -17,39 +16,39 @@
             background-size: cover;
             color: #fff;
         }
-        .container {
+       .container {
             max-width: 1200px;
             margin: auto;
             padding: 2rem;
             color: #000;
         }
-        .card {
+       .card {
             background-color: #fff;
             border-radius: 1rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 2rem;
         }
-        .btn {
+       .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 9999px;
             font-weight: 600;
             transition: background-color 0.3s;
         }
-        .btn-primary {
+       .btn-primary {
             background-color: #E21B2F;
             color: #fff;
         }
-        .btn-primary:hover {
+       .btn-primary:hover {
             background-color: #c7172a;
         }
-        .btn-secondary {
+       .btn-secondary {
             background-color: #e9ecef;
             color: #495057;
         }
-        .btn-secondary:hover {
+       .btn-secondary:hover {
             background-color: #dee2e6;
         }
-        .tab-btn {
+       .tab-btn {
             flex-grow: 1;
             padding: 1rem;
             border-radius: 9999px;
@@ -59,7 +58,7 @@
             transition: background-color 0.3s, color 0.3s;
             cursor: pointer;
         }
-        .tab-btn.active {
+       .tab-btn.active {
             background-color: #494C4F;
             color: #fff;
         }
@@ -69,162 +68,24 @@
             color: #000;
         }
 
-        .medicoes-list-item {
+       .medicoes-list-item {
             color: #000;
         }
 
-        /* Estilos para a aba de Cronograma - NOVO GRÁFICO DE GANTT */
-        .gantt-container {
+        /* Estilos para a aba de Cronograma */
+       .gantt-container {
             overflow-x: auto;
             margin-bottom: 2rem;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background: white;
         }
         
-        .gantt-header {
-            display: grid;
-            grid-template-columns: 250px repeat(auto-fit, minmax(80px, 1fr));
-            background-color: #494C4F;
-            color: white;
-            font-weight: bold;
-            border-bottom: 2px solid #dee2e6;
-        }
-        
-        .gantt-header-cell {
-            padding: 12px 8px;
-            text-align: center;
-            border-right: 1px solid #6c757d;
-            font-size: 12px;
-        }
-        
-        .gantt-header-cell:first-child {
-            text-align: left;
-            padding-left: 16px;
-        }
-        
-        .gantt-body {
-            display: grid;
-            grid-template-columns: 250px repeat(auto-fit, minmax(80px, 1fr));
-        }
-        
-        .gantt-row {
-            display: contents;
-        }
-        
-        .gantt-task-label {
-            padding: 16px;
-            border-right: 1px solid #dee2e6;
-            border-bottom: 1px solid #dee2e6;
-            background-color: #f8f9fa;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            min-height: 60px;
-        }
-        
-        .gantt-cell {
-            border-right: 1px solid #dee2e6;
-            border-bottom: 1px solid #dee2e6;
-            min-height: 60px;
-            position: relative;
-            background-color: #fff;
-        }
-        
-        .gantt-cell.weekend {
-            background-color: #f8f9fa;
-        }
-        
-        .gantt-cell.today {
-            background-color: #fff3cd;
-        }
-        
-        .gantt-bar {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 24px;
-            background-color: #E21B2F;
-            border-radius: 4px;
-            cursor: move;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            min-width: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .gantt-bar:hover {
-            background-color: #c7172a;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .gantt-bar-handle {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 6px;
-            cursor: ew-resize;
-            background-color: rgba(0,0,0,0.2);
-        }
-        
-        .gantt-bar-handle.left {
-            left: 0;
-            border-radius: 4px 0 0 4px;
-        }
-        
-        .gantt-bar-handle.right {
-            right: 0;
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* Lista de tarefas para configuração de duração */
-        .task-config-list {
-            margin-bottom: 2rem;
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-        }
-        
-        .task-config-item {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 1rem;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .task-config-item:last-child {
-            border-bottom: none;
-        }
-        
-        .task-config-item label {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .task-config-item input {
-            padding: 0.5rem;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
         /* Estilo para a Curva S */
-        .curva-s-container {
+       .curva-s-container {
             margin-top: 2rem;
-            height: 400px;
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
+            height: 300px;
         }
 
         /* Estilo para a lista de despesas */
-        .despesa-item {
+       .despesa-item {
             border-left: 4px solid #E21B2F;
             padding-left: 1rem;
             margin-bottom: 1rem;
@@ -232,10 +93,10 @@
         }
         
         /* Estilo para formulários de despesas */
-        .despesa-form label {
+       .despesa-form label {
             color: #000;
         }
-        .despesa-form input, .despesa-form select, .despesa-form textarea {
+       .despesa-form input,.despesa-form select,.despesa-form textarea {
             color: #000;
         }
     </style>
@@ -295,7 +156,7 @@
                         </button>
                     </div>
                     <div id="obras-list" class="space-y-4">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="tarefas-view" class="tab-content hidden">
@@ -309,41 +170,14 @@
                         </button>
                     </div>
                     <div id="tarefas-list" class="space-y-6">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="cronograma-view" class="tab-content hidden">
-                    <div class="flex flex-wrap justify-between items-center mb-6">
-                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
-                        <div class="flex space-x-2">
-                            <button id="gerar-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Atualizar Cronograma</span>
-                            </button>
-                        </div>
-                    </div>
+                    <h2 class="text-2xl font-semibold mb-6">Cronograma da Obra</h2>
                     
-                    <div class="mb-6">
-                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700 mb-2">Duração do Cronograma (dias)</label>
-                        <input type="number" id="cronograma-dias" min="1" value="30" class="block w-32 rounded-md border-gray-300 shadow-sm">
-                    </div>
-                    
-                    <!-- Lista de tarefas para configuração -->
-                    <div id="task-config-section" class="task-config-list">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-800">Configuração das Tarefas</h3>
-                        <div id="task-config-list">
-                            <!-- Tarefas serão carregadas aqui -->
-                        </div>
-                    </div>
-                    
-                    <!-- Gráfico de Gantt -->
                     <div class="gantt-container">
-                        <div id="gantt-chart">
-                            <!-- Gráfico será renderizado aqui -->
                         </div>
-                    </div>
                     
                     <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
                     <div class="curva-s-container">
@@ -354,7 +188,7 @@
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
                     <div id="relatorio-content" class="space-y-6">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="despesas-view" class="tab-content hidden">
@@ -405,124 +239,132 @@
                             <button id="generate-despesa-report-btn" class="btn btn-primary">Gerar Relatório</button>
                         </div>
                         <div id="despesa-period-report-result" class="mt-6">
-                            </div>
+                        </div>
                     </div>
                     
                     <div id="despesas-list" class="space-y-4">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-96 overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-title" class="text-lg font-semibold"></h3>
-                <button id="modal-close" class="text-gray-500 hover:text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div id="modal-content"></div>
+<div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div id="modal-body">
         </div>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-    // Firebase imports
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDocs, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase configuration
+    // Set Firebase log level for debugging
+    setLogLevel('Debug');
+    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
+    // Entre em "Configurações do projeto" > "Seus apps"
+    // Copie e cole o objeto de configuração aqui.
+    // Exemplo:
     const firebaseConfig = {
-    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-    authDomain: "medicoes-ppci.firebaseapp.com",
-    projectId: "medicoes-ppci",
-    storageBucket: "medicoes-ppci.firebasestorage.app",
-    messagingSenderId: "408815173796",
-    appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-    measurementId: "G-9YW2XQH2HH"
-  };
+      apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+      authDomain: "medicoes-ppci.firebaseapp.com",
+      projectId: "medicoes-ppci",
+      storageBucket: "medicoes-ppci.firebasestorage.app",
+      messagingSenderId: "408815173796",
+      appId: "1:408815173796:web:efd25d921a7f0ee923e631",
+      measurementId: "G-9YW2XQH2HH"
+    };
+    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
+    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
+    // const API_KEY = "YOUR_GEMINI_API_KEY";
 
-    const __app_id = "medicoes-ppci";
+    const API_KEY = ''; 
 
-    // Gemini API configuration
-        const API_KEY = "YOUR_GEMINI_API_KEY"; // <<<<<<< SUBSTITUA PELA SUA CHAVE DE API DO GEMINI >>>>>>>
-    // Para obter sua chave de API do Gemini:
-    // 1. Vá para o Google AI Studio (aistudio.google.com/app/apikey).
-    // 2. Crie uma nova chave de API ou use uma existente.
-    // 3. Copie a chave de API gerada e cole-a aqui.
-    // Certifique-se de que a chave de API tenha permissões para usar os modelos `gemini-1.5-flash` e `gemini-2.0-flash-exp`.
-    const GEMINI_API_URL_GENERATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
-    const GEMINI_API_URL_TTS = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=";
+    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
+    const __app_id = typeof window.__app_id!== 'undefined'? window.__app_id : firebaseConfig.appId;
+    const __firebase_config = typeof window.__firebase_config!== 'undefined'? JSON.parse(window.__firebase_config) : firebaseConfig;
+    const __initial_auth_token = typeof window.__initial_auth_token!== 'undefined'? window.__initial_auth_token : undefined;
 
-    // Global variables
-    let app, auth, db, userId, currentObraId, audioContext;
-    let ganttTasks = [];
-    let ganttDays = 30;
-    let curvaChart = null;
+    let app;
+    let auth;
+    let db;
+    let userId = null;
+    let audioContext;
 
-    // DOM elements
-    const loginView = document.getElementById('login-view');
-    const appView = document.getElementById('app-view');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const obrasList = document.getElementById('obras-list');
-    const tarefasList = document.getElementById('tarefas-list');
-    const despesasList = document.getElementById('despesas-list');
-    const relatorioContent = document.getElementById('relatorio-content');
+    let currentObraId = null;
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
-    const modalContent = document.getElementById('modal-content');
-    const modalClose = document.getElementById('modal-close');
-    const tabs = document.querySelectorAll('.tab-btn');
+    const modalBody = document.getElementById('modal-body');
+    const addObraBtn = document.getElementById('add-obra-btn');
+    const addTarefaBtn = document.getElementById('add-tarefa-btn');
+    const addDespesaBtn = document.getElementById('add-despesa-btn');
+    const obrasList = document.getElementById('obras-list');
+    const tarefasList = document.getElementById('tarefas-list');
+    const relatorioContent = document.getElementById('relatorio-content');
+    const despesasList = document.getElementById('despesas-list');
+    const userIdDisplay = document.getElementById('userIdDisplay');
+    
+    const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
+    const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
 
-    // Utility functions
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const createAccountBtn = document.getElementById('create-account-btn');
+
+    // Utility function to format currency
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(value);
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
-    const calculatePercentage = (value, total) => {
-        return total > 0 ? (value / total) * 100 : 0;
+    // Utility function to calculate percentage
+    const calculatePercentage = (numerator, denominator) => {
+        if (denominator === 0) return 0;
+        return (numerator / denominator) * 100;
     };
 
+    // Modal functions
     const openModal = (title, content) => {
         modalTitle.textContent = title;
-        modalContent.innerHTML = content;
+        modalBody.innerHTML = content;
         modal.classList.remove('hidden');
-        modal.classList.add('flex');
     };
 
     const closeModal = () => {
         modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modalTitle.textContent = '';
+        modalBody.innerHTML = '';
     };
 
-    modalClose.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+    document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
     });
 
-    // Event listeners
-    document.getElementById('add-obra-btn').addEventListener('click', () => openObraForm());
-    document.getElementById('add-tarefa-btn').addEventListener('click', () => openTarefaForm());
-    document.getElementById('add-despesa-btn').addEventListener('click', () => openDespesaForm());
-    document.getElementById('gerar-cronograma-btn').addEventListener('click', () => renderCronograma());
-
-    // Tab switching
+    // Tab switching logic
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            tabContents.forEach(c => c.classList.add('hidden'));
 
             tab.classList.add('active');
             document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
@@ -530,28 +372,28 @@
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs.click(); // Go back to obras tab
                 } else {
                     renderTarefas();
                 }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs.click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
                 }
             } else if (tab.dataset.tab === 'cronograma') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs.click(); // Go back to obras tab
                 } else {
                     renderCronograma();
                 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs.click(); // Go back to obras tab
                 } else {
                     renderDespesas();
                 }
@@ -564,11 +406,10 @@
         try {
             app = initializeApp(__firebase_config);
             auth = getAuth(app);
-            // Desabilitar a verificação reCAPTCHA para fins de teste, se não estiver usando reCAPTCHA
-            // Isso pode resolver o erro "_getRecaptchaConfig" se o Firebase espera uma configuração de reCAPTCHA.
-            auth.appVerificationDisabledForTesting = true;
             db = getFirestore(app);
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext = new (window.AudioContext |
+
+| window.webkitAudioContext)();
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
@@ -583,7 +424,6 @@
                     appView.classList.add('hidden');
                 }
             });
-
         } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
@@ -599,7 +439,7 @@
             openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
         }
     });
-    
+
     createAccountBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
@@ -615,18 +455,18 @@
     logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
         currentObraId = null; // Reset current obra
-        tabs[0].click(); // Go back to obras tab
+        tabs.click(); // Go back to obras tab
     });
 
     // Firestore CRUD Operations
     const listenToObras = () => {
-        if (!db || !userId) {
+        if (!db ||!userId) {
             console.error("Firestore ou UserID não inicializados. Tente novamente.");
             return;
         }
         const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
         onSnapshot(obrasRef, (snapshot) => {
-            const obras = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const obras = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
             renderObras(obras);
         });
     };
@@ -643,7 +483,7 @@
             await updateDoc(docRef, obra);
         } else {
             // Remove o campo 'id' para evitar o erro "Unsupported field value: undefined (found in field id)"
-            const { id, ...newObraData } = obra;
+            const { id,...newObraData } = obra;
             await addDoc(obrasRef, newObraData);
         }
         closeModal();
@@ -661,7 +501,7 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefa.id);
             await updateDoc(docRef, tarefa);
         } else {
-            const { id, ...newTarefaData } = tarefa;
+            const { id,...newTarefaData } = tarefa;
             await addDoc(tarefasRef, newTarefaData);
         }
         closeModal();
@@ -678,7 +518,7 @@
         const tarefaDoc = await getDoc(tarefaDocRef);
         const tarefa = tarefaDoc.data();
         if (!tarefa.medicoes) {
-            tarefa.medicoes = [];
+            tarefa.medicoes =;
         }
         tarefa.medicoes.push(medicao);
         await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
@@ -708,20 +548,6 @@
         }
     };
     
-    // CRUD para Cronograma
-    const addOrUpdateCronograma = async (cronogramaData) => {
-        if (!currentObraId) return;
-        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
-        await setDoc(cronogramaRef, cronogramaData, { merge: true });
-    };
-
-    const getCronograma = async () => {
-        if (!currentObraId) return null;
-        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
-        const cronogramaDoc = await getDoc(cronogramaRef);
-        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
-    };
-
     // CRUD para Despesas
     const addOrUpdateDespesa = async (despesa) => {
         if (!currentObraId) return;
@@ -730,7 +556,7 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`, despesa.id);
             await updateDoc(docRef, despesa);
         } else {
-            const { id, ...newDespesaData } = despesa;
+            const { id,...newDespesaData } = despesa;
             await addDoc(despesasRef, newDespesaData);
         }
         closeModal();
@@ -772,15 +598,18 @@
                     </div>
                 </div>
                 <div class="mt-4">
-                    <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
+                    <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal |
+
+| 0)}</span></p>
                 </div>
             `;
             obraCard.addEventListener('click', () => {
                 currentObraId = obra.id;
-                tabs[1].click(); // Switch to Tarefas tab
+                tabs.click(); // Switch to Tarefas tab
             });
             obrasList.appendChild(obraCard);
         });
+
         document.querySelectorAll('.edit-obra-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -789,6 +618,7 @@
                 openObraForm(obra);
             });
         });
+
         document.querySelectorAll('.delete-obra-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -815,13 +645,17 @@
         onSnapshot(tarefasRef, (snapshot) => {
             tarefasList.innerHTML = '';
             let totalMedido = 0;
-            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const tarefas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
 
             tarefas.forEach(tarefa => {
-                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
+                const valorMedido = (tarefa.medicoes ||).reduce((sum, medicao) => sum + (medicao.valor |
+
+| 0), 0);
                 const porcentagemConcluida = calculatePercentage(valorMedido, tarefa.valorTotal);
-                const metragemConcluida = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0);
-                const valorUnitario = tarefa.metragemTotal > 0 ? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
+                const metragemConcluida = (tarefa.medicoes ||).reduce((sum, medicao) => sum + (medicao.metragem |
+
+| 0), 0);
+                const valorUnitario = tarefa.metragemTotal > 0? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
 
                 totalMedido += valorMedido;
 
@@ -855,15 +689,14 @@
                     </div>
                     <div class="flex flex-wrap justify-start space-x-2 mt-4">
                         <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
-                        <button class="btn btn-secondary view-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
+                        <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
                         <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
-                        <button class="btn btn-secondary delete-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Excluir</button>
+                        <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
                 tarefasList.appendChild(tarefaCard);
             });
 
-            // Add event listeners
             document.querySelectorAll('.add-medicao-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -871,13 +704,15 @@
                     openMedicaoForm(tarefa);
                 });
             });
-            document.querySelectorAll('.view-medicoes-btn').forEach(btn => {
+
+            document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     const tarefa = tarefas.find(t => t.id === tarefaId);
-                    openMedicoesList(tarefaId, tarefa.medicoes || []);
+                    openMedicoesList(tarefa.id, tarefa.medicoes ||);
                 });
             });
+
             document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -885,6 +720,7 @@
                     openTarefaForm(tarefa);
                 });
             });
+
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -903,370 +739,430 @@
                 });
             });
 
-            if (tarefas.length === 0) {
-                tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa cadastrada. Clique em "Nova Tarefa" para começar.</p>';
-            }
+            // Update valor total da obra
+            const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+            updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
 
-    // NOVA IMPLEMENTAÇÃO DO CRONOGRAMA COM GRÁFICO DE GANTT
+    // --- INÍCIO DO NOVO CÓDIGO PARA A ABA CRONOGRAMA ---
+
+    // Variáveis globais para o estado do cronograma
+    let ganttTasksData =;
+    // Armazena os dados das tarefas para o Gantt
+    let sCurveChart = null;
+    // Instância do gráfico da Curva S
+
+    // Função principal para renderizar a aba de Cronograma
     const renderCronograma = async () => {
         if (!currentObraId) return;
+        const cronogramaView = document.getElementById('cronograma-view');
         
-        // Buscar tarefas da obra
+        // Limpa o conteúdo anterior
+        const ganttContainer = cronogramaView.querySelector('.gantt-container');
+        ganttContainer.innerHTML = ''; // Limpa a área do Gantt
+        
+        // Adiciona um container para a lista de tarefas e para o gráfico
+        ganttContainer.innerHTML = `
+            <div id="task-duration-setup" class="mb-6 space-y-4 p-4 border rounded-lg bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-800">1. Definir Duração das Tarefas</h3>
+                <p class="text-sm text-gray-600">Insira a duração em dias para cada tarefa. O cronograma será gerado com base nestes valores.</p>
+                <div id="task-duration-list" class="space-y-2">
+                    <p class="text-center text-gray-500">A carregar tarefas...</p>
+                </div>
+                <button id="update-gantt-btn" class="btn btn-primary">Gerar/Atualizar Cronograma</button>
+            </div>
+            <div id="gantt-chart-wrapper" class="overflow-x-auto">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">2. Cronograma Visual (Gráfico de Gantt)</h3>
+                <div id="gantt-chart" class="relative"></div>
+            </div>
+        `;
+        // Carrega as tarefas e preenche a lista de durações
+        await setupTaskDurationList();
+        // Adiciona o listener para o botão de gerar cronograma
+        document.getElementById('update-gantt-btn').addEventListener('click', async () => {
+            await saveDurationsAndRenderGantt();
+        });
+    };
+
+    // Carrega as tarefas e os dados de cronograma para a lista de configuração
+    const setupTaskDurationList = async () => {
+        const taskDurationList = document.getElementById('task-duration-list');
+        taskDurationList.innerHTML = '';
+
+        // Obter tarefas da obra
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tarefasSnapshot = await getDocs(tarefasRef);
+        const tarefas = tarefasSnapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
         
-        if (tarefas.length === 0) {
-            document.getElementById('task-config-list').innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa encontrada. Adicione tarefas na aba "Tarefas" primeiro.</p>';
-            document.getElementById('gantt-chart').innerHTML = '';
+        // Obter dados do cronograma
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`);
+        const cronogramaDoc = await getDoc(cronogramaRef);
+        const cronogramaData = cronogramaDoc.exists()? (cronogramaDoc.data().cronograma |
+
+| {}) : {};
+        
+        ganttTasksData = tarefas.map(tarefa => {
+            const data = cronogramaData[tarefa.id] |
+
+| {};
+            return {
+                id: tarefa.id,
+                name: tarefa.nome,
+                valorTotal: tarefa.valorTotal |
+
+| 0,
+                start: data.start? new Date(data.start) : null,
+                duration: data.duration |
+
+| 1, // Duração padrão de 1 dia
+                dependencies: data.dependencies ||
+            };
+        });
+
+        if (ganttTasksData.length === 0) {
+            taskDurationList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa encontrada. Adicione tarefas na aba "Tarefas".</p>';
             return;
         }
-        
-        // Buscar configurações salvas do cronograma
-        const cronogramaData = await getCronograma();
-        
-        // Renderizar lista de configuração de tarefas
-        renderTaskConfigList(tarefas, cronogramaData);
-        
-        // Renderizar gráfico de Gantt
-        renderGanttChart(tarefas, cronogramaData);
-        
-        // Renderizar curva S
-        renderCurvaS(tarefas);
-    };
-    
-    const renderTaskConfigList = (tarefas, cronogramaData) => {
-        const taskConfigList = document.getElementById('task-config-list');
-        taskConfigList.innerHTML = '';
-        
-        tarefas.forEach(tarefa => {
-            const savedConfig = cronogramaData && cronogramaData.tasks ? cronogramaData.tasks[tarefa.id] : null;
-            const duracao = savedConfig ? savedConfig.duration : 5;
-            const inicio = savedConfig ? savedConfig.start : 1;
-            const simultanea = savedConfig ? savedConfig.simultaneous : false;
-            
-            const taskConfigItem = document.createElement('div');
-            taskConfigItem.className = 'task-config-item';
-            taskConfigItem.innerHTML = `
-                <label>${tarefa.nome}</label>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Duração (dias)</label>
-                    <input type="number" min="1" value="${duracao}" data-task-id="${tarefa.id}" data-field="duration" class="task-config-input">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Início (dia)</label>
-                    <input type="number" min="1" value="${inicio}" data-task-id="${tarefa.id}" data-field="start" class="task-config-input">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">
-                        <input type="checkbox" ${simultanea ? 'checked' : ''} data-task-id="${tarefa.id}" data-field="simultaneous" class="task-config-checkbox mr-2">
-                        Simultânea
-                    </label>
-                </div>
+
+        ganttTasksData.forEach(task => {
+            const taskItem = document.createElement('div');
+            taskItem.className = 'flex items-center justify-between p-2 bg-white rounded shadow-sm';
+            taskItem.innerHTML = `
+                <label for="duration-${task.id}" class="text-gray-700">${task.name}</label>
+                <input type="number" id="duration-${task.id}" data-task-id="${task.id}" value="${task.duration}" min="1" class="duration-input w-20 text-center rounded-md border-gray-300 shadow-sm">
             `;
-            taskConfigList.appendChild(taskConfigItem);
-        });
-        
-        // Adicionar event listeners para salvar configurações
-        document.querySelectorAll('.task-config-input, .task-config-checkbox').forEach(input => {
-            input.addEventListener('change', async () => {
-                await saveTaskConfig();
-                renderGanttChart(tarefas, await getCronograma());
-            });
+            taskDurationList.appendChild(taskItem);
         });
     };
-    
-    const saveTaskConfig = async () => {
-        const tasks = {};
-        document.querySelectorAll('.task-config-input, .task-config-checkbox').forEach(input => {
+
+    // Salva as durações e renderiza o gráfico de Gantt
+    const saveDurationsAndRenderGantt = async () => {
+        const inputs = document.querySelectorAll('.duration-input');
+        let hasChanges = false;
+
+        // Atualiza o objeto ganttTasksData com as durações do formulário
+        inputs.forEach(input => {
             const taskId = input.dataset.taskId;
-            const field = input.dataset.field;
-            
-            if (!tasks[taskId]) {
-                tasks[taskId] = {};
-            }
-            
-            if (field === 'simultaneous') {
-                tasks[taskId][field] = input.checked;
-            } else {
-                tasks[taskId][field] = parseInt(input.value) || 1;
-            }
-        });
-        
-        await addOrUpdateCronograma({ tasks });
-    };
-    
-    const renderGanttChart = (tarefas, cronogramaData) => {
-        const ganttChart = document.getElementById('gantt-chart');
-        ganttDays = parseInt(document.getElementById('cronograma-dias').value) || 30;
-        
-        // Gerar datas para o cabeçalho
-        const startDate = new Date();
-        const dates = [];
-        for (let i = 0; i < ganttDays; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            dates.push(date);
-        }
-        
-        // Criar cabeçalho
-        let headerHtml = '<div class="gantt-header">';
-        headerHtml += '<div class="gantt-header-cell">Tarefa</div>';
-        dates.forEach(date => {
-            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-            const dayNumber = date.getDate();
-            const monthName = date.toLocaleDateString('pt-BR', { month: 'short' });
-            headerHtml += `<div class="gantt-header-cell">${dayName}<br>${dayNumber}/${monthName}</div>`;
-        });
-        headerHtml += '</div>';
-        
-        // Criar corpo do gráfico
-        let bodyHtml = '<div class="gantt-body">';
-        tarefas.forEach(tarefa => {
-            const savedConfig = cronogramaData && cronogramaData.tasks ? cronogramaData.tasks[tarefa.id] : null;
-            const duracao = savedConfig ? savedConfig.duration : 5;
-            const inicio = savedConfig ? savedConfig.start : 1;
-            
-            bodyHtml += `<div class="gantt-row">`;
-            bodyHtml += `<div class="gantt-task-label">${tarefa.nome}</div>`;
-            
-            for (let day = 1; day <= ganttDays; day++) {
-                const date = dates[day - 1];
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                const isToday = date.toDateString() === new Date().toDateString();
-                
-                let cellClass = 'gantt-cell';
-                if (isWeekend) cellClass += ' weekend';
-                if (isToday) cellClass += ' today';
-                
-                bodyHtml += `<div class="${cellClass}" data-day="${day}" data-task-id="${tarefa.id}">`;
-                
-                // Adicionar barra de Gantt se estiver no período da tarefa
-                if (day >= inicio && day < inicio + duracao) {
-                    const barWidth = duracao * 100; // Largura em porcentagem baseada na duração
-                    const barLeft = day === inicio ? 0 : 0; // Posição inicial da barra
-                    
-                    if (day === inicio) {
-                        bodyHtml += `<div class="gantt-bar" style="width: ${barWidth}%; left: ${barLeft}%;" data-task-id="${tarefa.id}">
-                            <div class="gantt-bar-handle left"></div>
-                            <div class="gantt-bar-handle right"></div>
-                        </div>`;
-                    }
+            const newDuration = parseInt(input.value, 10);
+            const task = ganttTasksData.find(t => t.id === taskId);
+            if (task && task.duration!== newDuration) {
+                task.duration = newDuration;
+                if (!task.start) { // Se a tarefa não tem data de início, define para hoje
+                    task.start = new Date();
                 }
-                
-                bodyHtml += '</div>';
+                hasChanges = true;
             }
-            bodyHtml += '</div>';
         });
-        bodyHtml += '</div>';
         
-        ganttChart.innerHTML = headerHtml + bodyHtml;
-        
-        // Adicionar funcionalidade de arrastar e redimensionar
-        addGanttInteractivity();
-    };
-    
-    const addGanttInteractivity = () => {
-        let isDragging = false;
-        let dragType = null; // 'move', 'resize-left', 'resize-right'
-        let dragStartX = 0;
-        let dragElement = null;
-        let originalStart = 0;
-        let originalDuration = 0;
-        
-        document.querySelectorAll('.gantt-bar').forEach(bar => {
-            bar.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                isDragging = true;
-                dragElement = bar;
-                dragStartX = e.clientX;
-                
-                const taskId = bar.dataset.taskId;
-                const taskConfig = getTaskConfigFromDOM(taskId);
-                originalStart = taskConfig.start;
-                originalDuration = taskConfig.duration;
-                
-                // Determinar tipo de arrasto baseado na posição do clique
-                const rect = bar.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                
-                if (clickX < 10) {
-                    dragType = 'resize-left';
-                    bar.style.cursor = 'ew-resize';
-                } else if (clickX > rect.width - 10) {
-                    dragType = 'resize-right';
-                    bar.style.cursor = 'ew-resize';
-                } else {
-                    dragType = 'move';
-                    bar.style.cursor = 'move';
-                }
-                
-                document.addEventListener('mousemove', handleDrag);
-                document.addEventListener('mouseup', stopDrag);
+        // Se houver alterações, salva no Firebase
+        if (hasChanges) {
+            const cronogramaToSave = {};
+            ganttTasksData.forEach(task => {
+                cronogramaToSave[task.id] = {
+                    duration: task.duration,
+                    start: task.start? task.start.toISOString().split('T') : null,
+                    dependencies: task.dependencies
+                };
             });
+            const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`);
+            await setDoc(cronogramaRef, { cronograma: cronogramaToSave }, { merge: true });
+        }
+
+        // Renderiza o gráfico de Gantt
+        renderGanttChart();
+    };
+
+    // Renderiza o gráfico de Gantt
+    const renderGanttChart = () => {
+        const ganttChartDiv = document.getElementById('gantt-chart');
+        ganttChartDiv.innerHTML = ''; // Limpa o gráfico anterior
+
+        if (ganttTasksData.length === 0 ||!ganttTasksData.some(t => t.start)) {
+            ganttChartDiv.innerHTML = '<p class="text-center text-gray-500">Defina as durações e gere o cronograma para visualizar o gráfico.</p>';
+            return;
+        }
+
+        // Calcular o intervalo de datas do projeto
+        const projectDates = ganttTasksData.filter(t => t.start).flatMap(task => {
+            const end = new Date(task.start);
+            end.setDate(end.getDate() + task.duration - 1);
+            return [task.start, end];
         });
         
-        const handleDrag = (e) => {
-            if (!isDragging || !dragElement) return;
-            
-            const deltaX = e.clientX - dragStartX;
-            const cellWidth = 80; // Largura aproximada de cada célula
-            const deltaDays = Math.round(deltaX / cellWidth);
-            
-            const taskId = dragElement.dataset.taskId;
-            
-            if (dragType === 'move') {
-                const newStart = Math.max(1, originalStart + deltaDays);
-                updateTaskConfigInDOM(taskId, 'start', newStart);
-            } else if (dragType === 'resize-left') {
-                const newStart = Math.max(1, originalStart + deltaDays);
-                const newDuration = Math.max(1, originalDuration - deltaDays);
-                updateTaskConfigInDOM(taskId, 'start', newStart);
-                updateTaskConfigInDOM(taskId, 'duration', newDuration);
-            } else if (dragType === 'resize-right') {
-                const newDuration = Math.max(1, originalDuration + deltaDays);
-                updateTaskConfigInDOM(taskId, 'duration', newDuration);
-            }
-        };
-        
-        const stopDrag = async () => {
-            if (!isDragging) return;
-            isDragging = false;
-            dragElement = null;
-            
-            // Salvar configurações e re-renderizar
-            await saveTaskConfig();
-            const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-            const snapshot = await getDocs(tarefasRef);
-            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderGanttChart(tarefas, await getCronograma());
-            
-            document.removeEventListener('mousemove', handleDrag);
-            document.removeEventListener('mouseup', stopDrag);
-        };
-    };
-    
-    const getTaskConfigFromDOM = (taskId) => {
-        const startInput = document.querySelector(`input[data-task-id="${taskId}"][data-field="start"]`);
-        const durationInput = document.querySelector(`input[data-task-id="${taskId}"][data-field="duration"]`);
-        const simultaneousInput = document.querySelector(`input[data-task-id="${taskId}"][data-field="simultaneous"]`);
-        
-        return {
-            start: parseInt(startInput.value) || 1,
-            duration: parseInt(durationInput.value) || 1,
-            simultaneous: simultaneousInput.checked
-        };
-    };
-    
-    const updateTaskConfigInDOM = (taskId, field, value) => {
-        const input = document.querySelector(`input[data-task-id="${taskId}"][data-field="${field}"]`);
-        if (input) {
-            if (field === 'simultaneous') {
-                input.checked = value;
-            } else {
-                input.value = value;
-            }
+        if (projectDates.length === 0) {
+            ganttChartDiv.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa com data de início definida.</p>';
+            return;
         }
-    };
-    
-    // Implementação da Curva S
-    const renderCurvaS = async (tarefas) => {
-        const ctx = document.getElementById('curva-s-chart').getContext('2d');
-        
-        // Calcular dados para a curva S
-        const totalValue = tarefas.reduce((sum, tarefa) => sum + tarefa.valorTotal, 0);
-        const measuredValue = tarefas.reduce((sum, tarefa) => {
-            return sum + (tarefa.medicoes || []).reduce((medicaoSum, medicao) => medicaoSum + (medicao.valor || 0), 0);
-        }, 0);
-        
-        // Gerar dados planejados (curva S ideal)
-        const days = Array.from({length: ganttDays}, (_, i) => i + 1);
-        const plannedData = days.map(day => {
-            // Curva S típica: crescimento lento no início, rápido no meio, lento no final
-            const progress = day / ganttDays;
-            const sValue = 1 / (1 + Math.exp(-10 * (progress - 0.5))); // Função sigmoide
-            return sValue * totalValue;
+
+        const minDate = new Date(Math.min(...projectDates));
+        const maxDate = new Date(Math.max(...projectDates));
+        minDate.setDate(minDate.getDate() - 2); // Adiciona margem
+        maxDate.setDate(maxDate.getDate() + 5); // Adiciona margem
+
+        const days =;
+        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+            days.push(new Date(d));
+        }
+
+        const cellWidth = 40; // Largura de cada célula de dia em pixels
+        const rowHeight = 40; // Altura de cada linha de tarefa
+        const headerHeight = 60;
+        const ganttWidth = days.length * cellWidth;
+        ganttChartDiv.style.width = `${ganttWidth}px`;
+        ganttChartDiv.style.height = `${(ganttTasksData.length * rowHeight) + headerHeight}px`;
+
+        // Renderizar Cabeçalho
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'absolute top-0 left-0 h-full w-full';
+        headerDiv.style.height = `${headerHeight}px`;
+
+        let currentMonth = '';
+        days.forEach((day, index) => {
+            // Linhas verticais da grelha
+            const gridLine = document.createElement('div');
+            gridLine.className = 'absolute top-0 bottom-0 border-l border-gray-200';
+            gridLine.style.left = `${index * cellWidth}px`;
+            gridLine.style.width = `${cellWidth}px`;
+            if (day.getDay() === 0 |
+
+| day.getDay() === 6) { // Fim de semana
+                gridLine.style.backgroundColor = '#f7fafc';
+            }
+            ganttChartDiv.appendChild(gridLine);
+            
+            // Cabeçalho do mês
+            const monthName = day.toLocaleDateString('pt-BR', { month: 'long' });
+            if (monthName!== currentMonth) {
+                currentMonth = monthName;
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'absolute top-0 text-center font-bold text-gray-700';
+                monthLabel.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${day.getFullYear()}`;
+                monthLabel.style.left = `${index * cellWidth}px`;
+                monthLabel.style.height = `${headerHeight / 2}px`;
+                headerDiv.appendChild(monthLabel);
+            }
+            
+            // Cabeçalho do dia
+            const dayLabel = document.createElement('div');
+            dayLabel.className = 'absolute text-center text-xs text-gray-500';
+            dayLabel.textContent = day.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }).replace('.', '');
+            dayLabel.style.left = `${index * cellWidth}px`;
+            dayLabel.style.top = `${headerHeight / 2}px`;
+            dayLabel.style.width = `${cellWidth}px`;
+            headerDiv.appendChild(dayLabel);
         });
-        
-        // Gerar dados reais baseados nas medições
-        const realData = days.map(day => {
-            // Por simplicidade, distribuir o valor medido linearmente até o dia atual
-            const today = new Date();
-            const startDate = new Date();
-            const currentDay = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
-            
-            if (day <= currentDay) {
-                return (measuredValue / currentDay) * day;
-            } else {
-                return null; // Não há dados futuros
+        ganttChartDiv.appendChild(headerDiv);
+
+        // Renderizar Tarefas
+        const taskListDiv = document.createElement('div');
+        taskListDiv.className = 'absolute bg-white border-r border-gray-300 z-10';
+        taskListDiv.style.width = '200px';
+        taskListDiv.style.top = `${headerHeight}px`;
+        taskListDiv.style.left = '-200px'; // Posicionado fora para ser alinhado com o wrapper
+
+        ganttTasksData.forEach((task, index) => {
+            // Rótulo da tarefa
+            const taskLabel = document.createElement('div');
+            taskLabel.className = 'h-full flex items-center p-2 border-b border-gray-200 text-sm font-medium text-gray-800';
+            taskLabel.textContent = task.name;
+            taskLabel.style.height = `${rowHeight}px`;
+            taskListDiv.appendChild(taskLabel);
+
+            // Linha horizontal da grelha
+            const rowLine = document.createElement('div');
+            rowLine.className = 'absolute left-0 right-0 border-b border-gray-200';
+            rowLine.style.top = `${headerHeight + (index + 1) * rowHeight}px`;
+            ganttChartDiv.appendChild(rowLine);
+
+            // Barra da tarefa
+            if (task.start) {
+                const diffTime = task.start.getTime() - minDate.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                const bar = document.createElement('div');
+                bar.className = 'gantt-task-bar absolute flex items-center justify-center text-white text-xs rounded shadow cursor-move';
+                bar.textContent = task.name;
+                bar.style.top = `${headerHeight + (index * rowHeight) + 5}px`;
+                bar.style.left = `${diffDays * cellWidth}px`;
+                bar.style.width = `${task.duration * cellWidth}px`;
+                bar.style.height = `${rowHeight - 10}px`;
+                bar.style.backgroundColor = '#E21B2F';
+                bar.dataset.taskId = task.id;
+                ganttChartDiv.appendChild(bar);
             }
-        }).filter(value => value !== null);
+        });
+
+        // Adicionar a lista de tarefas ao wrapper do gráfico
+        const wrapper = document.getElementById('gantt-chart-wrapper');
+        wrapper.style.position = 'relative';
+        wrapper.style.paddingLeft = '200px';
+        wrapper.insertBefore(taskListDiv, ganttChartDiv);
         
-        // Destruir gráfico anterior se existir
-        if (curvaChart) {
-            curvaChart.destroy();
-        }
+        // Renderiza a Curva S após o Gantt
+        renderSCurve();
+    };
+
+    // Função para renderizar a Curva S
+    const renderSCurve = async () => {
+        const canvas = document.getElementById('curva-s-chart');
+        if (!canvas) return;
+
+        // 1. Calcular Valor Planeado (PV)
+        const { pvData, labels } = calculatePlannedValue();
+        // 2. Calcular Valor Agregado (EV)
+        const evData = await calculateEarnedValue(labels);
         
-        // Criar novo gráfico
-        curvaChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: days.map(day => `Dia ${day}`),
-                datasets: [
-                    {
-                        label: 'Planejado',
-                        data: plannedData,
-                        borderColor: '#E21B2F',
-                        backgroundColor: 'rgba(226, 27, 47, 0.1)',
-                        fill: false,
-                        tension: 0.4
+        const data = {
+            labels: labels,
+            datasets:
+        };
+
+        if (sCurveChart) {
+            sCurveChart.data = data;
+            sCurveChart.update();
+        } else {
+            const ctx = canvas.getContext('2d');
+            sCurveChart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
                     },
-                    {
-                        label: 'Realizado',
-                        data: realData.concat(Array(ganttDays - realData.length).fill(null)),
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        fill: false,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return formatCurrency(value);
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label |
+
+| '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y!== null) {
+                                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
                             }
                         }
                     }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Curva S - Evolução Financeira da Obra'
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
                 }
+            });
+        }
+         // Listener para atualizações em tempo real
+        listenForMedicoesUpdates();
+    };
+
+    // Função para calcular o Valor Planeado (PV)
+    const calculatePlannedValue = () => {
+        if (ganttTasksData.length === 0 ||!ganttTasksData.some(t => t.start)) {
+            return { pvData:, labels: };
+        }
+        
+        const projectDates = ganttTasksData.filter(t => t.start).flatMap(task => {
+            const end = new Date(task.start);
+            end.setDate(end.getDate() + task.duration - 1);
+            return [task.start, end];
+        });
+
+        const minDate = new Date(Math.min(...projectDates));
+        const maxDate = new Date(Math.max(...projectDates));
+
+        const dailyValues = {};
+        ganttTasksData.forEach(task => {
+            if (task.start && task.duration > 0) {
+                const dailyValue = task.valorTotal / task.duration;
+                for (let i = 0; i < task.duration; i++) {
+                    const currentDate = new Date(task.start);
+                    currentDate.setDate(currentDate.getDate() + i);
+                    const dateString = currentDate.toISOString().split('T');
+                    dailyValues = (dailyValues |
+
+| 0) + dailyValue;
+                }
+            }
+        });
+
+        const labels =;
+        const pvData =;
+        let cumulativeValue = 0;
+        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+            const dateString = d.toISOString().split('T');
+            labels.push(dateString);
+            cumulativeValue += dailyValues |
+
+| 0;
+            pvData.push(cumulativeValue);
+        }
+        return { pvData, labels };
+    };
+
+    // Função para calcular o Valor Agregado (EV)
+    const calculateEarnedValue = async (labels) => {
+        if (labels.length === 0) return;
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const tarefasSnapshot = await getDocs(tarefasRef);
+        const medicoesByDate = {};
+        
+        for (const doc of tarefasSnapshot.docs) {
+            const tarefa = doc.data();
+            if (tarefa.medicoes) {
+                tarefa.medicoes.forEach(medicao => {
+                    const dateString = new Date(medicao.data).toISOString().split('T');
+                    medicoesByDate = (medicoesByDate |
+
+| 0) + medicao.valor;
+                });
+            }
+        }
+
+        const evData =;
+        let cumulativeValue = 0;
+        labels.forEach(label => {
+            cumulativeValue += medicoesByDate[label] |
+
+| 0;
+            evData.push(cumulativeValue);
+        });
+        return evData;
+    };
+
+    // Listener para atualizações em tempo real das medições
+    let unsubscribeMedicoes = null;
+    const listenForMedicoesUpdates = () => {
+        if (unsubscribeMedicoes) {
+            unsubscribeMedicoes(); // Cancela o listener anterior para evitar duplicação
+        }
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        unsubscribeMedicoes = onSnapshot(tarefasRef, async () => {
+            console.log("Medições atualizadas, redesenhando a Curva S...");
+            if (sCurveChart && sCurveChart.data.labels.length > 0) {
+                const evData = await calculateEarnedValue(sCurveChart.data.labels);
+                sCurveChart.data.datasets.data = evData; // Atualiza apenas o dataset de EV
+                sCurveChart.update();
             }
         });
     };
 
-    // Renderização de Despesas
+    // --- FIM DO NOVO CÓDIGO PARA A ABA CRONOGRAMA ---
+
     const renderDespesas = () => {
         if (!currentObraId) return;
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         onSnapshot(despesasRef, (snapshot) => {
             despesasList.innerHTML = '';
-            const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const despesas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
             
             let total = 0;
             let maiorDespesa = 0;
@@ -1304,11 +1200,10 @@
                 `;
                 despesasList.appendChild(despesaItem);
             });
-            
+
             // Atualizar totais
             document.getElementById('total-despesas').textContent = formatCurrency(total);
             document.getElementById('maior-despesa').textContent = formatCurrency(maiorDespesa);
-            
             // Calcular média por dia (considerando últimos 30 dias)
             const media = total / 30;
             document.getElementById('media-despesas').textContent = formatCurrency(media);
@@ -1321,6 +1216,7 @@
                     openDespesaForm(despesa);
                 });
             });
+
             document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const despesaId = e.currentTarget.dataset.id;
@@ -1358,11 +1254,15 @@
 
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
 
         let totalTarefas = tarefas.length;
-        let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
-        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
+        let totalConcluidas = tarefas.filter(t => (t.medicoes ||).reduce((sum, m) => sum + (m.valor |
+
+| 0), 0) >= t.valorTotal).length;
+        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes ||).reduce((sum, m) => sum + (m.valor |
+
+| 0), 0), 0);
         let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
 
         relatorioContent.innerHTML = `
@@ -1388,7 +1288,7 @@
             <hr class="my-8">
 
             <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
-                Relatório por Período
+            Relatório por Período
                 <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
             </h3>
             <div class="space-y-4">
@@ -1404,7 +1304,7 @@
                     <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
                 </div>
                 <div id="period-report-result" class="mt-6">
-                    </div>
+                </div>
             </div>
         `;
         const generateBtn = document.getElementById('generate-period-report-btn');
@@ -1478,7 +1378,7 @@
         const payload = {
             contents: [{ parts: [{ text: text }] }],
             generationConfig: {
-                responseModalities: ["AUDIO"],
+                responseModalities:,
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: { voiceName: "Iapetus" }
@@ -1498,11 +1398,11 @@
             }
 
             const result = await response.json();
-            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const part = result?.candidates?.?.content?.parts?.;
             const audioData = part?.inlineData?.data;
             const mimeType = part?.inlineData?.mimeType;
             if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/), 10);
                 const pcmData = base64ToArrayBuffer(audioData);
                 const pcm16 = new Int16Array(pcmData);
                 const wavBlob = pcmToWav(pcm16, sampleRate);
@@ -1522,7 +1422,7 @@
         const reportResultDiv = document.getElementById('period-report-result');
         reportResultDiv.innerHTML = '';
 
-        if (!startDate || !endDate) {
+        if (!startDate ||!endDate) {
             reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
             return;
         }
@@ -1535,23 +1435,26 @@
         let relatorioHtml = '';
         let hasData = false;
 
-        const reportData = [];
+        const reportData =;
         const taskTotals = {};
         tarefas.forEach(tarefa => {
-            const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
+            const medicoesPeriodo = (tarefa.medicoes ||).filter(medicao => {
                 const medicaoDate = new Date(medicao.data);
                 return medicaoDate >= start && medicaoDate < end;
             });
 
             if (medicoesPeriodo.length > 0) {
                 hasData = true;
-                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
+                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor |
+
+| 0), 0);
                 totalPeriodo += valorPeriodoTarefa;
                 
                 if (!taskTotals[tarefa.nome]) {
                     taskTotals[tarefa.nome] = 0;
                 }
                 taskTotals[tarefa.nome] += valorPeriodoTarefa;
+
 
                 relatorioHtml += `
                     <div class="card p-4 mb-4">
@@ -1565,108 +1468,186 @@
                                     'Metragem': m.metragem,
                                     'Unidade': tarefa.unidade,
                                     'Valor': m.valor,
-                                    'Data': new Date(m.data).toLocaleDateString()
+                                    'Data': new Date(m.data).toLocaleDateString(),
+                                    'Observacoes': m.observacoes |
+
+| ''
                                 });
-                                return `<li class="text-sm">${medicaoInfo}</li>`;
+                                return `<li>${medicaoInfo}</li>`;
                             }).join('')}
                         </ul>
-                        <p class="font-semibold text-green-600 mt-2">Total da tarefa: ${formatCurrency(valorPeriodoTarefa)}</p>
+                        <div class="mt-2 text-sm">
+                            <p class="font-bold">Total Medido nesta tarefa: <span class="text-green-600">${formatCurrency(valorPeriodoTarefa)}</span></p>
+                        </div>
                     </div>
                 `;
             }
         });
 
         if (!hasData) {
-            reportResultDiv.innerHTML = '<p class="text-gray-500">Nenhuma medição encontrada no período selecionado.</p>';
-            return;
+            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada no período selecionado.</p>';
+        } else {
+            reportResultDiv.innerHTML = `
+                <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <p class="text-gray-600 font-bold text-xl">Total a Receber no Período:</p>
+                        <p class="text-4xl font-extrabold text-green-700 mt-2">${formatCurrency(totalPeriodo)}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button id="export-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
+                        <button id="export-excel-btn" class="btn btn-secondary">Exportar Excel</button>
+                    </div>
+                </div>
+                ${relatorioHtml}
+            `;
+            document.getElementById('export-pdf-btn').addEventListener('click', () => {
+                exportPDF(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
+            document.getElementById('export-excel-btn').addEventListener('click', () => {
+                exportExcel(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
+            });
         }
-
-        relatorioHtml = `
-            <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                <h4 class="font-semibold text-lg">Resumo do Período</h4>
-                <p><strong>Obra:</strong> ${nomeObra}</p>
-                <p><strong>Período:</strong> ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}</p>
-                <p><strong>Total Medido:</strong> <span class="text-green-600 font-bold">${formatCurrency(totalPeriodo)}</span></p>
-            </div>
-            ${relatorioHtml}
-        `;
-
-        reportResultDiv.innerHTML = relatorioHtml;
     };
 
-    // Formulários
+    const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
+
+        doc.setFontSize(12);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
+        doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
+        // First table: detailed report
+        const columns =;
+        const rows = data.map(item =>);
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: 45
+        });
+        // Second table: task totals
+        const taskTotalColumns =;
+        const taskTotalRows = Object.keys(taskTotals).map(taskName =>)
+        ]);
+        doc.autoTable({
+            head:,
+            body: taskTotalRows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor:  },
+            bodyStyles: { textColor:  },
+        });
+        doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
+    };
+
+    const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
+        // Prepare detailed data
+        const detailedData =,
+            [`Obra: ${nomeObra}`],
+           ,
+           ,
+           ,
+           ,
+           .concat(data.map(item =>));
+        // Prepare task totals data
+        const taskTotalData =,
+           ,
+           ,
+           .concat(Object.keys(taskTotals).map(taskName =>));
+
+        const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio");
+        XLSX.writeFile(workbook, `relatorio_${nomeObra}_${startDate}_${endDate}.xlsx`);
+    };
+
+    // Forms
     const openObraForm = (obra = {}) => {
         const formHtml = `
             <form id="obra-form" class="space-y-4">
                 <div>
                     <label for="obra-nome" class="block text-sm font-medium text-gray-700">Nome da Obra</label>
-                    <input type="text" id="obra-nome" name="nome" value="${obra.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="obra-nome" name="nome" value="${obra.nome |
+
+| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
                 <div>
                     <label for="obra-localizacao" class="block text-sm font-medium text-gray-700">Localização</label>
-                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao |
+
+| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
                 <div>
-                    <label for="obra-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
-                    <input type="number" step="0.01" id="obra-valor-total" name="valorTotal" value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <label for="obra-valor" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
+                    <input type="number" id="obra-valor" name="valorTotal" value="${obra.valorTotal |
+
+| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${obra.id ? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${obra.id? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(obra.id ? 'Editar Obra' : 'Nova Obra', formHtml);
+        openModal(obra.id? 'Editar Obra' : 'Nova Obra', formHtml);
         document.getElementById('obra-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const newObra = {
                 nome: formData.get('nome'),
                 localizacao: formData.get('localizacao'),
-                valorTotal: parseFloat(formData.get('valorTotal'))
+                valorTotal: parseFloat(formData.get('valorTotal')),
+                valorMedido: obra.valorMedido |
+
+| 0
             };
-            addOrUpdateObra({ ...newObra, id: obra.id });
+            addOrUpdateObra({...newObra, id: obra.id });
         });
     };
-
+    
     const openTarefaForm = (tarefa = {}) => {
         const formHtml = `
             <form id="tarefa-form" class="space-y-4">
                 <div>
                     <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
-                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome |
+
+| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
-                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal |
+
+| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
-                    <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade</label>
-                    <select id="tarefa-unidade" name="unidade" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                        <option value="m" ${tarefa.unidade === 'm' ? 'selected' : ''}>Metro (m)</option>
-                        <option value="m²" ${tarefa.unidade === 'm²' ? 'selected' : ''}>Metro Quadrado (m²)</option>
-                        <option value="m³" ${tarefa.unidade === 'm³' ? 'selected' : ''}>Metro Cúbico (m³)</option>
-                        <option value="un" ${tarefa.unidade === 'un' ? 'selected' : ''}>Unidade (un)</option>
-                        <option value="kg" ${tarefa.unidade === 'kg' ? 'selected' : ''}>Quilograma (kg)</option>
-                        <option value="l" ${tarefa.unidade === 'l' ? 'selected' : ''}>Litro (l)</option>
-                    </select>
+                    <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade (m, un, etc.)</label>
+                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade |
+
+| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
-                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal |
+
+| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao |
+
+| ''}</textarea>
                     <button type="button" id="gerar-descricao-btn" class="btn btn-secondary mt-2">Gerar Descrição ✨</button>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${tarefa.id? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(tarefa.id ? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
+        openModal(tarefa.id? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
         document.getElementById('tarefa-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const metragemTotal = parseFloat(formData.get('metragemTotal'));
             const valorTotal = parseFloat(formData.get('valorTotal'));
-            const valorUnitario = metragemTotal > 0 ? (valorTotal / metragemTotal) : 0;
+            const valorUnitario = metragemTotal > 0? (valorTotal / metragemTotal) : 0;
             const newTarefa = {
                 nome: formData.get('nome'),
                 metragemTotal: metragemTotal,
@@ -1674,9 +1655,9 @@
                 valorUnitario: valorUnitario,
                 valorTotal: valorTotal,
                 descricao: formData.get('descricao'),
-                medicoes: tarefa.medicoes || []
+                medicoes: tarefa.medicoes ||
             };
-            addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
+            addOrUpdateTarefa({...newTarefa, id: tarefa.id });
         });
         document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
             const nome = document.getElementById('tarefa-nome').value;
@@ -1695,34 +1676,42 @@
             <form id="despesa-form" class="space-y-4">
                 <div>
                     <label for="despesa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao |
+
+| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-valor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor |
+
+| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-data" class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="date" id="despesa-data" name="data" value="${despesa.data |
+
+| new Date().toISOString().split('T')}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
                     <select id="despesa-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                        <option value="Gasolina" ${despesa.categoria === 'Gasolina' ? 'selected' : ''}>Gasolina</option>
-                        <option value="Alimentação" ${despesa.categoria === 'Alimentação' ? 'selected' : ''}>Alimentação</option>
-                        <option value="Hospedagem" ${despesa.categoria === 'Hospedagem' ? 'selected' : ''}>Hospedagem</option>
-                        <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
-                        <option value="Outros" ${despesa.categoria === 'Outros' ? 'selected' : ''}>Outros</option>
+                        <option value="Gasolina" ${despesa.categoria === 'Gasolina'? 'selected' : ''}>Gasolina</option>
+                        <option value="Alimentação" ${despesa.categoria === 'Alimentação'? 'selected' : ''}>Alimentação</option>
+                        <option value="Hospedagem" ${despesa.categoria === 'Hospedagem'? 'selected' : ''}>Hospedagem</option>
+                        <option value="Materiais" ${despesa.categoria === 'Materiais'? 'selected' : ''}>Materiais</option>
+                        <option value="Outros" ${despesa.categoria === 'Outros'? 'selected' : ''}>Outros</option>
                     </select>
                 </div>
                 <div>
                     <label for="despesa-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes || ''}</textarea>
+                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes |
+
+| ''}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${despesa.id ? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${despesa.id? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
+        openModal(despesa.id? 'Editar Despesa' : 'Nova Despesa', formHtml);
         document.getElementById('despesa-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -1733,7 +1722,7 @@
                 categoria: formData.get('categoria'),
                 observacoes: formData.get('observacoes')
             };
-            addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
+            addOrUpdateDespesa({...newDespesa, id: despesa.id });
         });
     };
 
@@ -1755,7 +1744,9 @@
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
-            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const description = result?.candidates?.?.content?.parts?.?.text |
+
+| '';
             descricaoTextarea.value = description.trim();
         } catch (error) {
             console.error("Erro ao gerar descrição:", error);
@@ -1809,7 +1800,9 @@
                         <div class="mb-2 md:mb-0">
                             <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
                             <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
-                            <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
+                            <p><strong>Observações:</strong> ${medicao.observacoes |
+
+| 'N/A'}</p>
                             <p class="text-xs text-gray-500">${new Date(medicao.data).toLocaleDateString()}</p>
                         </div>
                         <div class="flex space-x-2">
@@ -1828,7 +1821,9 @@
                 `).join('')}
             </ul>
         `;
-        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
+        openModal('Medições Anteriores', listHtml |
+
+| '<p>Nenhuma medição registrada.</p>');
 
         document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1837,6 +1832,7 @@
                 openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
             });
         });
+
         document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const medicaoIndex = e.currentTarget.dataset.index;
@@ -1865,7 +1861,9 @@
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes |
+
+| ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
@@ -1899,7 +1897,7 @@
     // Adicionar event listener para o botão de relatório de despesas
     document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
         const relatorioContainer = document.getElementById('relatorio-despesas-container');
-        const isVisible = !relatorioContainer.classList.contains('hidden');
+        const isVisible =!relatorioContainer.classList.contains('hidden');
         
         if (isVisible) {
             relatorioContainer.classList.add('hidden');
@@ -1913,7 +1911,7 @@
         const startDate = document.getElementById('despesa-start-date').value;
         const endDate = document.getElementById('despesa-end-date').value;
         
-        if (!startDate || !endDate) {
+        if (!startDate ||!endDate) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione ambas as datas.</p>');
             return;
         }
@@ -1928,79 +1926,140 @@
         // Buscar despesas do período
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         const snapshot = await getDocs(despesasRef);
-        let despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let despesas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
         
         // Filtrar por período
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setDate(end.getDate() + 1);
-        
         despesas = despesas.filter(despesa => {
             const despesaDate = new Date(despesa.data);
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setDate(end.getDate() + 1); // Para incluir o dia final
+            
             return despesaDate >= start && despesaDate < end;
         });
-        
+
         if (despesas.length === 0) {
-            reportResultDiv.innerHTML = '<p class="text-gray-500">Nenhuma despesa encontrada no período selecionado.</p>';
+            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma despesa encontrada no período selecionado.</p>';
             return;
         }
         
-        // Calcular totais
-        const total = despesas.reduce((sum, d) => sum + d.valor, 0);
-        const categorias = {};
-        despesas.forEach(d => {
-            if (!categorias[d.categoria]) {
-                categorias[d.categoria] = 0;
+        let totalPeriodo = despesas.reduce((sum, d) => sum + d.valor, 0);
+        // Agrupar por categoria
+        const porCategoria = {};
+        despesas.forEach(despesa => {
+            if (!porCategoria[despesa.categoria]) {
+                porCategoria[despesa.categoria] = 0;
             }
-            categorias[d.categoria] += d.valor;
+            porCategoria[despesa.categoria] += despesa.valor;
         });
-        
-        // Gerar relatório
-        let reportHtml = `
-            <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                <h4 class="font-semibold text-lg">Resumo de Despesas</h4>
-                <p><strong>Período:</strong> ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}</p>
-                <p><strong>Total de Despesas:</strong> <span class="text-red-600 font-bold">${formatCurrency(total)}</span></p>
-                <p><strong>Quantidade de Despesas:</strong> ${despesas.length}</p>
-            </div>
-            
-            <div class="mb-4">
-                <h5 class="font-semibold mb-2">Por Categoria:</h5>
-                <div class="grid grid-cols-2 gap-2">
-                    ${Object.entries(categorias).map(([categoria, valor]) => `
-                        <div class="p-2 bg-gray-100 rounded">
-                            <p class="text-sm font-medium">${categoria}</p>
-                            <p class="text-red-600 font-bold">${formatCurrency(valor)}</p>
-                        </div>
-                    `).join('')}
+
+        let relatorioHtml = `
+            <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <p class="text-gray-600 font-bold text-xl">Total de Despesas no Período:</p>
+                    <p class="text-4xl font-extrabold text-red-700 mt-2">${formatCurrency(totalPeriodo)}</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-2">
+                    <button id="export-despesa-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
+                    <button id="export-despesa-excel-btn" class="btn btn-secondary">Exportar Excel</button>
                 </div>
             </div>
-            
-            <div>
-                <h5 class="font-semibold mb-2">Detalhes:</h5>
-                <div class="space-y-2">
-                    ${despesas.map(despesa => `
-                        <div class="p-3 bg-gray-50 rounded">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-medium">${despesa.descricao}</p>
-                                    <p class="text-sm text-gray-500">${despesa.categoria} - ${new Date(despesa.data).toLocaleDateString()}</p>
-                                    ${despesa.observacoes ? `<p class="text-xs text-gray-400">${despesa.observacoes}</p>` : ''}
-                                </div>
-                                <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
+            <h4 class="text-lg font-semibold mb-4">Por Categoria</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         `;
+        Object.keys(porCategoria).forEach(categoria => {
+            relatorioHtml += `
+                <div class="p-4 bg-gray-100 rounded-lg">
+                    <p class="text-gray-500">${categoria}</p>
+                    <p class="text-2xl font-bold">${formatCurrency(porCategoria[categoria])}</p>
+                </div>
+            `;
+        });
+        relatorioHtml += `</div><h4 class="text-lg font-semibold mb-4">Detalhamento</h4>`;
         
-        reportResultDiv.innerHTML = reportHtml;
+        despesas.forEach(despesa => {
+            relatorioHtml += `
+                <div class="despesa-item mb-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">${despesa.descricao}</p>
+                            <p class="text-sm text-gray-500">${new Date(despesa.data).toLocaleDateString()} - ${despesa.categoria}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
+                        </div>
+                    </div>
+                    ${despesa.observacoes? `<p class="text-sm text-gray-600 mt-2">${despesa.observacoes}</p>` : ''}
+                </div>
+            `;
+        });
+
+        reportResultDiv.innerHTML = relatorioHtml;
+        
+        // Adicionar event listeners para os botões de exportação
+        document.getElementById('export-despesa-pdf-btn').addEventListener('click', () => {
+            exportDespesaPDF(despesas, porCategoria, startDate, endDate, totalPeriodo);
+        });
+        document.getElementById('export-despesa-excel-btn').addEventListener('click', () => {
+            exportDespesaExcel(despesas, porCategoria, startDate, endDate, totalPeriodo);
+        });
     };
 
-    // Initialize Firebase when page loads
-    initFirebase();
-</script>
+    const exportDespesaPDF = (despesas, porCategoria, startDate, endDate, total) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Relatório de Despesas`, 14, 22);
+        
+        doc.setFontSize(12);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
+        doc.text(`Total de Despesas: ${formatCurrency(total)}`, 14, 38);
+        
+        // Tabela de totais por categoria
+        const categoriaColumns =;
+        const categoriaRows = Object.keys(porCategoria).map(cat => [cat, formatCurrency(porCategoria[cat])]);
+        
+        doc.autoTable({
+            head: [categoriaColumns],
+            body: categoriaRows,
+            startY: 45
+        });
+        // Tabela detalhada
+        const columns =;
+        const rows = despesas.map(d =>);
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor:  },
+            bodyStyles: { textColor:  },
+        });
+        doc.save(`relatorio_despesas_${startDate}_${endDate}.pdf`);
+    };
 
-</body>
-</html>
+    const exportDespesaExcel = (despesas, porCategoria, startDate, endDate, total) => {
+        // Preparar dados para exportação
+        const data =,
+           ,
+           ,
+           ,
+           ,
+           ;
+        Object.keys(porCategoria).forEach(cat => {
+            data.push([cat, porCategoria[cat]]);
+        });
+        data.push(,,);
+        data.push();
+        despesas.forEach(d => {
+            data.push();
+        });
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
+        XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
+    };
+
+    // Event listeners for main buttons
+    addObraBtn.addEventListener('click', () =>
