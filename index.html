@@ -452,6 +452,11 @@
 
     // Gemini API configuration
         const API_KEY = "YOUR_GEMINI_API_KEY"; // <<<<<<< SUBSTITUA PELA SUA CHAVE DE API DO GEMINI >>>>>>>
+    // Para obter sua chave de API do Gemini:
+    // 1. Vá para o Google AI Studio (aistudio.google.com/app/apikey).
+    // 2. Crie uma nova chave de API ou use uma existente.
+    // 3. Copie a chave de API gerada e cole-a aqui.
+    // Certifique-se de que a chave de API tenha permissões para usar os modelos `gemini-1.5-flash` e `gemini-2.0-flash-exp`.
     const GEMINI_API_URL_GENERATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
     const GEMINI_API_URL_TTS = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=";
 
@@ -559,6 +564,9 @@
         try {
             app = initializeApp(__firebase_config);
             auth = getAuth(app);
+            // Desabilitar a verificação reCAPTCHA para fins de teste, se não estiver usando reCAPTCHA
+            // Isso pode resolver o erro "_getRecaptchaConfig" se o Firebase espera uma configuração de reCAPTCHA.
+            auth.appVerificationDisabledForTesting = true;
             db = getFirestore(app);
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             onAuthStateChanged(auth, async (user) => {
@@ -1996,4 +2004,3 @@
 
 </body>
 </html>
-
