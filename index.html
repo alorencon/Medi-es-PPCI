@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -272,12 +273,13 @@
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                            <!-- REMOVIDO: botão de adicionar tarefa no cronograma -->
+<!--
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Adicionar Tarefa</span>
-                            </button>
+                            -->
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -365,134 +367,107 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
-        <div class="flex justify-between items-center mb-4">
-            <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
-            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
-        </div>
-        <div id="modal-body">
+        <!-- Modal Structure -->
+        <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 id="modal-title" class="text-lg leading-6 font-medium text-gray-900"></h3>
+                    <div class="mt-2 px-7 py-3" id="modal-content">
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="modal-close-btn" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
             </div>
+        </div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-    // Firebase Imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // Set Firebase log level for debugging
-    setLogLevel('Debug');
+    // Your web app's Firebase configuration
+   const firebaseConfig = {
+    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+    authDomain: "medicoes-ppci.firebaseapp.com",
+    projectId: "medicoes-ppci",
+    storageBucket: "medicoes-ppci.firebasestorage.app",
+    messagingSenderId: "408815173796",
+    appId: "1:408815173796:web:efd25d921a7f0ee923e631",
+    measurementId: "G-9YW2XQH2HH"
+  };
 
-    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
-    // Entre em "Configurações do projeto" > "Seus apps"
-    // Copie e cole o objeto de configuração aqui.
-    // Exemplo:
-    const firebaseConfig = {
-      apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-      authDomain: "medicoes-ppci.firebaseapp.com",
-      projectId: "medicoes-ppci",
-      storageBucket: "medicoes-ppci.firebasestorage.app",
-      messagingSenderId: "408815173796",
-      appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-      measurementId: "G-9YW2XQH2HH"
-    };
-
-    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
-    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
-    // const API_KEY = "YOUR_GEMINI_API_KEY";
-
-    const API_KEY = ''; 
-
-    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
-    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
-    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
-    const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
+    const __app_id = "YOUR_APP_ID"; // Usado para o caminho do Firestore
+    const GEMINI_API_URL_GENERATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
+    const GEMINI_API_URL_TTS = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key="; // TTS endpoint
+    const API_KEY = "YOUR_GEMINI_API_KEY";
 
     let app;
     let auth;
     let db;
     let userId = null;
-    let audioContext;
-
     let currentObraId = null;
-    let curvaSChart = null;
+    let lastUserId = null; // Para rastrear o último usuário logado
+    let audioContext; // Para o Web Audio API
+    let curvaSChart; // Para a instância do Chart.js da Curva S
 
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const addObraBtn = document.getElementById('add-obra-btn');
-    const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
-    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
-    const addDespesaBtn = document.getElementById('add-despesa-btn');
-    const obrasList = document.getElementById('obras-list');
-    const tarefasList = document.getElementById('tarefas-list');
-    const relatorioContent = document.getElementById('relatorio-content');
-    const despesasList = document.getElementById('despesas-list');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const ganttChart = document.getElementById('gantt-chart');
-    const cronogramaDias = document.getElementById('cronograma-dias');
+    // Get DOM elements
+    const loginView = document.getElementById("login-view");
+    const appView = document.getElementById("app-view");
+    const loginForm = document.getElementById("login-form");
+    const createAccountBtn = document.getElementById("create-account-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userIdDisplay = document.getElementById("userIdDisplay");
+    const obrasList = document.getElementById("obras-list");
+    const addObraBtn = document.getElementById("add-obra-btn");
+    const tarefasList = document.getElementById("tarefas-list");
+    const addTarefaBtn = document.getElementById("add-tarefa-btn");
+    const addTarefaCronogramaBtn = document.getElementById("add-tarefa-cronograma-btn");
+    const gerarCronogramaBtn = document.getElementById("gerar-cronograma-btn");
+    const cronogramaDias = document.getElementById("cronograma-dias");
+    const relatorioContent = document.getElementById("relatorio-content");
+    const despesasList = document.getElementById("despesas-list");
+    const addDespesaBtn = document.getElementById("add-despesa-btn");
+    const tabs = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
 
-    const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
-    const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
-
-    const loginView = document.getElementById('login-view');
-    const appView = document.getElementById('app-view');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginForm = document.getElementById('login-form');
-    const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-
-    // New variables for gantt drag-and-drop
-    let ganttTasks = [];
-    let isDragging = false;
-    let currentDragElement = null;
-    let dragStartX = 0;
-    let originalStartDay = 0;
-    let originalEndDay = 0;
-    let dragType = ''; // 'move' ou 'resize-left' ou 'resize-right'
-
-    // Utility function to format currency
+    // Helper functions
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+        }).format(value);
     };
 
-    // Utility function to calculate percentage
-    const calculatePercentage = (numerator, denominator) => {
-        if (denominator === 0) return 0;
-        return (numerator / denominator) * 100;
+    const calculatePercentage = (partialValue, totalValue) => {
+        if (totalValue === 0) return 0;
+        return (partialValue / totalValue) * 100;
     };
 
     // Modal functions
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalContent = document.getElementById("modal-content");
+    const modalCloseBtn = document.getElementById("modal-close-btn");
+
     const openModal = (title, content) => {
-        modalTitle.textContent = title;
-        modalBody.innerHTML = content;
-        modal.classList.remove('hidden');
+        modalTitle.innerHTML = title;
+        modalContent.innerHTML = content;
+        modal.classList.remove("hidden");
     };
 
     const closeModal = () => {
-        modal.classList.add('hidden');
-        modalTitle.textContent = '';
-        modalBody.innerHTML = '';
+        modal.classList.add("hidden");
     };
 
-    document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    modalCloseBtn.addEventListener("click", closeModal);
 
     // Tab switching logic
     tabs.forEach(tab => {
@@ -537,30 +512,47 @@
 
     // Firebase Initialization & Auth
     const initFirebase = async () => {
-        try {
-            app = initializeApp(__firebase_config);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    userIdDisplay.textContent = userId;
-                    loginView.classList.add('hidden');
-                    appView.classList.remove('hidden');
-                    listenToObras();
-                } else {
-                    userId = null;
-                    userIdDisplay.textContent = "N/A";
-                    loginView.classList.remove('hidden');
-                    appView.classList.add('hidden');
-                }
-            });
+    try {
+        app = initializeApp(__firebase_config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        } catch (error) {
-            console.error("Erro ao inicializar Firebase ou autenticar:", error);
-        }
-    };
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuário logado
+                userId = user.uid;
+                userIdDisplay.textContent = userId;
+                loginView.classList.add(\'hidden\');
+                appView.classList.remove(\'hidden\');
+
+                // Apenas inicializa as obras se o userId mudou ou se é a primeira vez que um usuário loga
+                if (userId !== lastUserId) {
+                    listenToObras();
+                    lastUserId = userId; // Atualiza o último userId logado
+                }
+            } else {
+                // Usuário deslogado
+                userId = null;
+                userIdDisplay.textContent = "N/A";
+                loginView.classList.remove(\'hidden\');
+                appView.classList.add(\'hidden\');
+                // Resetar o lastUserId quando o usuário desloga
+                lastUserId = null;
+                currentObraId = null; // Limpar obra selecionada
+                // Limpar listas ou estados da UI que dependem do usuário logado
+                obrasList.innerHTML = \'\';
+                tarefasList.innerHTML = \'\';
+                despesasList.innerHTML = \'\';
+                relatorioContent.innerHTML = \'\';
+                document.getElementById(\'gantt-chart\').innerHTML = \'\';
+                if (curvaSChart) curvaSChart.destroy();
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao inicializar Firebase ou autenticar:", error);
+    }
+};
     
     loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -823,17 +815,27 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Valor Medido</p>
-                            <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
+                            <p class="font-semibold">${formatCurrency(valorMedido)}</p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap justify-start space-x-2 mt-4">
-                        <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
-                        <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
-                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
-                        <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button class="view-medicoes-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Ver Medições</button>
+                        <button class="add-medicao-btn btn btn-primary btn-sm" data-id="${tarefa.id}">Add Medição</button>
+                        <button class="edit-tarefa-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Editar</button>
+                        <button class="delete-tarefa-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
                 tarefasList.appendChild(tarefaCard);
+            });
+
+            document.querySelectorAll('.view-medicoes-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+                    const tarefaDoc = await getDoc(tarefaDocRef);
+                    const tarefa = tarefaDoc.data();
+                    openMedicoesList(tarefaId, tarefa.medicoes || []);
+                });
             });
 
             document.querySelectorAll('.add-medicao-btn').forEach(btn => {
@@ -843,13 +845,7 @@
                     openMedicaoForm(tarefa);
                 });
             });
-            document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const tarefaId = e.currentTarget.dataset.id;
-                    const tarefa = tarefas.find(t => t.id === tarefaId);
-                    openMedicoesList(tarefa.id, tarefa.medicoes || []);
-                });
-            });
+
             document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -857,6 +853,7 @@
                     openTarefaForm(tarefa);
                 });
             });
+
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -875,163 +872,248 @@
                 });
             });
 
-            // Update valor total da obra
-            const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-            updateDoc(obraRef, { valorMedido: totalMedido });
+            if (tarefas.length === 0) {
+                tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa adicionada ainda.</p>';
+            }
         });
     };
 
-    
-// --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
-const renderCronograma = async () => {
-  if (!currentObraId) return;
-  const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-  const snapshot = await getDocs(tarefasRef);
-  const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Gantt Chart
+    let ganttTasks = [];
+    let isDragging = false;
+    let currentDragElement = null;
+    let dragStartX = 0;
+    let originalStartDay = 0;
+    let originalEndDay = 0;
+    let dragType = ""; // "move", "resize-left", "resize-right"
 
-  const dias = parseInt(cronogramaDias.value) || 30;
-  ganttChart.innerHTML = "";
+    const renderCronograma = async () => {
+        if (!currentObraId) return;
 
-  // Cabeçalho
-  const headerRow = document.createElement("div");
-  headerRow.className = "gantt-row";
-  const emptyHeader = document.createElement("div");
-  emptyHeader.className = "gantt-row-label";
-  headerRow.appendChild(emptyHeader);
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  const today = new Date();
-  for (let i = 0; i < dias; i++) {
-    const date = new Date();
-    date.setDate(today.getDate() + i);
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "gantt-day-cell gantt-header";
-    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
-    headerRow.appendChild(dayHeader);
-  }
-  ganttChart.appendChild(headerRow);
+        const cronogramaData = await getCronograma();
 
-  ganttTasks = [];
-  tarefas.forEach((tarefa, index) => {
-    const row = document.createElement("div");
-    row.className = "gantt-row";
-    row.dataset.id = tarefa.id;
+        ganttTasks = tarefas.map(tarefa => {
+            const savedData = cronogramaData && cronogramaData[tarefa.id];
+            const start = savedData?.start || 1;
+            const duration = savedData?.end ? savedData.end - start + 1 : tarefa.prazo || 5;
+            const end = start + duration - 1;
+            return { ...tarefa, start, end, duration };
+        });
 
-    const label = document.createElement("div");
-    label.className = "gantt-row-label";
-    label.textContent = tarefa.nome;
-    row.appendChild(label);
+        const ganttChart = document.getElementById('gantt-chart');
+        ganttChart.innerHTML = '';
 
-    for (let i = 1; i <= dias; i++) {
-      const cell = document.createElement("div");
-      cell.className = "gantt-day-cell";
-      cell.dataset.day = i;
-      cell.dataset.taskId = tarefa.id;
-      row.appendChild(cell);
-    }
-    ganttChart.appendChild(row);
+        const dias = parseInt(cronogramaDias.value) || 30;
 
-    let startDay = 1;
-    let duration = tarefa.prazo || 5;
-    ganttTasks.push({
-      id: tarefa.id,
-      name: tarefa.nome,
-      start: startDay,
-      end: startDay + duration - 1,
-      duration: duration
-    });
-  });
+        // Render headers (days)
+        const emptyHeader = document.createElement('div');
+        emptyHeader.className = 'gantt-header';
+        ganttChart.appendChild(emptyHeader);
 
-  renderGanttBars();
-  renderCurvaS(tarefas);
-};
+        for (let i = 1; i <= dias; i++) {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'gantt-header';
+            dayHeader.textContent = `Dia ${i}`;
+            ganttChart.appendChild(dayHeader);
+        }
 
-const renderGanttBars = () => {
-  document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
-  const firstCell = document.querySelector(".gantt-day-cell");
-  if (!firstCell) return;
-  const cellWidth = firstCell.offsetWidth;
+        // Render tasks and bars
+        ganttTasks.forEach(task => {
+            const taskLabel = document.createElement('div');
+            taskLabel.className = 'gantt-row-label';
+            taskLabel.textContent = task.nome;
+            ganttChart.appendChild(taskLabel);
 
-  ganttTasks.forEach(task => {
-    const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
-    if (!row) return;
-    const rowCells = row.querySelectorAll(".gantt-day-cell");
-    const rowTop = rowCells[0].offsetTop;
-    const barLeft = (task.start - 1) * cellWidth;
-    const barWidth = task.duration * cellWidth;
+            for (let i = 1; i <= dias; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'gantt-day-cell';
+                ganttChart.appendChild(dayCell);
+            }
+        });
 
-    const bar = document.createElement("div");
-    bar.className = "gantt-task-bar";
-    bar.dataset.taskId = task.id;
-    bar.style.top = rowTop + "px";
-    bar.style.left = barLeft + "px";
-    bar.style.width = barWidth + "px";
-    bar.innerHTML = `
-      <div class="gantt-task-handle gantt-task-handle-left"></div>
-      <div class="gantt-task-handle gantt-task-handle-right"></div>
-      <span>${task.name}</span>
-    `;
-    ganttChart.appendChild(bar);
-    bar.addEventListener("mousedown", startDrag);
-  });
-};
+        renderGanttBars();
+        renderCurvaS(tarefas);
+    };
 
-const startDrag = (e) => {
-  e.preventDefault();
-  isDragging = true;
-  currentDragElement = e.target.closest(".gantt-task-bar");
-  dragStartX = e.clientX;
-  const taskId = currentDragElement.dataset.taskId;
-  const task = ganttTasks.find(t => t.id === taskId);
-  originalStartDay = task.start;
-  originalEndDay = task.end;
-  dragType = e.target.classList.contains("gantt-task-handle-left")
-    ? "resize-left"
-    : e.target.classList.contains("gantt-task-handle-right")
-    ? "resize-right"
-    : "move";
-  document.addEventListener("mousemove", handleDrag);
-  document.addEventListener("mouseup", stopDrag);
-};
+    const renderGanttBars = () => {
+        const ganttChart = document.getElementById('gantt-chart');
+        const dias = parseInt(cronogramaDias.value) || 30;
+        const firstDayCell = ganttChart.querySelector('.gantt-day-cell');
+        const cellWidth = firstDayCell ? firstDayCell.offsetWidth : 0;
 
-const handleDrag = (e) => {
-  if (!isDragging || !currentDragElement) return;
-  const firstCell = document.querySelector(".gantt-day-cell");
-  if (!firstCell) return;
-  const cellWidth = firstCell.offsetWidth;
-  const deltaX = e.clientX - dragStartX;
-  const deltaDays = Math.round(deltaX / cellWidth);
-  const taskId = currentDragElement.dataset.taskId;
-  const task = ganttTasks.find(t => t.id === taskId);
+        // Remove existing bars before re-rendering
+        document.querySelectorAll('.gantt-task-bar').forEach(bar => bar.remove());
 
-  if (dragType === "move") {
-    const newStart = Math.max(1, originalStartDay + deltaDays);
-    task.start = newStart;
-    task.end = newStart + task.duration - 1;
-  } else if (dragType === "resize-left") {
-    const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, task.end - 1));
-    task.start = newStart;
-    task.duration = task.end - newStart + 1;
-  } else if (dragType === "resize-right") {
-    const newEnd = Math.max(task.start, originalEndDay + deltaDays);
-    task.end = newEnd;
-    task.duration = newEnd - task.start + 1;
-  }
-  renderGanttBars();
-};
+        ganttTasks.forEach((task, index) => {
+            const taskRowStart = (index + 1) * (dias + 1) + 1; // +1 for header row, +1 for label column
+            const startPosition = (task.start - 1) * cellWidth + 200; // 200px for label column
+            const barWidth = task.duration * cellWidth;
 
-const stopDrag = async () => {
-  if (!isDragging) return;
-  isDragging = false;
-  const cronogramaData = {};
-  ganttTasks.forEach(t => {
-    cronogramaData[t.id] = { start: t.start, end: t.end };
-  });
-  await addOrUpdateCronograma(cronogramaData);
-  document.removeEventListener("mousemove", handleDrag);
-  document.removeEventListener("mouseup", stopDrag);
-};
+            const taskBar = document.createElement('div');
+            taskBar.className = 'gantt-task-bar';
+            taskBar.dataset.taskId = task.id;
+            taskBar.style.left = `${startPosition}px`;
+            taskBar.style.width = `${barWidth}px`;
+            taskBar.style.top = `${(taskRowStart - 1) * 40 + 10}px`; // Adjust top position based on row height
+            taskBar.textContent = task.nome;
 
-// Renderização de Despesas
+            const leftHandle = document.createElement('div');
+            leftHandle.className = 'gantt-task-handle gantt-task-handle-left';
+            taskBar.appendChild(leftHandle);
+
+            const rightHandle = document.createElement('div');
+            rightHandle.className = 'gantt-task-handle gantt-task-handle-right';
+            taskBar.appendChild(rightHandle);
+
+            ganttChart.appendChild(taskBar);
+
+            taskBar.addEventListener("mousedown", startDrag);
+        });
+    };
+
+    const startDrag = (e) => {
+        isDragging = true;
+        currentDragElement = e.target.closest(".gantt-task-bar");
+        dragStartX = e.clientX;
+        const taskId = currentDragElement.dataset.taskId;
+        const task = ganttTasks.find(t => t.id === taskId);
+        originalStartDay = task.start;
+        originalEndDay = task.end;
+        dragType = e.target.classList.contains("gantt-task-handle-left")
+            ? "resize-left"
+            : e.target.classList.contains("gantt-task-handle-right")
+            ? "resize-right"
+            : "move";
+        document.addEventListener("mousemove", handleDrag);
+        document.addEventListener("mouseup", stopDrag);
+    };
+
+    const handleDrag = (e) => {
+        if (!isDragging || !currentDragElement) return;
+        const firstCell = document.querySelector(".gantt-day-cell");
+        if (!firstCell) return;
+        const cellWidth = firstCell.offsetWidth;
+        const deltaX = e.clientX - dragStartX;
+        const deltaDays = Math.round(deltaX / cellWidth);
+        const taskId = currentDragElement.dataset.taskId;
+        const task = ganttTasks.find(t => t.id === taskId);
+
+        if (dragType === "move") {
+            const newStart = Math.max(1, originalStartDay + deltaDays);
+            task.start = newStart;
+            task.end = newStart + task.duration - 1;
+        } else if (dragType === "resize-left") {
+            const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, task.end - 1));
+            task.start = newStart;
+            task.duration = task.end - newStart + 1;
+        } else if (dragType === "resize-right") {
+            const newEnd = Math.max(task.start, originalEndDay + deltaDays);
+            task.end = newEnd;
+            task.duration = newEnd - task.start + 1;
+        }
+        renderGanttBars();
+    };
+
+    const stopDrag = async () => {
+        if (!isDragging) return;
+        isDragging = false;
+        const cronogramaData = {};
+        ganttTasks.forEach(t => {
+            cronogramaData[t.id] = { start: t.start, end: t.end };
+        });
+        await addOrUpdateCronograma(cronogramaData);
+        document.removeEventListener("mousemove", handleDrag);
+        document.removeEventListener("mouseup", stopDrag);
+    };
+
+
+    // --- RENDER CURVA S ---
+    const renderCurvaS = (tarefas) => {
+        const ctx = document.getElementById('curva-s-chart').getContext('2d');
+
+        // Calcular valores acumulados por dia
+        const dias = parseInt(cronogramaDias.value) || 30;
+        let acumuladoPlanejado = Array(dias).fill(0);
+        let acumuladoRealizado = Array(dias).fill(0);
+
+        let valorTotal = tarefas.reduce((sum, t) => sum + (t.valorTotal || 0), 0);
+
+        tarefas.forEach(tarefa => {
+            let prazo = tarefa.prazo || 5;
+            let valor = tarefa.valorTotal || 0;
+            let inicio = 1;
+            let fim = inicio + prazo - 1;
+            let valorDia = valor / prazo;
+
+            for (let d = inicio; d <= fim && d <= dias; d++) {
+                acumuladoPlanejado[d-1] += valorDia;
+            }
+
+            if (tarefa.medicoes) {
+                tarefa.medicoes.forEach(m => {
+                    let data = new Date(m.data);
+                    let hoje = new Date();
+                    let diff = Math.floor((data - hoje) / (1000*60*60*24));
+                    let diaIndex = diff >= 0 && diff < dias ? diff : null;
+                    if (diaIndex !== null) {
+                        acumuladoRealizado[diaIndex] += m.valor || 0;
+                    }
+                });
+            }
+        });
+
+        for (let i=1; i<dias; i++) {
+            acumuladoPlanejado[i] += acumuladoPlanejado[i-1];
+            acumuladoRealizado[i] += acumuladoRealizado[i-1];
+        }
+
+        const labels = Array.from({length: dias}, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() + i);
+            return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+        });
+
+        if (curvaSChart) curvaSChart.destroy();
+
+        curvaSChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Planejado',
+                        data: acumuladoPlanejado,
+                        borderColor: 'blue',
+                        fill: false
+                    },
+                    {
+                        label: 'Realizado',
+                        data: acumuladoRealizado,
+                        borderColor: 'green',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: 'R$ Acumulado' }
+                    }
+                }
+            }
+        });
+    };
+
+
+    // Renderização de Despesas
 
     const renderDespesas = () => {
         if (!currentObraId) return;
@@ -1273,127 +1355,241 @@ const stopDrag = async () => {
             const part = result?.candidates?.[0]?.content?.parts?.[0];
             const audioData = part?.inlineData?.data;
             const mimeType = part?.inlineData?.mimeType;
-            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
+           
+            if (audioData && mimeType) {
+                const arrayBuffer = base64ToArrayBuffer(audioData);
+                const audioBlob = new Blob([arrayBuffer], { type: mimeType });
+                const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
                 audio.play();
-
             } else {
-                console.error('Invalid audio data received');
+                console.error('No audio data received from API.');
             }
         } catch (error) {
-            console.error('Error in TTS API call:', error);
+            console.error('Error speaking text:', error);
         }
     };
 
+    // Relatório por Período
     const renderRelatorioPorPeriodo = (startDate, endDate, tarefas, nomeObra) => {
-        const reportResultDiv = document.getElementById('period-report-result');
-        reportResultDiv.innerHTML = '';
+        const periodReportResult = document.getElementById('period-report-result');
+        periodReportResult.innerHTML = '';
 
-        if (!startDate || !endDate) {
-            reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
+        const filteredTarefas = tarefas.map(tarefa => {
+            const medicoesNoPeriodo = (tarefa.medicoes || []).filter(medicao => {
+                const medicaoDate = new Date(medicao.data);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                return medicaoDate >= start && medicaoDate <= end;
+            });
+            return { ...tarefa, medicoes: medicoesNoPeriodo };
+        }).filter(tarefa => tarefa.medicoes.length > 0);
+
+        if (filteredTarefas.length === 0) {
+            periodReportResult.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada para o período selecionado.</p>';
             return;
         }
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
+        let totalValorPeriodo = 0;
+        let taskTotals = {};
+        const detailedReportData = [];
 
-        let totalPeriodo = 0;
-        let relatorioHtml = '';
-        let hasData = false;
-
-        const reportData = [];
-        const taskTotals = {};
-        tarefas.forEach(tarefa => {
-            const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
-                const medicaoDate = new Date(medicao.data);
-                return medicaoDate >= start && medicaoDate < end;
-            });
-
-            if (medicoesPeriodo.length > 0) {
-                hasData = true;
-                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
-                totalPeriodo += valorPeriodoTarefa;
-                
+        filteredTarefas.forEach(tarefa => {
+            tarefa.medicoes.forEach(medicao => {
+                totalValorPeriodo += medicao.valor;
                 if (!taskTotals[tarefa.nome]) {
                     taskTotals[tarefa.nome] = 0;
                 }
-                taskTotals[tarefa.nome] += valorPeriodoTarefa;
-
-
-                relatorioHtml += `
-                    <div class="card p-4 mb-4">
-                        <p class="font-semibold text-lg">${tarefa.nome}</p>
-                        <p class="text-sm text-gray-500 mb-2">Medições realizadas no período:</p>
-                        <ul class="list-disc list-inside space-y-1">
-                            ${medicoesPeriodo.map(m => {
-                                const medicaoInfo = `Metragem: ${m.metragem.toFixed(2)} ${tarefa.unidade} - ${formatCurrency(m.valor)} em ${new Date(m.data).toLocaleDateString()}`;
-                                reportData.push({
-                                    'Tarefa': tarefa.nome,
-                                    'Metragem': m.metragem,
-                                    'Unidade': tarefa.unidade,
-                                    'Valor': m.valor,
-                                    'Data': new Date(m.data).toLocaleDateString(),
-                                    'Observacoes': m.observacoes || ''
-                                });
-                                return `<li>${medicaoInfo}</li>`;
-                            }).join('')}
-                        </ul>
-                        <div class="mt-2 text-sm">
-                            <p class="font-bold">Total Medido nesta tarefa: <span class="text-green-600">${formatCurrency(valorPeriodoTarefa)}</span></p>
-                        </div>
-                    </div>
-                `;
-            }
+                taskTotals[tarefa.nome] += medicao.valor;
+                detailedReportData.push({
+                    Tarefa: tarefa.nome,
+                    Metragem: medicao.metragem,
+                    Unidade: tarefa.unidade,
+                    Valor: medicao.valor,
+                    Data: new Date(medicao.data).toLocaleDateString(),
+                    Observacoes: medicao.observacoes || ''
+                });
+            });
         });
 
-        if (!hasData) {
-            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma medição encontrada no período selecionado.</p>';
-        } else {
-            reportResultDiv.innerHTML = `
-                <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
-                    <div>
-                        <p class="text-gray-600 font-bold text-xl">Total a Receber no Período:</p>
-                        <p class="text-4xl font-extrabold text-green-700 mt-2">${formatCurrency(totalPeriodo)}</p>
-                    </div>
-                    <div class="mt-4 md:mt-0 flex space-x-2">
-                        <button id="export-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
-                        <button id="export-excel-btn" class="btn btn-secondary">Exportar Excel</button>
-                    </div>
+        periodReportResult.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="p-4 bg-blue-100 rounded-lg">
+                    <p class="text-blue-700">Total Medido no Período</p>
+                    <p class="text-2xl font-bold text-blue-900">${formatCurrency(totalValorPeriodo)}</p>
                 </div>
-                ${relatorioHtml}
-            `;
-            document.getElementById('export-pdf-btn').addEventListener('click', () => {
-                exportPDF(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
-            });
-            document.getElementById('export-excel-btn').addEventListener('click', () => {
-                exportExcel(reportData, taskTotals, nomeObra, startDate, endDate, totalPeriodo);
-            });
-        }
+            </div>
+            <h4 class="text-lg font-semibold mb-3">Medições Detalhadas no Período</h4>
+            <div class="overflow-x-auto mb-6">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Tarefa</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Metragem</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Unidade</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Valor</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Data</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${detailedReportData.map(item => `
+                            <tr>
+                                <td class="py-2 px-4 border-b text-gray-800">${item.Tarefa}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${item.Metragem.toFixed(2)}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${item.Unidade}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${formatCurrency(item.Valor)}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${item.Data}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${item.Observacoes}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <h4 class="text-lg font-semibold mb-3">Totais por Tarefa no Período</h4>
+            <div class="overflow-x-auto mb-6">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Tarefa</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Total a Receber</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.keys(taskTotals).map(taskName => `
+                            <tr>
+                                <td class="py-2 px-4 border-b text-gray-800">${taskName}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${formatCurrency(taskTotals[taskName])}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button id="export-pdf-btn" class="btn btn-secondary">Exportar para PDF</button>
+                <button id="export-excel-btn" class="btn btn-secondary">Exportar para Excel</button>
+            </div>
+        `;
+
+        document.getElementById('export-pdf-btn').addEventListener('click', () => {
+            exportPDF(detailedReportData, taskTotals, nomeObra, startDate, endDate, totalValorPeriodo);
+        });
+        document.getElementById('export-excel-btn').addEventListener('click', () => {
+            exportExcel(detailedReportData, taskTotals, nomeObra, startDate, endDate, totalValorPeriodo);
+        });
     };
 
+    // Relatório de Despesas por Período
+    const renderDespesaReportPorPeriodo = (startDate, endDate, despesas) => {
+        const despesaPeriodReportResult = document.getElementById('despesa-period-report-result');
+        despesaPeriodReportResult.innerHTML = '';
+
+        const filteredDespesas = despesas.filter(despesa => {
+            const despesaDate = new Date(despesa.data);
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return despesaDate >= start && despesaDate <= end;
+        });
+
+        if (filteredDespesas.length === 0) {
+            despesaPeriodReportResult.innerHTML = '<p class="text-center text-gray-600">Nenhuma despesa encontrada para o período selecionado.</p>';
+            return;
+        }
+
+        let totalValorPeriodo = 0;
+        let porCategoria = {};
+
+        filteredDespesas.forEach(despesa => {
+            totalValorPeriodo += despesa.valor;
+            if (!porCategoria[despesa.categoria]) {
+                porCategoria[despesa.categoria] = 0;
+            }
+            porCategoria[despesa.categoria] += despesa.valor;
+        });
+
+        despesaPeriodReportResult.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="p-4 bg-red-100 rounded-lg">
+                    <p class="text-red-700">Total de Despesas no Período</p>
+                    <p class="text-2xl font-bold text-red-900">${formatCurrency(totalValorPeriodo)}</p>
+                </div>
+            </div>
+            <h4 class="text-lg font-semibold mb-3">Despesas por Categoria no Período</h4>
+            <div class="overflow-x-auto mb-6">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Categoria</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.keys(porCategoria).map(categoria => `
+                            <tr>
+                                <td class="py-2 px-4 border-b text-gray-800">${categoria}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${formatCurrency(porCategoria[categoria])}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <h4 class="text-lg font-semibold mb-3">Despesas Detalhadas no Período</h4>
+            <div class="overflow-x-auto mb-6">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Descrição</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Categoria</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Valor</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Data</th>
+                            <th class="py-2 px-4 border-b text-left text-gray-600">Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredDespesas.map(despesa => `
+                            <tr>
+                                <td class="py-2 px-4 border-b text-gray-800">${despesa.descricao}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${despesa.categoria}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${formatCurrency(despesa.valor)}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${new Date(despesa.data).toLocaleDateString()}</td>
+                                <td class="py-2 px-4 border-b text-gray-800">${despesa.observacoes || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button id="export-despesa-pdf-btn" class="btn btn-secondary">Exportar para PDF</button>
+                <button id="export-despesa-excel-btn" class="btn btn-secondary">Exportar para Excel</button>
+            </div>
+        `;
+
+        document.getElementById('export-despesa-pdf-btn').addEventListener('click', () => {
+            exportDespesaPDF(filteredDespesas, porCategoria, startDate, endDate, totalValorPeriodo);
+        });
+        document.getElementById('export-despesa-excel-btn').addEventListener('click', () => {
+            exportDespesaExcel(filteredDespesas, porCategoria, startDate, endDate, totalValorPeriodo);
+        });
+    };
+
+    // Export functions
     const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        doc.setFontSize(18);
-        doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
 
+        doc.setFontSize(18);
+        doc.text("Relatório de Medições", 14, 22);
         doc.setFontSize(12);
-        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
-        doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
-        // First table: detailed report
+        doc.text(`Obra: ${nomeObra}`, 14, 30);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 36);
+        doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 42);
+
         const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
         const rows = data.map(item => [
             item.Tarefa,
             item.Metragem.toFixed(2),
             item.Unidade,
-            item.Valor.toFixed(2),
+            formatCurrency(item.Valor),
             item.Data,
             item.Observacoes
         ]);
@@ -1681,31 +1877,40 @@ const stopDrag = async () => {
                     </li>
                 `).join('')}
             </ul>
+            <div class="mt-4 flex justify-end">
+                <button id="add-new-medicao-btn" class="btn btn-primary">Adicionar Nova Medição</button>
+            </div>
         `;
-        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
+        openModal(`Medições para ${tarefa.nome}`, listHtml);
+
+        document.getElementById('add-new-medicao-btn').addEventListener('click', () => {
+            closeModal(); // Close current modal
+            openMedicaoForm(tarefa); // Open new medicao form
+        });
 
         document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const medicaoIndex = e.currentTarget.dataset.index;
+                const medicaoIndex = parseInt(e.currentTarget.dataset.index);
                 const medicao = medicoes[medicaoIndex];
                 openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
             });
         });
+
         document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const medicaoIndex = e.currentTarget.dataset.index;
-                openModal('Confirmar Exclusão', `
+                const medicaoIndex = parseInt(e.currentTarget.dataset.index);
+                openModal('Confirmação', `
                     <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta medição?</p>
                     <div class="flex justify-center space-x-4">
-                        <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
-                        <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
+                        <button id="confirmDeleteMedicaoBtn" class="btn btn-primary">Sim</button>
+                        <button id="cancelDeleteMedicaoBtn" class="btn btn-secondary">Não</button>
                     </div>
                 `);
-                document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                document.getElementById('confirmDeleteMedicaoBtn').addEventListener('click', () => {
                     deleteMedicao(tarefaId, medicaoIndex);
                     closeModal();
                 });
-                document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
+                document.getElementById('cancelDeleteMedicaoBtn').addEventListener('click', closeModal);
             });
         });
     };
@@ -1719,182 +1924,75 @@ const stopDrag = async () => {
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${medicao.observacoes || ''}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
+                <button type="submit" class="btn btn-primary w-full">Atualizar Medição</button>
             </form>
         `;
         openModal('Editar Medição', formHtml);
-        document.getElementById('edit-medicao-form').addEventListener('submit', async (e) => {
+        document.getElementById('edit-medicao-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
             
+            // Recalculate valor based on updated metragem and original valorUnitario
             const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
-            const tarefaDoc = await getDoc(tarefaDocRef);
-            const tarefa = tarefaDoc.data();
-            
-            const valor = tarefa.valorUnitario * metragem;
-            
-            const updatedMedicao = {
-                metragem: metragem,
-                valor: valor,
-                observacoes: observacoes,
-                data: medicao.data
-            };
-            
-            await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
-            
-            closeModal();
-        });
-    }
-
-    // Adicionar event listener para o botão de relatório de despesas
-    document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
-        const relatorioContainer = document.getElementById('relatorio-despesas-container');
-        const isVisible = !relatorioContainer.classList.contains('hidden');
-        
-        if (isVisible) {
-            relatorioContainer.classList.add('hidden');
-        } else {
-            relatorioContainer.classList.remove('hidden');
-        }
-    });
-
-    // Função para gerar relatório de despesas por período
-    document.getElementById('generate-despesa-report-btn').addEventListener('click', async () => {
-        const startDate = document.getElementById('despesa-start-date').value;
-        const endDate = document.getElementById('despesa-end-date').value;
-        
-        if (!startDate || !endDate) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione ambas as datas.</p>');
-            return;
-        }
-        
-        await renderDespesaReportPorPeriodo(startDate, endDate);
-    });
-
-    const renderDespesaReportPorPeriodo = async (startDate, endDate) => {
-        const reportResultDiv = document.getElementById('despesa-period-report-result');
-        reportResultDiv.innerHTML = '<p class="text-center text-gray-500">Carregando...</p>';
-        
-        // Buscar despesas do período
-        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
-        const snapshot = await getDocs(despesasRef);
-        let despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Filtrar por período
-        despesas = despesas.filter(despesa => {
-            const despesaDate = new Date(despesa.data);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            end.setDate(end.getDate() + 1); // Para incluir o dia final
-            
-            return despesaDate >= start && despesaDate < end;
-        });
-
-        if (despesas.length === 0) {
-            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma despesa encontrada no período selecionado.</p>';
-            return;
-        }
-        
-        let totalPeriodo = despesas.reduce((sum, d) => sum + d.valor, 0);
-        // Agrupar por categoria
-        const porCategoria = {};
-        despesas.forEach(despesa => {
-            if (!porCategoria[despesa.categoria]) {
-                porCategoria[despesa.categoria] = 0;
-            }
-            porCategoria[despesa.categoria] += despesa.valor;
-        });
-
-        let relatorioHtml = `
-            <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
-                <div>
-                    <p class="text-gray-600 font-bold text-xl">Total de Despesas no Período:</p>
-                    <p class="text-4xl font-extrabold text-red-700 mt-2">${formatCurrency(totalPeriodo)}</p>
-                </div>
-                <div class="mt-4 md:mt-0 flex space-x-2">
-                    <button id="export-despesa-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
-                    <button id="export-despesa-excel-btn" class="btn btn-secondary">Exportar Excel</button>
-                </div>
-            </div>
-            <h4 class="text-lg font-semibold mb-4">Por Categoria</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        `;
-        Object.keys(porCategoria).forEach(categoria => {
-            relatorioHtml += `
-                <div class="p-4 bg-gray-100 rounded-lg">
-                    <p class="text-gray-500">${categoria}</p>
-                    <p class="text-2xl font-bold">${formatCurrency(porCategoria[categoria])}</p>
-                </div>
-            `;
-        });
-        relatorioHtml += `</div><h4 class="text-lg font-semibold mb-4">Detalhamento</h4>`;
-        
-        despesas.forEach(despesa => {
-            relatorioHtml += `
-                <div class="despesa-item mb-4">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-semibold">${despesa.descricao}</p>
-                            <p class="text-sm text-gray-500">${new Date(despesa.data).toLocaleDateString()} - ${despesa.categoria}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
-                        </div>
-                    </div>
-                    ${despesa.observacoes ? `<p class="text-sm text-gray-600 mt-2">${despesa.observacoes}</p>` : ''}
-                </div>
-            `;
-        });
-        reportResultDiv.innerHTML = relatorioHtml;
-        
-        // Adicionar event listeners para os botões de exportação
-        document.getElementById('export-despesa-pdf-btn').addEventListener('click', () => {
-            exportDespesaPDF(despesas, porCategoria, startDate, endDate, totalPeriodo);
-        });
-        document.getElementById('export-despesa-excel-btn').addEventListener('click', () => {
-            exportDespesaExcel(despesas, porCategoria, startDate, endDate, totalPeriodo);
+            getDoc(tarefaDocRef).then(tarefaDoc => {
+                const tarefa = tarefaDoc.data();
+                const valor = tarefa.valorUnitario * metragem;
+                const updatedMedicao = {
+                    metragem: metragem,
+                    valor: valor,
+                    observacoes: observacoes,
+                    data: medicao.data // Keep original date
+                };
+                updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
+                closeModal();
+            });
         });
     };
 
+    // Relatório de Despesas PDF e Excel
     const exportDespesaPDF = (despesas, porCategoria, startDate, endDate, total) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         doc.setFontSize(18);
-        doc.text(`Relatório de Despesas`, 14, 22);
-        
+        doc.text("Relatório de Despesas", 14, 22);
         doc.setFontSize(12);
         doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
-        doc.text(`Total de Despesas: ${formatCurrency(total)}`, 14, 38);
-        
-        // Tabela de totais por categoria
-        const categoriaColumns = ["Categoria", "Total"];
-        const categoriaRows = Object.keys(porCategoria).map(cat => [cat, formatCurrency(porCategoria[cat])]);
-        
+        doc.text(`Total de Despesas: ${formatCurrency(total)}`, 14, 36);
+
+        // Tabela por Categoria
+        doc.setFontSize(14);
+        doc.text("Despesas por Categoria", 14, 48);
+        const categoryColumns = ["Categoria", "Total"];
+        const categoryRows = Object.keys(porCategoria).map(cat => [
+            cat,
+            formatCurrency(porCategoria[cat])
+        ]);
         doc.autoTable({
-            head: [categoriaColumns],
-            body: categoriaRows,
-            startY: 45
+            head: [categoryColumns],
+            body: categoryRows,
+            startY: 55
         });
-        // Tabela detalhada
-        const columns = ["Descrição", "Categoria", "Valor (R$)", "Data", "Observações"];
-        const rows = despesas.map(d => [
+
+        // Tabela Detalhada
+        doc.setFontSize(14);
+        doc.text("Despesas Detalhadas", 14, doc.autoTable.previous.finalY + 15);
+        const detailedColumns = ["Descrição", "Categoria", "Valor (R$)", "Data", "Observações"];
+        const detailedRows = despesas.map(d => [
             d.descricao,
             d.categoria,
-            d.valor.toFixed(2),
+            formatCurrency(d.valor),
             new Date(d.data).toLocaleDateString(),
             d.observacoes || ''
         ]);
         doc.autoTable({
-            head: [columns],
-            body: rows,
-            startY: doc.autoTable.previous.finalY + 10,
-            theme: 'striped',
-            headStyles: { fillColor: [52, 58, 64] },
-            bodyStyles: { textColor: [33, 37, 41] },
+            head: [detailedColumns],
+            body: detailedRows,
+            startY: doc.autoTable.previous.finalY + 22
         });
         doc.save(`relatorio_despesas_${startDate}_${endDate}.pdf`);
     };
@@ -1965,3 +2063,4 @@ const stopDrag = async () => {
 </script>
 </body>
 </html>
+
