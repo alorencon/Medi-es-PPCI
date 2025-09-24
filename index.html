@@ -272,13 +272,12 @@
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <!-- REMOVIDO: botão de adicionar tarefa no cronograma -->
-<!--
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Adicionar Tarefa</span>
-                            -->
+                            </button>
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -426,10 +425,6 @@
 
     let currentObraId = null;
     let curvaSChart = null;
-let lastUserId = null;
-
-// Inicializa Firebase
-initFirebase();
 
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -542,43 +537,30 @@ initFirebase();
 
     // Firebase Initialization & Auth
     const initFirebase = async () => {
-    try {
-        app = initializeApp(__firebase_config);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-        let alreadyInitialized = false;
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if (user.uid !== lastUserId) {
-                    lastUserId = user.uid;
+        try {
+            app = initializeApp(__firebase_config);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
                     userId = user.uid;
                     userIdDisplay.textContent = userId;
                     loginView.classList.add('hidden');
                     appView.classList.remove('hidden');
-
-                    if (!alreadyInitialized) {
-                        listenToObras();
-                        alreadyInitialized = true;
-                    }
-                }
-            } else {
-                if (lastUserId !== null) {
-                    lastUserId = null;
+                    listenToObras();
+                } else {
                     userId = null;
                     userIdDisplay.textContent = "N/A";
                     loginView.classList.remove('hidden');
                     appView.classList.add('hidden');
-                    alreadyInitialized = false;
                 }
-            }
-        });
-    } catch (error) {
-        console.error("Erro ao inicializar Firebase ou autenticar:", error);
-    }
-};
+            });
+
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase ou autenticar:", error);
+        }
+    };
     
     loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -900,7 +882,6 @@ initFirebase();
     };
 
     
-
 // --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
 const renderCronograma = async () => {
   if (!currentObraId) return;
@@ -911,7 +892,7 @@ const renderCronograma = async () => {
   const dias = parseInt(cronogramaDias.value) || 30;
   ganttChart.innerHTML = "";
 
-  // Cabeçalho com dia/mês
+  // Cabeçalho
   const headerRow = document.createElement("div");
   headerRow.className = "gantt-row";
   const emptyHeader = document.createElement("div");
@@ -922,16 +903,15 @@ const renderCronograma = async () => {
   for (let i = 0; i < dias; i++) {
     const date = new Date();
     date.setDate(today.getDate() + i);
-    const options = { day: "2-digit", month: "short" };
     const dayHeader = document.createElement("div");
     dayHeader.className = "gantt-day-cell gantt-header";
-    dayHeader.textContent = date.toLocaleDateString("pt-BR", options);
+    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
     headerRow.appendChild(dayHeader);
   }
   ganttChart.appendChild(headerRow);
 
   ganttTasks = [];
-  tarefas.forEach((tarefa) => {
+  tarefas.forEach((tarefa, index) => {
     const row = document.createElement("div");
     row.className = "gantt-row";
     row.dataset.id = tarefa.id;
@@ -964,7 +944,6 @@ const renderCronograma = async () => {
   renderGanttBars();
   renderCurvaS(tarefas);
 };
-
 
 const renderGanttBars = () => {
   document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
@@ -1051,89 +1030,6 @@ const stopDrag = async () => {
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
-
-
-// --- RENDER CURVA S ---
-const renderCurvaS = (tarefas) => {
-  const ctx = document.getElementById('curva-s-chart').getContext('2d');
-
-  // Calcular valores acumulados por dia
-  const dias = parseInt(cronogramaDias.value) || 30;
-  let acumuladoPlanejado = Array(dias).fill(0);
-  let acumuladoRealizado = Array(dias).fill(0);
-
-  let valorTotal = tarefas.reduce((sum, t) => sum + (t.valorTotal || 0), 0);
-
-  tarefas.forEach(tarefa => {
-    let prazo = tarefa.prazo || 5;
-    let valor = tarefa.valorTotal || 0;
-    let inicio = 1;
-    let fim = inicio + prazo - 1;
-    let valorDia = valor / prazo;
-
-    for (let d = inicio; d <= fim && d <= dias; d++) {
-      acumuladoPlanejado[d-1] += valorDia;
-    }
-
-    if (tarefa.medicoes) {
-      tarefa.medicoes.forEach(m => {
-        let data = new Date(m.data);
-        let hoje = new Date();
-        let diff = Math.floor((data - hoje) / (1000*60*60*24));
-        let diaIndex = diff >= 0 && diff < dias ? diff : null;
-        if (diaIndex !== null) {
-          acumuladoRealizado[diaIndex] += m.valor || 0;
-        }
-      });
-    }
-  });
-
-  for (let i=1; i<dias; i++) {
-    acumuladoPlanejado[i] += acumuladoPlanejado[i-1];
-    acumuladoRealizado[i] += acumuladoRealizado[i-1];
-  }
-
-  const labels = Array.from({length: dias}, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-  });
-
-  if (curvaSChart) curvaSChart.destroy();
-
-  curvaSChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Planejado',
-          data: acumuladoPlanejado,
-          borderColor: 'blue',
-          fill: false
-        },
-        {
-          label: 'Realizado',
-          data: acumuladoRealizado,
-          borderColor: 'green',
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' }
-      },
-      scales: {
-        y: {
-          title: { display: true, text: 'R$ Acumulado' }
-        }
-      }
-    }
-  });
-};
-
 
 // Renderização de Despesas
 
