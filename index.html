@@ -225,7 +225,7 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
                     <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
-                <button type="submit" id="login-btn" class="btn btn-primary w-full">Entrar</button>
+                <button id="login-btn" class="btn btn-primary w-full">Entrar</button>
                 <button type="button" id="create-account-btn" class="btn btn-secondary w-full">Criar Conta</button>
             </form>
         </div>
@@ -404,43 +404,43 @@
     let dragType = "";
 
     // Elementos do DOM
-    const loginView = document.getElementById('login-view');
-    const appView = document.getElementById('app-view');
-    const loginForm = document.getElementById('login-form');
-    const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const obrasList = document.getElementById('obras-list');
-    const addObraBtn = document.getElementById('add-obra-btn');
-    const tarefasList = document.getElementById('tarefas-list');
-    const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    const relatorioContent = document.getElementById('relatorio-content');
-    const despesasList = document.getElementById('despesas-list');
-    const addDespesaBtn = document.getElementById('add-despesa-btn');
-    const gerarRelatorioDespesasBtn = document.getElementById('gerar-relatorio-despesas-btn');
-    const cronogramaDias = document.getElementById('cronograma-dias');
-    const ganttChart = document.getElementById('gantt-chart');
-    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
-    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn'); // Adicionado
+    const loginView = document.getElementById("login-view");
+    const appView = document.getElementById("app-view");
+    const loginForm = document.getElementById("login-form");
+    const loginBtn = document.getElementById("login-btn");
+    const createAccountBtn = document.getElementById("create-account-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userIdDisplay = document.getElementById("userIdDisplay");
+    const tabs = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+    const obrasList = document.getElementById("obras-list");
+    const addObraBtn = document.getElementById("add-obra-btn");
+    const tarefasList = document.getElementById("tarefas-list");
+    const addTarefaBtn = document.getElementById("add-tarefa-btn");
+    const relatorioContent = document.getElementById("relatorio-content");
+    const despesasList = document.getElementById("despesas-list");
+    const addDespesaBtn = document.getElementById("add-despesa-btn");
+    const gerarRelatorioDespesasBtn = document.getElementById("gerar-relatorio-despesas-btn");
+    const cronogramaDias = document.getElementById("cronograma-dias");
+    const ganttChart = document.getElementById("gantt-chart");
+    const gerarCronogramaBtn = document.getElementById("gerar-cronograma-btn");
+    const addTarefaCronogramaBtn = document.getElementById("add-tarefa-cronograma-btn"); // Adicionado
 
     // Funções utilitárias
     const openModal = (title, content) => {
-        document.getElementById('modal-title').innerHTML = title;
-        document.getElementById('modal-body').innerHTML = content;
-        document.getElementById('modal').classList.remove('hidden');
+        document.getElementById("modal-title").innerHTML = title;
+        document.getElementById("modal-body").innerHTML = content;
+        document.getElementById("modal").classList.remove("hidden");
     };
 
     const closeModal = () => {
-        document.getElementById('modal').classList.add('hidden');
+        document.getElementById("modal").classList.add("hidden");
     };
 
-    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+    document.getElementById("modal-close-btn").addEventListener("click", closeModal);
 
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
     };
 
     const calculatePercentage = (part, total) => {
@@ -450,37 +450,37 @@
 
     // Tab switching logic
     tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.add('hidden'));
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("active"));
+            tabContents.forEach(c => c.classList.add("hidden"));
 
-            tab.classList.add('active');
-            document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
+            tab.classList.add("active");
+            document.getElementById(`${tab.dataset.tab}-view`).classList.remove("hidden");
 
-            if (tab.dataset.tab === 'tarefas') {
+            if (tab.dataset.tab === "tarefas") {
                 if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderTarefas();
                 }
-            } else if (tab.dataset.tab === 'relatorios') {
+            } else if (tab.dataset.tab === "relatorios") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
                 }
-            } else if (tab.dataset.tab === 'cronograma') {
+            } else if (tab.dataset.tab === "cronograma") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderCronograma();
                 }
-            } else if (tab.dataset.tab === 'despesas') {
+            } else if (tab.dataset.tab === "despesas") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderDespesas();
@@ -551,35 +551,6 @@ onAuthStateChanged(auth, async (user) => {
     }
 };
     
-    loginBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
-        }
-    });
-    
-    createAccountBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
-        } catch (error) {
-            openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
-        }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-        await signOut(auth);
-        currentObraId = null; // Reset current obra
-        tabs[0].click(); // Go back to obras tab
-    });
-
     // Firestore CRUD Operations
     const listenToObras = () => {
         if (!db || !userId) {
@@ -1081,7 +1052,7 @@ const renderGanttBars = () => {
   const cellWidth = firstCell.offsetWidth;
 
   ganttTasks.forEach(task => {
-    const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
+    const row = document.querySelector(`.gantt-row[data-id="${task.id}"]`);
     if (!row) return;
     const rowCells = row.querySelectorAll(".gantt-day-cell");
     const rowTop = rowCells[0].offsetTop;
@@ -1303,7 +1274,7 @@ const renderCurvaS = (tarefasInput) => {
                         </div>
                     </div>
                 `;
-                despesasList.appendChild(despesaItem);
+                despesaItem.appendChild(despesaItem);
             });
             
             // Atualizar totais
@@ -1418,7 +1389,7 @@ const renderCurvaS = (tarefasInput) => {
         document.getElementById('read-summary-btn').addEventListener('click', async () => {
             const summaryText = `
                 Relatório geral da obra. Total de tarefas: ${totalTarefas}, sendo ${totalConcluidas} concluídas. 
-                Valor total medido: ${formatCurrency(valorMedidoTotal)}, de um total de ${formatCurrency(obra.valorTotal)}. 
+                Valor total medido: ${formatCurrency(valorMedidoTotal)}, de um total de ${obra.valorTotal}. 
                 Progresso geral: ${progressoGeral.toFixed(1)} por cento.
             `;
             // await speakText(summaryText);
@@ -1452,7 +1423,7 @@ const renderCurvaS = (tarefasInput) => {
         tarefas.forEach(tarefa => {
             const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
                 const medicaoDate = new Date(medicao.data);
-                return medicaoDate >= start && medicaoDate < end;
+                return medicaoDate >= startDate && medicaoDate < endDate;
             });
 
             if (medicoesPeriodo.length > 0) {
@@ -1915,6 +1886,36 @@ const renderCurvaS = (tarefasInput) => {
     // Run app and attach event listeners after Firebase is initialized
     const runApplication = async () => {
         await initFirebase();
+
+        // Event listeners for authentication
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
+            }
+        });
+        
+        createAccountBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
+            } catch (error) {
+                openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            currentObraId = null; // Reset current obra
+            tabs[0].click(); // Go back to obras tab
+        });
 
         // Event listeners for main buttons
         addObraBtn.addEventListener('click', () => openObraForm());
