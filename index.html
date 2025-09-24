@@ -525,25 +525,31 @@
 
         
 
-onAuthStateChanged(auth, async (user) => {
+        console.log("onAuthStateChanged: Verificando estado de autenticação...");
+        onAuthStateChanged(auth, async (user) => {
     if (user) {
+        console.log("onAuthStateChanged: Usuário logado. UID:", user.uid);
+        console.log("onAuthStateChanged: Escondendo login-view, mostrando app-view.");
+        loginView.classList.add("hidden");
+        appView.classList.remove("hidden");
         // Usuário logado → mostra app
         userId = user.uid;
         userIdDisplay.textContent = userId;
-        loginView.classList.add('hidden');
-        appView.classList.remove('hidden');
 
-        if (!lastUserId || lastUserId !== user.uid) {
+        // Garante que listenToObras seja chamado apenas uma vez após o login
+        if (!lastUserId) {
             lastUserId = user.uid;
             listenToObras();
         }
     } else {
+        console.log("onAuthStateChanged: Nenhum usuário logado.");
+        console.log("onAuthStateChanged: Escondendo app-view, mostrando login-view.");
         // Nenhum usuário logado → mostra login
         userId = null;
         lastUserId = null;
         userIdDisplay.textContent = "N/A";
-        appView.classList.add('hidden');
-        loginView.classList.remove('hidden');
+        appView.classList.add("hidden");
+        loginView.classList.remove("hidden");
     }
 });
 } catch (error) {
@@ -1889,6 +1895,7 @@ const renderCurvaS = (tarefasInput) => {
 
         // Event listeners for authentication
         loginForm.addEventListener('submit', async (e) => {
+            console.log("Login form submitted. Preventing default action.");
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
