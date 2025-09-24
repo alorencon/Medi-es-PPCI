@@ -551,20 +551,21 @@ initFirebase();
         let alreadyInitialized = false;
 
         
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Usuário logado
+        // Usuário logado → mostra app
         userId = user.uid;
         userIdDisplay.textContent = userId;
         loginView.classList.add('hidden');
         appView.classList.remove('hidden');
-        
+
         if (!lastUserId || lastUserId !== user.uid) {
             lastUserId = user.uid;
             listenToObras();
         }
     } else {
-        // Nenhum usuário logado
+        // Nenhum usuário logado → mostra login
         userId = null;
         lastUserId = null;
         userIdDisplay.textContent = "N/A";
