@@ -550,32 +550,29 @@ initFirebase();
 
         let alreadyInitialized = false;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if (user.uid !== lastUserId) {
-                    lastUserId = user.uid;
-                    userId = user.uid;
-                    userIdDisplay.textContent = userId;
-                    loginView.classList.add('hidden');
-                    appView.classList.remove('hidden');
-
-                    if (!alreadyInitialized) {
-                        listenToObras();
-                        alreadyInitialized = true;
-                    }
-                }
-            } else {
-                if (lastUserId !== null) {
-                    lastUserId = null;
-                    userId = null;
-                    userIdDisplay.textContent = "N/A";
-                    loginView.classList.remove('hidden');
-                    appView.classList.add('hidden');
-                    alreadyInitialized = false;
-                }
-            }
-        });
-    } catch (error) {
+        
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Usuário logado
+        userId = user.uid;
+        userIdDisplay.textContent = userId;
+        loginView.classList.add('hidden');
+        appView.classList.remove('hidden');
+        
+        if (!lastUserId || lastUserId !== user.uid) {
+            lastUserId = user.uid;
+            listenToObras();
+        }
+    } else {
+        // Nenhum usuário logado
+        userId = null;
+        lastUserId = null;
+        userIdDisplay.textContent = "N/A";
+        appView.classList.add('hidden');
+        loginView.classList.remove('hidden');
+    }
+});
+} catch (error) {
         console.error("Erro ao inicializar Firebase ou autenticar:", error);
     }
 };
