@@ -386,9 +386,9 @@
     </div>
 
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Variáveis globais
     let userId = null;
@@ -513,7 +513,13 @@
         app = initializeApp(__firebase_config);
         auth = getAuth(app);
         db = getFirestore(app);
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (typeof window.AudioContext !== 'undefined') {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        console.log("Firebase app initialized:", app);
+        console.log("Firebase auth initialized:", auth);
+        console.log("Firebase db initialized:", db);
 
         let alreadyInitialized = false;
 
@@ -914,7 +920,8 @@ onAuthStateChanged(auth, async (user) => {
         if (medicoes.length === 0) {
             medicoesHtml += '<p class="text-center text-gray-500">Nenhuma medição para esta tarefa.</p>';
         } else {
-            medicoesHtml += '<div class="space-y-4">';
+            medicoesHtml += '<div class="space-y-4">
+';
             medicoes.forEach((medicao, index) => {
                 medicoesHtml += `
                     <div class="medicoes-list-item card p-4 flex justify-between items-center">
@@ -1330,8 +1337,8 @@ const renderCurvaS = (tarefasInput) => {
                         closeModal();
                     });
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
-                });
             });
+        });
             
             // Se não houver despesas, mostrar mensagem
             if (despesas.length === 0) {
@@ -1905,40 +1912,43 @@ const renderCurvaS = (tarefasInput) => {
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
 
-    // Event listeners for main buttons
-    addObraBtn.addEventListener('click', () => openObraForm());
-    addTarefaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openTarefaForm();
-    });
-    addTarefaCronogramaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openTarefaForm();
-    });
-    gerarCronogramaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        renderCronograma();
-    });
-    addDespesaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openDespesaForm();
-    });
+    // Run app and attach event listeners after Firebase is initialized
+    const runApplication = async () => {
+        await initFirebase();
 
-    // Run app
-    initFirebase();
+        // Event listeners for main buttons
+        addObraBtn.addEventListener('click', () => openObraForm());
+        addTarefaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openTarefaForm();
+        });
+        addTarefaCronogramaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openTarefaForm();
+        });
+        gerarCronogramaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            renderCronograma();
+        });
+        addDespesaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openDespesaForm();
+        });
+    };
+
+    runApplication();
 </script>
 </body>
 </html>
-
