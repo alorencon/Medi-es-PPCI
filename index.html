@@ -457,7 +457,14 @@
             tab.classList.add("active");
             document.getElementById(`${tab.dataset.tab}-view`).classList.remove("hidden");
 
-            if (tab.dataset.tab === "tarefas") {
+            if (tab.dataset.tab === "obras") {
+                if (!currentObraId) {
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
+                    tabs[0].click(); // Go back to obras tab
+                } else {
+                    renderObras();
+                }
+            } else if (tab.dataset.tab === "tarefas") {
                 if (!currentObraId) {
                     openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
@@ -897,8 +904,7 @@
         if (medicoes.length === 0) {
             medicoesHtml += '<p class="text-center text-gray-500">Nenhuma medição para esta tarefa.</p>';
         } else {
-            medicoesHtml += '<div class="space-y-4">
-';
+            medicoesHtml += '<div class="space-y-4">';
             medicoes.forEach((medicao, index) => {
                 medicoesHtml += `
                     <div class="medicoes-list-item card p-4 flex justify-between items-center">
