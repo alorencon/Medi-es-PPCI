@@ -272,13 +272,12 @@
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <!-- REMOVIDO: botão de adicionar tarefa no cronograma -->
-<!--
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Adicionar Tarefa</span>
-                            -->
+                            </button>
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -398,14 +397,14 @@
     // Copie e cole o objeto de configuração aqui.
     // Exemplo:
     const firebaseConfig = {
-    apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-    authDomain: "medicoes-ppci.firebaseapp.com",
-    projectId: "medicoes-ppci",
-    storageBucket: "medicoes-ppci.firebasestorage.app",
-    messagingSenderId: "408815173796",
-    appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-    measurementId: "G-9YW2XQH2HH"
-  };
+      apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+      authDomain: "medicoes-ppci.firebaseapp.com",
+      projectId: "medicoes-ppci",
+      storageBucket: "medicoes-ppci.firebasestorage.app",
+      messagingSenderId: "408815173796",
+      appId: "1:408815173796:web:efd25d921a7f0ee923e631",
+      measurementId: "G-9YW2XQH2HH"
+    };
 
     // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
     // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
@@ -415,7 +414,7 @@
 
     // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
     const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
-    const __firebase_config = firebaseConfig;
+    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
     const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
 
     let app;
@@ -426,10 +425,6 @@
 
     let currentObraId = null;
     let curvaSChart = null;
-let lastUserId = null;
-
-// Inicializa Firebase
-initFirebase();
 
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -542,41 +537,30 @@ initFirebase();
 
     // Firebase Initialization & Auth
     const initFirebase = async () => {
-    try {
-        app = initializeApp(__firebase_config);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+            app = initializeApp(__firebase_config);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    userIdDisplay.textContent = userId;
+                    loginView.classList.add('hidden');
+                    appView.classList.remove('hidden');
+                    listenToObras();
+                } else {
+                    userId = null;
+                    userIdDisplay.textContent = "N/A";
+                    loginView.classList.remove('hidden');
+                    appView.classList.add('hidden');
+                }
+            });
 
-        let alreadyInitialized = false;
-
-        
-
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        // Usuário logado → mostra app
-        userId = user.uid;
-        userIdDisplay.textContent = userId;
-        loginView.classList.add('hidden');
-        appView.classList.remove('hidden');
-
-        if (!lastUserId || lastUserId !== user.uid) {
-            lastUserId = user.uid;
-            listenToObras();
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
-    } else {
-        // Nenhum usuário logado → mostra login
-        userId = null;
-        lastUserId = null;
-        userIdDisplay.textContent = "N/A";
-        appView.classList.add('hidden');
-        loginView.classList.remove('hidden');
-    }
-});
-} catch (error) {
-        console.error("Erro ao inicializar Firebase ou autenticar:", error);
-    }
-};
+    };
     
     loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -898,16 +882,9 @@ onAuthStateChanged(auth, async (user) => {
     };
 
     
-
-
 // --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
-// Agora a aba Cronograma exibe uma lista de tarefas acima do gráfico
-// onde o usuário define 'start' (dia de início) e 'duration' (dias).
-// Não há opção de adicionar tarefas aqui — usamos as tarefas da aba Tarefas.
-
 const renderCronograma = async () => {
   if (!currentObraId) return;
-  // Pega tarefas
   const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
   const snapshot = await getDocs(tarefasRef);
   const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -915,64 +892,26 @@ const renderCronograma = async () => {
   const dias = parseInt(cronogramaDias.value) || 30;
   ganttChart.innerHTML = "";
 
-  // Área de configuração das tarefas (lista acima do Gantt)
-  const configArea = document.createElement("div");
-  configArea.className = "mb-6";
-  const configTitle = document.createElement("h3");
-  configTitle.className = "text-lg font-semibold mb-2";
-  configTitle.textContent = "Defina início e duração das tarefas (dias)";
-  configArea.appendChild(configTitle);
-
-  const configList = document.createElement("div");
-  configList.className = "space-y-2";
-  tarefas.forEach(tarefa => {
-    // Use cronograma salvo se existir
-    const savedCronograma = tarefa.cronograma || {};
-    const startVal = savedCronograma.start || 1;
-    const durVal = savedCronograma.duration || (tarefa.prazo || 5);
-
-    const item = document.createElement("div");
-    item.className = "flex items-center justify-between bg-gray-100 p-3 rounded";
-    item.innerHTML = `
-      <div class="flex-1">
-        <div class="font-semibold">${tarefa.nome}</div>
-        <div class="text-sm text-gray-600">Valor: ${formatCurrency(tarefa.valorTotal || 0)}</div>
-      </div>
-      <div class="flex items-center space-x-2">
-        <label class="text-sm">Início (dia)</label>
-        <input type="number" min="1" class="task-start-input border rounded px-2 py-1 w-20" data-id="${tarefa.id}" value="${startVal}">
-        <label class="text-sm">Duração (dias)</label>
-        <input type="number" min="1" class="task-duration-input border rounded px-2 py-1 w-20" data-id="${tarefa.id}" value="${durVal}">
-      </div>
-    `;
-    configList.appendChild(item);
-  });
-  configArea.appendChild(configList);
-  ganttChart.appendChild(configArea);
-
-  // Cabeçalho do Gantt com dia + nome do mês
+  // Cabeçalho
   const headerRow = document.createElement("div");
   headerRow.className = "gantt-row";
   const emptyHeader = document.createElement("div");
   emptyHeader.className = "gantt-row-label";
-  emptyHeader.style.background = "transparent";
   headerRow.appendChild(emptyHeader);
 
   const today = new Date();
   for (let i = 0; i < dias; i++) {
     const date = new Date();
     date.setDate(today.getDate() + i);
-    const options = { day: "2-digit", month: "short" };
     const dayHeader = document.createElement("div");
     dayHeader.className = "gantt-day-cell gantt-header";
-    dayHeader.textContent = date.toLocaleDateString("pt-BR", options);
+    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
     headerRow.appendChild(dayHeader);
   }
   ganttChart.appendChild(headerRow);
 
-  // Linhas das tarefas
   ganttTasks = [];
-  tarefas.forEach((tarefa) => {
+  tarefas.forEach((tarefa, index) => {
     const row = document.createElement("div");
     row.className = "gantt-row";
     row.dataset.id = tarefa.id;
@@ -991,49 +930,20 @@ const renderCronograma = async () => {
     }
     ganttChart.appendChild(row);
 
-    // Preenche ganttTasks com valores a partir do que o usuário colocou (ou padroniza)
-    const savedCronograma = tarefa.cronograma || {};
-    const startDay = savedCronograma.start || 1;
-    const duration = savedCronograma.duration || (tarefa.prazo || 5);
-
+    let startDay = 1;
+    let duration = tarefa.prazo || 5;
     ganttTasks.push({
       id: tarefa.id,
       name: tarefa.nome,
       start: startDay,
       end: startDay + duration - 1,
-      duration: duration,
-      valorTotal: tarefa.valorTotal || 0,
-      medicoes: tarefa.medicoes || []
-    });
-  });
-
-  // Adiciona listeners aos inputs de start/duration
-  document.querySelectorAll('.task-start-input, .task-duration-input').forEach(input => {
-    input.addEventListener('change', async (e) => {
-      const id = e.currentTarget.dataset.id;
-      const startInput = document.querySelector(`.task-start-input[data-id="${id}"]`);
-      const durInput = document.querySelector(`.task-duration-input[data-id="${id}"]`);
-      const newStart = Math.max(1, parseInt(startInput.value) || 1);
-      const newDuration = Math.max(1, parseInt(durInput.value) || 1);
-      // Atualiza ganttTasks
-      const task = ganttTasks.find(t => t.id === id);
-      if (task) {
-        task.start = newStart;
-        task.duration = newDuration;
-        task.end = newStart + newDuration - 1;
-      }
-      // Salva cronograma no Firestore (dentro do documento da tarefa)
-      const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, id);
-      await updateDoc(tarefaDocRef, { cronograma: { start: newStart, duration: newDuration } });
-      renderGanttBars();
-      renderCurvaS(ganttTasks);
+      duration: duration
     });
   });
 
   renderGanttBars();
-  renderCurvaS(ganttTasks);
+  renderCurvaS(tarefas);
 };
-
 
 const renderGanttBars = () => {
   document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
@@ -1058,7 +968,7 @@ const renderGanttBars = () => {
     bar.innerHTML = `
       <div class="gantt-task-handle gantt-task-handle-left"></div>
       <div class="gantt-task-handle gantt-task-handle-right"></div>
-      <span style="padding:0 6px;">${task.name}</span>
+      <span>${task.name}</span>
     `;
     ganttChart.appendChild(bar);
     bar.addEventListener("mousedown", startDrag);
@@ -1093,8 +1003,6 @@ const handleDrag = (e) => {
   const taskId = currentDragElement.dataset.taskId;
   const task = ganttTasks.find(t => t.id === taskId);
 
-  if (!task) return;
-
   if (dragType === "move") {
     const newStart = Math.max(1, originalStartDay + deltaDays);
     task.start = newStart;
@@ -1114,112 +1022,14 @@ const handleDrag = (e) => {
 const stopDrag = async () => {
   if (!isDragging) return;
   isDragging = false;
-  // Ao soltar, salva alterações no Firestore (no documento da tarefa)
   const cronogramaData = {};
-  const updates = [];
   ganttTasks.forEach(t => {
-    cronogramaData[t.id] = { start: t.start, end: t.end, duration: t.duration };
-    // prepara atualização por tarefa
-    const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, t.id);
-    updates.push(updateDoc(tarefaDocRef, { cronograma: { start: t.start, duration: t.duration } }));
+    cronogramaData[t.id] = { start: t.start, end: t.end };
   });
-  try {
-    await Promise.all(updates);
-  } catch (err) {
-    console.error("Erro ao salvar cronograma:", err);
-  }
+  await addOrUpdateCronograma(cronogramaData);
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
-
-
-// --- RENDER CURVA S ---
-
-const renderCurvaS = (tarefasInput) => {
-  const ctx = document.getElementById('curva-s-chart').getContext('2d');
-
-  // Interpret input: tarefasInput can be either array of tarefas from Firestore
-  // or our ganttTasks (which include start/duration/valorTotal/medicoes)
-  const dias = parseInt(cronogramaDias.value) || 30;
-  let planejado = Array(dias).fill(0);
-  let realizado = Array(dias).fill(0);
-
-  // Build planejado distribuindo valorTotal por dia de cada tarefa
-  tarefasInput.forEach(t => {
-    const start = t.start || 1;
-    const duration = t.duration || (t.prazo || 5);
-    const valor = t.valorTotal || 0;
-    const valorDia = valor / Math.max(1, duration);
-    for (let d = start; d < start + duration && d <= dias; d++) {
-      planejado[d-1] += valorDia;
-    }
-    // Process medicoes no formato armazenado nas tarefas (se houver)
-    const medicoes = t.medicoes || t.medicoes || [];
-    medicoes.forEach(m => {
-      if (!m || !m.data) return;
-      const medDate = new Date(m.data);
-      const hoje = new Date();
-      // calcula diferença em dias entre hoje e data da medição (positivo se medição em futuro)
-      const diffDays = Math.floor((medDate - hoje) / (1000*60*60*24));
-      const idx = diffDays >= 0 && diffDays < dias ? diffDays : null;
-      // Se medição for histórica (<= hoje), vamos tentar mapear para os últimos dias: usar diferença negativa -> mapear ao dia 1..dias
-      if (idx !== null) {
-        realizado[idx] += m.valor || 0;
-      } else {
-        // alternativa: se a data está entre hoje - (dias-1) e hoje, considerar retroativo
-        const diffFromStart = Math.floor((medDate - hoje) / (1000*60*60*24));
-        // Não adicionar se for muito fora do range
-      }
-    });
-  });
-
-  // Acumula valores
-  for (let i=1; i<dias; i++) {
-    planejado[i] += planejado[i-1];
-    realizado[i] += realizado[i-1];
-  }
-
-  const labels = Array.from({length: dias}, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-  });
-
-  if (curvaSChart) curvaSChart.destroy();
-
-  curvaSChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Planejado',
-          data: planejado,
-          borderColor: 'blue',
-          fill: false
-        },
-        {
-          label: 'Realizado',
-          data: realizado,
-          borderColor: 'green',
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' }
-      },
-      scales: {
-        y: {
-          title: { display: true, text: 'R$ Acumulado' }
-        }
-      }
-    }
-  });
-};
-
 
 // Renderização de Despesas
 
