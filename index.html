@@ -1855,23 +1855,19 @@ value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-
 
         <div>
                     <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
-                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome ||
-''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
-                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal ||
-0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade (m, un, etc.)</label>
-                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade ||
-''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
-                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal ||
-0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
@@ -1901,8 +1897,7 @@ const newTarefa = {
             
 
     descricao: formData.get('descricao'),
-                medicoes: tarefa.medicoes ||
-[]
+                medicoes: tarefa.medicoes || []
             };
             addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
         });
@@ -1912,9 +1907,7 @@ document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
             if (nome && unidade) {
                 generateTaskDescription(nome, unidade);
             } else {
-                openModal('Atenção', 'Por favor, preencha 
-
-o nome da tarefa e a unidade primeiro.');
+                openModal('Atenção', 'Por favor, preencha o nome da tarefa e a unidade primeiro.');
             }
         });
 };
@@ -1937,8 +1930,7 @@ class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-data" class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="despesa-data" name="data" value="${despesa.data ||
-new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
@@ -1951,19 +1943,16 @@ new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md bor
           
 
               <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
-                        <option value="Outros" ${despesa.categoria === 'Outros' ?
-'selected' : ''}>Outros</option>
+                        <option value="Outros" ${despesa.categoria === 'Outros' ? 'selected' : ''}>Outros</option>
                     </select>
                 </div>
                 <div>
                     <label for="despesa-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
                     <textarea 
 
-id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes ||
-''}</textarea>
+id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes || ''}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${despesa.id ?
-'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${despesa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
 openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
@@ -2144,8 +2133,7 @@ class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes ||
-''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
