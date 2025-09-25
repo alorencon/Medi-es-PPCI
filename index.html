@@ -567,6 +567,16 @@
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        // Garantir que o Firebase esteja inicializado
+        if (!auth) {
+            try {
+                await initFirebase();
+            } catch (err) {
+                console.error("Erro ao inicializar Firebase:", err);
+                openModal('Erro', '<p class="text-center text-gray-700">Não foi possível inicializar o Firebase. Verifique a configuração.</p>');
+                return;
+            }
+        }
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
@@ -578,6 +588,15 @@
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        if (!auth) {
+            try {
+                await initFirebase();
+            } catch (err) {
+                console.error("Erro ao inicializar Firebase:", err);
+                openModal('Erro', '<p class="text-center text-gray-700">Não foi possível inicializar o Firebase. Verifique a configuração.</p>');
+                return;
+            }
+        }
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
