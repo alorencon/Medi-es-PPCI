@@ -83,6 +83,7 @@ display: grid;
             grid-template-columns: 200px repeat(30, 1fr);
             gap: 2px;
             margin-top: 1rem;
+            position: relative; /* <-- CORREÇÃO: Adicionado para posicionar as barras corretamente */
 }
         .gantt-header {
             background-color: #494C4F;
@@ -912,9 +913,7 @@ const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/$
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             tarefas.forEach(tarefa => {
-                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 
-
-0), 0);
+                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
                 const porcentagemConcluida = calculatePercentage(valorMedido, tarefa.valorTotal);
                 const metragemConcluida = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0);
                 const valorUnitario = tarefa.metragemTotal > 0 ? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
@@ -1054,7 +1053,13 @@ if (curvaSChart) {
             curvaSChart.destroy();
 }
 
-        if (!ganttTasks || ganttTasks.length === 0) return;
+        if (!ganttTasks || ganttTasks.length === 0) {
+            // Limpa o gráfico se não houver tarefas
+            const canvas = document.getElementById("curva-s-chart");
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
 
         const plannedValuePerDay = new Array(dias).fill(0);
 ganttTasks.forEach(task => {
@@ -1112,8 +1117,7 @@ const firstCell = document.querySelector(".gantt-day-cell");
         if (!firstCell) return;
         
         const cellWidth = firstCell.offsetWidth;
-        const gap = 2;
-// O gap definido no CSS do .gantt-chart
+        const gap = 2; // O gap definido no CSS do .gantt-chart
 
         ganttTasks.forEach(task => {
             const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
@@ -1159,8 +1163,7 @@ const task = ganttTasks.find(t => t.id === taskId);
         originalStartDay = task.start;
         originalEndDay = task.end;
 dragType = e.target.classList.contains("gantt-task-handle-left") ? "resize-left"
-                 : e.target.classList.contains("gantt-task-handle-right") ?
-"resize-right"
+                 : e.target.classList.contains("gantt-task-handle-right") ? "resize-right"
                  : "move";
 document.addEventListener("mousemove", handleDrag);
         document.addEventListener("mouseup", stopDrag);
@@ -1171,8 +1174,7 @@ document.addEventListener("mousemove", handleDrag);
 const firstCell = document.querySelector(".gantt-day-cell");
         if (!firstCell) return;
         
-        const cellWidth = firstCell.offsetWidth + 2;
-// Inclui o gap
+        const cellWidth = firstCell.offsetWidth + 2; // Inclui o gap
         const deltaX = e.clientX - dragStartX;
 const deltaDays = Math.round(deltaX / cellWidth);
         const taskId = currentDragElement.dataset.taskId;
@@ -1215,18 +1217,20 @@ const renderCronograma = async () => {
 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-if (tarefas.length === 0) {
+
+        const dias = parseInt(cronogramaDias.value) || 30;
+        
+        ganttChart.innerHTML = ""; // Limpa o conteúdo anterior
+        ganttChart.style.gridTemplateColumns = `200px repeat(${dias}, 1fr)`;
+
+        if (tarefas.length === 0) {
             ganttChart.innerHTML = "<p class='text-center text-gray-500 col-span-full'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
 ganttTasks = [];
-            renderCurvaS(0);
+            renderCurvaS(dias); // Limpa a curva S
             return;
         }
 
         const cronogramaData = (await getCronograma())?.tasks || {};
-const dias = parseInt(cronogramaDias.value) || 30;
-        
-        ganttChart.innerHTML = "";
-        ganttChart.style.gridTemplateColumns = `200px repeat(${dias}, 1fr)`;
 
         const headerRow = document.createElement("div");
 headerRow.className = "gantt-row";
@@ -1252,8 +1256,7 @@ tarefas.forEach((tarefa) => {
 
             const savedTask = cronogramaData[tarefa.id];
             let startDay = savedTask?.start || 1;
-            let duration = savedTask ? (savedTask.end - savedTask.start + 1) : 
-(tarefa.prazo || 5);
+            let duration = savedTask ? (savedTask.end - savedTask.start + 1) : (tarefa.prazo || 5);
 
             const label = document.createElement("div");
             label.className = "gantt-row-label";
@@ -1361,9 +1364,7 @@ const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/
 
      <button class="edit-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 
-
-7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
                                     </svg>
                                 </button>
      
@@ -2376,24 +2377,23 @@ addTarefaBtn.addEventListener('click', () => {
         }
         openTarefaForm();
     });
-// O botão 'add-tarefa-cronograma-btn' foi removido do HTML, então o listener foi removido para evitar erros.
-/*
-    addTarefaCronogramaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openTarefaForm();
-    });
-*/
-gerarCronogramaBtn.addEventListener('click', () => {
+
+    gerarCronogramaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
         renderCronograma();
     });
-addDespesaBtn.addEventListener('click', () => {
+
+    // MELHORIA: Adicionado listener para atualizar o cronograma ao mudar os dias
+    cronogramaDias.addEventListener('change', () => {
+        if (currentObraId) {
+            renderCronograma();
+        }
+    });
+
+    addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
