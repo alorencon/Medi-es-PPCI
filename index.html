@@ -225,7 +225,7 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700">Senha</label>
                     <input type="password" id="login-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
-                <button type="submit" id="login-btn" class="btn btn-primary w-full">Entrar</button>
+                <button id="login-btn" class="btn btn-primary w-full">Entrar</button>
                 <button type="button" id="create-account-btn" class="btn btn-secondary w-full">Criar Conta</button>
             </form>
         </div>
@@ -272,12 +272,13 @@
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                            <!-- REMOVIDO: botão de adicionar tarefa no cronograma -->
+<!--
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Adicionar Tarefa</span>
-                            </button>
+                            -->
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -363,170 +364,130 @@
                     <div id="despesas-list" class="space-y-4">
                         </div>
                 </div>
+    
+            </div>
+        </div>
+
+        <!-- Modal Structure -->
+        <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 id="modal-title" class="text-lg leading-6 font-medium text-gray-900"></h3>
+                    <div id="modal-body" class="mt-2 px-7 py-3">
+                        </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="modal-close-btn" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-xl">
-        <div class="flex justify-between items-center mb-4">
-            <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
-            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
-        </div>
-        <div id="modal-body">
-            </div>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script type="module">
-    // Firebase Imports
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Set Firebase log level for debugging
-    setLogLevel('Debug');
-
-    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
-    // Entre em "Configurações do projeto" > "Seus apps"
-    // Copie e cole o objeto de configuração aqui.
-    // Exemplo:
-    const firebaseConfig = {
-      apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
-      authDomain: "medicoes-ppci.firebaseapp.com",
-      projectId: "medicoes-ppci",
-      storageBucket: "medicoes-ppci.firebasestorage.app",
-      messagingSenderId: "408815173796",
-      appId: "1:408815173796:web:efd25d921a7f0ee923e631",
-      measurementId: "G-9YW2XQH2HH"
-    };
-
-    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
-    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
-    // const API_KEY = "YOUR_GEMINI_API_KEY";
-
-    const API_KEY = ''; 
-
-    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
-    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
-    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
-    const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
-
-    let app;
-    let auth;
-    let db;
+    // Variáveis globais
     let userId = null;
-    let audioContext;
-
     let currentObraId = null;
-    let curvaSChart = null;
-
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const addObraBtn = document.getElementById('add-obra-btn');
-    const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
-    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
-    const addDespesaBtn = document.getElementById('add-despesa-btn');
-    const obrasList = document.getElementById('obras-list');
-    const tarefasList = document.getElementById('tarefas-list');
-    const relatorioContent = document.getElementById('relatorio-content');
-    const despesasList = document.getElementById('despesas-list');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const ganttChart = document.getElementById('gantt-chart');
-    const cronogramaDias = document.getElementById('cronograma-dias');
-
-    const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
-    const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
-
-    const loginView = document.getElementById('login-view');
-    const appView = document.getElementById('app-view');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginForm = document.getElementById('login-form');
-    const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-
-    // New variables for gantt drag-and-drop
-    let ganttTasks = [];
+    let lastUserId = null; // Para evitar re-renderizações desnecessárias ao mudar de aba
+    let curvaSChart = null; // Instância do Chart.js para a Curva S
+    let ganttTasks = []; // Armazena as tarefas para o Gantt
     let isDragging = false;
     let currentDragElement = null;
     let dragStartX = 0;
     let originalStartDay = 0;
     let originalEndDay = 0;
-    let dragType = ''; // 'move' ou 'resize-left' ou 'resize-right'
+    let dragType = "";
 
-    // Utility function to format currency
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    };
+    // Elementos do DOM
+    const loginView = document.getElementById("login-view");
+    const appView = document.getElementById("app-view");
+    const loginForm = document.getElementById("login-form");
+    const loginBtn = document.getElementById("login-btn");
+    const createAccountBtn = document.getElementById("create-account-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userIdDisplay = document.getElementById("userIdDisplay");
+    const tabs = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+    const obrasList = document.getElementById("obras-list");
+    const addObraBtn = document.getElementById("add-obra-btn");
+    const tarefasList = document.getElementById("tarefas-list");
+    const addTarefaBtn = document.getElementById("add-tarefa-btn");
+    const relatorioContent = document.getElementById("relatorio-content");
+    const despesasList = document.getElementById("despesas-list");
+    const addDespesaBtn = document.getElementById("add-despesa-btn");
+    const gerarRelatorioDespesasBtn = document.getElementById("gerar-relatorio-despesas-btn");
+    const cronogramaDias = document.getElementById("cronograma-dias");
+    const ganttChart = document.getElementById("gantt-chart");
+    const gerarCronogramaBtn = document.getElementById("gerar-cronograma-btn");
+    const addTarefaCronogramaBtn = document.getElementById("add-tarefa-cronograma-btn"); // Adicionado
 
-    // Utility function to calculate percentage
-    const calculatePercentage = (numerator, denominator) => {
-        if (denominator === 0) return 0;
-        return (numerator / denominator) * 100;
-    };
-
-    // Modal functions
+    // Funções utilitárias
     const openModal = (title, content) => {
-        modalTitle.textContent = title;
-        modalBody.innerHTML = content;
-        modal.classList.remove('hidden');
+        document.getElementById("modal-title").innerHTML = title;
+        document.getElementById("modal-body").innerHTML = content;
+        document.getElementById("modal").classList.remove("hidden");
     };
 
     const closeModal = () => {
-        modal.classList.add('hidden');
-        modalTitle.textContent = '';
-        modalBody.innerHTML = '';
+        document.getElementById("modal").classList.add("hidden");
     };
 
-    document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    document.getElementById("modal-close-btn").addEventListener("click", closeModal);
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+    };
+
+    const calculatePercentage = (part, total) => {
+        if (total === 0) return 0;
+        return (part / total) * 100;
+    };
 
     // Tab switching logic
     tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.add('hidden'));
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("active"));
+            tabContents.forEach(c => c.classList.add("hidden"));
 
-            tab.classList.add('active');
-            document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
+            tab.classList.add("active");
+            document.getElementById(`${tab.dataset.tab}-view`).classList.remove("hidden");
 
-            if (tab.dataset.tab === 'tarefas') {
+            if (tab.dataset.tab === "obras") {
                 if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
+                    tabs[0].click(); // Go back to obras tab
+                } else {
+                    renderObras();
+                }
+            } else if (tab.dataset.tab === "tarefas") {
+                if (!currentObraId) {
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderTarefas();
                 }
-            } else if (tab.dataset.tab === 'relatorios') {
+            } else if (tab.dataset.tab === "relatorios") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
                 }
-            } else if (tab.dataset.tab === 'cronograma') {
+            } else if (tab.dataset.tab === "cronograma") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderCronograma();
                 }
-            } else if (tab.dataset.tab === 'despesas') {
+            } else if (tab.dataset.tab === "despesas") {
                  if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    openModal("Atenção", "<p class=\"text-center text-gray-700\">Por favor, selecione uma obra primeiro.</p>");
                     tabs[0].click(); // Go back to obras tab
                 } else {
                     renderDespesas();
@@ -536,61 +497,73 @@
     });
 
     // Firebase Initialization & Auth
-    const initFirebase = async () => {
-        try {
-            app = initializeApp(__firebase_config);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    userIdDisplay.textContent = userId;
-                    loginView.classList.add('hidden');
-                    appView.classList.remove('hidden');
-                    listenToObras();
-                } else {
-                    userId = null;
-                    userIdDisplay.textContent = "N/A";
-                    loginView.classList.remove('hidden');
-                    appView.classList.add('hidden');
-                }
-            });
-
-        } catch (error) {
-            console.error("Erro ao inicializar Firebase ou autenticar:", error);
-        }
+    // TODO: Substitua os placeholders abaixo com suas configurações reais do Firebase e da API Gemini.
+    const __firebase_config = {
+        apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
+        authDomain: "medicoes-ppci.firebaseapp.com",
+        projectId: "medicoes-ppci",
+        storageBucket: "medicoes-ppci.firebasestorage.app",
+        messagingSenderId: "408815173796",
+        appId: "1:408815173796:web:efd25d921a7f0ee923e631"
     };
-    
-    loginBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
-        }
-    });
-    
-    createAccountBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
-        } catch (error) {
-            openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
-        }
-    });
+    const __app_id = "medicoes-ppci"; // Usado para caminhos no Firestore, geralmente o projectId
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; // Chave da API Gemini para geração de descrição
+    const GEMINI_API_URL_GENERATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
 
-    logoutBtn.addEventListener('click', async () => {
-        await signOut(auth);
-        currentObraId = null; // Reset current obra
-        tabs[0].click(); // Go back to obras tab
-    });
+    let app; // Declarar 'app' com 'let' para evitar ser global implícita
+    let auth; // Declarar 'auth' com 'let'
+    let db; // Declarar 'db' com 'let'
+    let audioContext;
 
+    const initFirebase = async () => {
+    try {
+        app = initializeApp(__firebase_config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        if (typeof window.AudioContext !== 'undefined') {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        console.log("Firebase app initialized:", app);
+        console.log("Firebase auth initialized:", auth);
+        console.log("Firebase db initialized:", db);
+
+        let alreadyInitialized = false;
+
+        
+
+        console.log("onAuthStateChanged: Verificando estado de autenticação...");
+        onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log("onAuthStateChanged: Usuário logado. UID:", user.uid);
+        console.log("onAuthStateChanged: Escondendo login-view, mostrando app-view.");
+        loginView.classList.add("hidden");
+        appView.classList.remove("hidden");
+        // Usuário logado → mostra app
+        userId = user.uid;
+        userIdDisplay.textContent = userId;
+
+        // Garante que listenToObras seja chamado apenas uma vez após o login
+        if (!lastUserId) {
+            lastUserId = user.uid;
+            listenToObras();
+        }
+    } else {
+        console.log("onAuthStateChanged: Nenhum usuário logado.");
+        console.log("onAuthStateChanged: Escondendo app-view, mostrando login-view.");
+        // Nenhum usuário logado → mostra login
+        userId = null;
+        lastUserId = null;
+        userIdDisplay.textContent = "N/A";
+        appView.classList.add("hidden");
+        loginView.classList.remove("hidden");
+    }
+});
+} catch (error) {
+        console.error("Erro ao inicializar Firebase ou autenticar:", error);
+    }
+};
+    
     // Firestore CRUD Operations
     const listenToObras = () => {
         if (!db || !userId) {
@@ -809,7 +782,7 @@
                         <div class="bg-green-500 h-2 rounded-full" style="width: ${porcentagemConcluida}%;"></div>
                     </div>
                     <div class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4">
-                        <span class="mb-2 md:mb-0">Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
+                        <span>Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
                         <span>Unidade: ${tarefa.unidade}</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -826,30 +799,33 @@
                             <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap justify-start space-x-2 mt-4">
-                        <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
-                        <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
-                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
-                        <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button class="view-medicoes-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Ver Medições</button>
+                        <button class="add-medicao-btn btn btn-primary btn-sm" data-id="${tarefa.id}">Add Medição</button>
+                        <button class="edit-tarefa-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Editar</button>
+                        <button class="delete-tarefa-btn btn btn-secondary btn-sm" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
                 tarefasList.appendChild(tarefaCard);
             });
 
+            document.querySelectorAll('.view-medicoes-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const tarefaId = e.currentTarget.dataset.id;
+                    const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
+                    const tarefaDoc = await getDoc(tarefaDocRef);
+                    const tarefa = tarefaDoc.data();
+                    openMedicoesList(tarefaId, tarefa.medicoes || []);
+                });
+            });
+
             document.querySelectorAll('.add-medicao-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
-                    const tarefa = tarefas.find(t => t.id === tarefaId);
-                    openMedicaoForm(tarefa);
+                    openMedicaoForm(tarefaId);
                 });
             });
-            document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const tarefaId = e.currentTarget.dataset.id;
-                    const tarefa = tarefas.find(t => t.id === tarefaId);
-                    openMedicoesList(tarefa.id, tarefa.medicoes || []);
-                });
-            });
+
             document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -857,6 +833,7 @@
                     openTarefaForm(tarefa);
                 });
             });
+
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -875,75 +852,210 @@
                 });
             });
 
-            // Update valor total da obra
-            const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-            updateDoc(obraRef, { valorMedido: totalMedido });
+            if (tarefas.length === 0) {
+                tarefasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma tarefa registrada para esta obra.</p>';
+            }
         });
     };
 
-    
-// --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
-const renderCronograma = async () => {
+    const openMedicaoForm = (tarefaId, medicao = {}, medicaoIndex = -1) => {
+        const formHtml = `
+            <form id="medicao-form" class="space-y-4">
+                <div>
+                    <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem</label>
+                    <input type="number" step="0.01" id="medicao-metragem" name="metragem" value="${medicao.metragem || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="medicao-valor" class="block text-sm font-medium text-gray-700">Valor</label>
+                    <input type="number" step="0.01" id="medicao-valor" name="valor" value="${medicao.valor || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="medicao-data" class="block text-sm font-medium text-gray-700">Data</label>
+                    <input type="date" id="medicao-data" name="data" value="${medicao.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div>
+                    <label for="medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">${medicaoIndex !== -1 ? 'Atualizar' : 'Adicionar'} Medição</button>
+            </form>
+        `;
+        openModal(medicaoIndex !== -1 ? 'Editar Medição' : 'Adicionar Medição', formHtml);
+        document.getElementById('medicao-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newMedicao = {
+                metragem: parseFloat(formData.get('metragem')),
+                valor: parseFloat(formData.get('valor')),
+                data: formData.get('data'),
+                observacoes: formData.get('observacoes')
+            };
+            if (medicaoIndex !== -1) {
+                await updateMedicaoInTarefa(tarefaId, medicaoIndex, newMedicao);
+            } else {
+                await addMedicaoToTarefa(tarefaId, newMedicao);
+            }
+            closeModal();
+        });
+    };
+
+    const openMedicoesList = (tarefaId, medicoes) => {
+        let medicoesHtml = '<h4 class="text-xl font-semibold mb-4">Medições Registradas</h4>';
+        if (medicoes.length === 0) {
+            medicoesHtml += '<p class="text-center text-gray-500">Nenhuma medição para esta tarefa.</p>';
+        } else {
+            medicoesHtml += '<div class="space-y-4">';
+            medicoes.forEach((medicao, index) => {
+                medicoesHtml += `
+                    <div class="medicoes-list-item card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">Metragem: ${medicao.metragem.toFixed(2)}</p>
+                            <p class="text-sm text-gray-500">Valor: ${formatCurrency(medicao.valor)}</p>
+                            <p class="text-sm text-gray-500">Data: ${new Date(medicao.data).toLocaleDateString()}</p>
+                            ${medicao.observacoes ? `<p class="text-sm text-gray-600 mt-1">Obs: ${medicao.observacoes}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="edit-single-medicao-btn btn btn-secondary btn-sm" data-tarefa-id="${tarefaId}" data-index="${index}">Editar</button>
+                            <button class="delete-single-medicao-btn btn btn-secondary btn-sm" data-tarefa-id="${tarefaId}" data-index="${index}">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            });
+            medicoesHtml += '</div>';
+        }
+        openModal('Medições da Tarefa', medicoesHtml);
+
+        document.querySelectorAll('.edit-single-medicao-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tId = e.currentTarget.dataset.tarefaId;
+                const mIndex = parseInt(e.currentTarget.dataset.index);
+                const medicaoToEdit = medicoes[mIndex];
+                closeModal(); // Fecha a lista de medições para abrir o formulário de edição
+                openMedicaoForm(tId, medicaoToEdit, mIndex);
+            });
+        });
+
+        document.querySelectorAll('.delete-single-medicao-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tId = e.currentTarget.dataset.tarefaId;
+                const mIndex = parseInt(e.currentTarget.dataset.index);
+                openModal('Confirmação', `
+                    <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta medição?</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmDeleteMedicaoBtn" class="btn btn-primary">Sim</button>
+                        <button id="cancelDeleteMedicaoBtn" class="btn btn-secondary">Não</button>
+                    </div>
+                `);
+                document.getElementById('confirmDeleteMedicaoBtn').addEventListener('click', () => {
+                    deleteMedicao(tId, mIndex);
+                    closeModal();
+                });
+                document.getElementById('cancelDeleteMedicaoBtn').addEventListener('click', closeModal);
+            });
+        });
+    };
+
+    // Renderização do Cronograma (Gantt)
+    const renderCronograma = async () => {
   if (!currentObraId) return;
+
+  // Limpa o gráfico Gantt existente
+  ganttChart.innerHTML = '';
+  ganttTasks = [];
+
+  const cronogramaDoc = await getCronograma();
   const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
   const snapshot = await getDocs(tarefasRef);
   const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   const dias = parseInt(cronogramaDias.value) || 30;
-  ganttChart.innerHTML = "";
 
-  // Cabeçalho
-  const headerRow = document.createElement("div");
-  headerRow.className = "gantt-row";
-  const emptyHeader = document.createElement("div");
-  emptyHeader.className = "gantt-row-label";
-  headerRow.appendChild(emptyHeader);
-
-  const today = new Date();
-  for (let i = 0; i < dias; i++) {
-    const date = new Date();
-    date.setDate(today.getDate() + i);
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "gantt-day-cell gantt-header";
-    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
-    headerRow.appendChild(dayHeader);
+  // Cria cabeçalho de dias
+  const headerRow = document.createElement('div');
+  headerRow.className = 'gantt-row';
+  headerRow.innerHTML = '<div class="gantt-row-label gantt-header">Tarefa</div>';
+  for (let i = 1; i <= dias; i++) {
+    headerRow.innerHTML += `<div class="gantt-header">${i}</div>`;
   }
   ganttChart.appendChild(headerRow);
 
-  ganttTasks = [];
-  tarefas.forEach((tarefa, index) => {
-    const row = document.createElement("div");
-    row.className = "gantt-row";
+  // Cria linhas para cada tarefa
+  tarefas.forEach(tarefa => {
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
     row.dataset.id = tarefa.id;
+    row.style.display = 'contents'; // Permite que os filhos se posicionem no grid
 
-    const label = document.createElement("div");
-    label.className = "gantt-row-label";
-    label.textContent = tarefa.nome;
-    row.appendChild(label);
+    const labelCell = document.createElement('div');
+    labelCell.className = 'gantt-row-label';
+    labelCell.textContent = tarefa.nome;
+    row.appendChild(labelCell);
 
     for (let i = 1; i <= dias; i++) {
-      const cell = document.createElement("div");
-      cell.className = "gantt-day-cell";
-      cell.dataset.day = i;
-      cell.dataset.taskId = tarefa.id;
+      const cell = document.createElement('div');
+      cell.className = 'gantt-day-cell';
       row.appendChild(cell);
     }
     ganttChart.appendChild(row);
 
-    let startDay = 1;
-    let duration = tarefa.prazo || 5;
+    // Adiciona inputs para start e duration
+    const startDay = (tarefa.cronograma && tarefa.cronograma.start) ? tarefa.cronograma.start : 1;
+    const duration = (tarefa.cronograma && tarefa.cronograma.duration) ? tarefa.cronograma.duration : 5;
+
+    const startInput = document.createElement('input');
+    startInput.type = 'number';
+    startInput.value = startDay;
+    startInput.min = '1';
+    startInput.className = 'task-start-input w-16 text-center border rounded-md text-black';
+    startInput.dataset.id = tarefa.id;
+    labelCell.appendChild(startInput);
+
+    const durationInput = document.createElement('input');
+    durationInput.type = 'number';
+    durationInput.value = duration;
+    durationInput.min = '1';
+    durationInput.className = 'task-duration-input w-16 text-center border rounded-md text-black ml-2';
+    durationInput.dataset.id = tarefa.id;
+    labelCell.appendChild(durationInput);
+
     ganttTasks.push({
       id: tarefa.id,
       name: tarefa.nome,
       start: startDay,
       end: startDay + duration - 1,
-      duration: duration
+      duration: duration,
+      valorTotal: tarefa.valorTotal || 0,
+      medicoes: tarefa.medicoes || []
+    });
+  });
+
+  // Adiciona listeners aos inputs de start/duration
+  document.querySelectorAll('.task-start-input, .task-duration-input').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const id = e.currentTarget.dataset.id;
+      const startInput = document.querySelector(`.task-start-input[data-id="${id}"]`);
+      const durInput = document.querySelector(`.task-duration-input[data-id="${id}"]`);
+      const newStart = Math.max(1, parseInt(startInput.value) || 1);
+      const newDuration = Math.max(1, parseInt(durInput.value) || 1);
+      // Atualiza ganttTasks
+      const task = ganttTasks.find(t => t.id === id);
+      if (task) {
+        task.start = newStart;
+        task.duration = newDuration;
+        task.end = newStart + newDuration - 1;
+      }
+      // Salva cronograma no Firestore (dentro do documento da tarefa)
+      const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, id);
+      await updateDoc(tarefaDocRef, { cronograma: { start: newStart, duration: newDuration } });
+      renderGanttBars();
+      renderCurvaS(ganttTasks);
     });
   });
 
   renderGanttBars();
-  renderCurvaS(tarefas);
+  renderCurvaS(ganttTasks);
 };
+
 
 const renderGanttBars = () => {
   document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
@@ -952,7 +1064,7 @@ const renderGanttBars = () => {
   const cellWidth = firstCell.offsetWidth;
 
   ganttTasks.forEach(task => {
-    const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
+    const row = document.querySelector(`.gantt-row[data-id="${task.id}"]`);
     if (!row) return;
     const rowCells = row.querySelectorAll(".gantt-day-cell");
     const rowTop = rowCells[0].offsetTop;
@@ -968,7 +1080,7 @@ const renderGanttBars = () => {
     bar.innerHTML = `
       <div class="gantt-task-handle gantt-task-handle-left"></div>
       <div class="gantt-task-handle gantt-task-handle-right"></div>
-      <span>${task.name}</span>
+      <span style="padding:0 6px;">${task.name}</span>
     `;
     ganttChart.appendChild(bar);
     bar.addEventListener("mousedown", startDrag);
@@ -1003,6 +1115,8 @@ const handleDrag = (e) => {
   const taskId = currentDragElement.dataset.taskId;
   const task = ganttTasks.find(t => t.id === taskId);
 
+  if (!task) return;
+
   if (dragType === "move") {
     const newStart = Math.max(1, originalStartDay + deltaDays);
     task.start = newStart;
@@ -1022,14 +1136,112 @@ const handleDrag = (e) => {
 const stopDrag = async () => {
   if (!isDragging) return;
   isDragging = false;
+  // Ao soltar, salva alterações no Firestore (no documento da tarefa)
   const cronogramaData = {};
+  const updates = [];
   ganttTasks.forEach(t => {
-    cronogramaData[t.id] = { start: t.start, end: t.end };
+    cronogramaData[t.id] = { start: t.start, end: t.end, duration: t.duration };
+    // prepara atualização por tarefa
+    const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, t.id);
+    updates.push(updateDoc(tarefaDocRef, { cronograma: { start: t.start, duration: t.duration } }));
   });
-  await addOrUpdateCronograma(cronogramaData);
+  try {
+    await Promise.all(updates);
+  } catch (err) {
+    console.error("Erro ao salvar cronograma:", err);
+  }
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
+
+
+// --- RENDER CURVA S ---
+
+const renderCurvaS = (tarefasInput) => {
+  const ctx = document.getElementById('curva-s-chart').getContext('2d');
+
+  // Interpret input: tarefasInput can be either array of tarefas from Firestore
+  // or our ganttTasks (which include start/duration/valorTotal/medicoes)
+  const dias = parseInt(cronogramaDias.value) || 30;
+  let planejado = Array(dias).fill(0);
+  let realizado = Array(dias).fill(0);
+
+  // Build planejado distribuindo valorTotal por dia de cada tarefa
+  tarefasInput.forEach(t => {
+    const start = t.start || 1;
+    const duration = t.duration || (t.prazo || 5);
+    const valor = t.valorTotal || 0;
+    const valorDia = valor / Math.max(1, duration);
+    for (let d = start; d < start + duration && d <= dias; d++) {
+      planejado[d-1] += valorDia;
+    }
+    // Process medicoes no formato armazenado nas tarefas (se houver)
+    const medicoes = t.medicoes || t.medicoes || [];
+    medicoes.forEach(m => {
+      if (!m || !m.data) return;
+      const medDate = new Date(m.data);
+      const hoje = new Date();
+      // calcula diferença em dias entre hoje e data da medição (positivo se medição em futuro)
+      const diffDays = Math.floor((medDate - hoje) / (1000*60*60*24));
+      const idx = diffDays >= 0 && diffDays < dias ? diffDays : null;
+      // Se medição for histórica (<= hoje), vamos tentar mapear para os últimos dias: usar diferença negativa -> mapear ao dia 1..dias
+      if (idx !== null) {
+        realizado[idx] += m.valor || 0;
+      } else {
+        // alternativa: se a data está entre hoje - (dias-1) e hoje, considerar retroativo
+        const diffFromStart = Math.floor((medDate - hoje) / (1000*60*60*24));
+        // Não adicionar se for muito fora do range
+      }
+    });
+  });
+
+  // Acumula valores
+  for (let i=1; i<dias; i++) {
+    planejado[i] += planejado[i-1];
+    realizado[i] += realizado[i-1];
+  }
+
+  const labels = Array.from({length: dias}, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  });
+
+  if (curvaSChart) curvaSChart.destroy();
+
+  curvaSChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Planejado',
+          data: planejado,
+          borderColor: 'blue',
+          fill: false
+        },
+        {
+          label: 'Realizado',
+          data: realizado,
+          borderColor: 'green',
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        y: {
+          title: { display: true, text: 'R$ Acumulado' }
+        }
+      }
+    }
+  });
+};
+
 
 // Renderização de Despesas
 
@@ -1074,7 +1286,7 @@ const stopDrag = async () => {
                         </div>
                     </div>
                 `;
-                despesasList.appendChild(despesaItem);
+                despesaItem.appendChild(despesaItem);
             });
             
             // Atualizar totais
@@ -1108,8 +1320,8 @@ const stopDrag = async () => {
                         closeModal();
                     });
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
-                });
             });
+        });
             
             // Se não houver despesas, mostrar mensagem
             if (despesas.length === 0) {
@@ -1183,136 +1395,47 @@ const stopDrag = async () => {
         generateBtn.addEventListener('click', () => {
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
-            renderRelatorioPorPeriodo(startDate, endDate, tarefas, obra.nome);
+            generatePeriodReport(startDate, endDate);
         });
+
         document.getElementById('read-summary-btn').addEventListener('click', async () => {
-            const summaryText = `Resumo da obra ${obra.nome}. Total de tarefas: ${totalTarefas}. ${totalConcluidas} concluídas. Valor total medido: ${formatCurrency(valorMedidoTotal)}. Progresso geral: ${progressoGeral.toFixed(1)}%`;
-            await speakText(summaryText);
+            const summaryText = `
+                Relatório geral da obra. Total de tarefas: ${totalTarefas}, sendo ${totalConcluidas} concluídas. 
+                Valor total medido: ${formatCurrency(valorMedidoTotal)}, de um total de ${obra.valorTotal}. 
+                Progresso geral: ${progressoGeral.toFixed(1)} por cento.
+            `;
+            // await speakText(summaryText);
+            openModal('Resumo do Relatório', `<p class="text-center text-gray-700">${summaryText}</p><p class="text-center text-gray-700 mt-2">Funcionalidade de áudio desativada no momento.</p>`);
         });
     };
 
-    // Função para converter ArrayBuffer para Blob
-    const pcmToWav = (pcm16, sampleRate) => {
-        const pcmData = pcm16.buffer;
-        const numChannels = 1;
-        const bitsPerSample = 16;
-        const byteRate = sampleRate * numChannels * bitsPerSample / 8;
-        const blockAlign = numChannels * bitsPerSample / 8;
-        const wavDataSize = pcmData.byteLength;
-        const fileSize = wavDataSize + 44;
-        const buffer = new ArrayBuffer(fileSize);
-        const view = new DataView(buffer);
-        // RIFF chunk
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, fileSize - 8, true);
-        writeString(view, 8, 'WAVE');
-
-        // fmt chunk
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, numChannels, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, byteRate, true);
-        view.setUint16(32, blockAlign, true);
-        view.setUint16(34, bitsPerSample, true);
-        // data chunk
-        writeString(view, 36, 'data');
-        view.setUint32(40, wavDataSize, true);
-        // PCM data
-        const pcmView = new Int16Array(pcmData);
-        for (let i = 0; i < pcmView.length; i++) {
-            view.setInt16(44 + i * 2, pcmView[i], true);
-        }
-
-        return new Blob([view], { type: 'audio/wav' });
-    };
-
-    const writeString = (view, offset, string) => {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    };
-
-    // Function to convert Base64 to ArrayBuffer
-    const base64ToArrayBuffer = (base64) => {
-        const binaryString = window.atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-    };
-
-    // Speak text with TTS API
-    const speakText = async (text) => {
-        const payload = {
-            contents: [{ parts: [{ text: text }] }],
-            generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: "Iapetus" }
-                    }
-                }
-            }
-        };
-        try {
-            const response = await fetch(`${GEMINI_API_URL_TTS}${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) {
-                console.error('API call failed:', response.status, response.statusText);
-                return;
-            }
-
-            const result = await response.json();
-            const part = result?.candidates?.[0]?.content?.parts?.[0];
-            const audioData = part?.inlineData?.data;
-            const mimeType = part?.inlineData?.mimeType;
-            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
-                const audio = new Audio(audioUrl);
-                audio.play();
-
-            } else {
-                console.error('Invalid audio data received');
-            }
-        } catch (error) {
-            console.error('Error in TTS API call:', error);
-        }
-    };
-
-    const renderRelatorioPorPeriodo = (startDate, endDate, tarefas, nomeObra) => {
+    const generatePeriodReport = async (startDateStr, endDateStr) => {
         const reportResultDiv = document.getElementById('period-report-result');
-        reportResultDiv.innerHTML = '';
+        reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Gerando relatório...</p>';
 
-        if (!startDate || !endDate) {
-            reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
-            return;
-        }
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999); // Incluir o dia inteiro
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
+        const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+        const obraDoc = await getDoc(obraDocRef);
+        const obra = obraDoc.data();
+        const nomeObra = obra.nome;
 
-        let totalPeriodo = 0;
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        const snapshot = await getDocs(tarefasRef);
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
         let relatorioHtml = '';
+        let totalPeriodo = 0;
         let hasData = false;
+        const reportData = []; // Para exportação
+        const taskTotals = {}; // Para exportação
 
-        const reportData = [];
-        const taskTotals = {};
         tarefas.forEach(tarefa => {
             const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
                 const medicaoDate = new Date(medicao.data);
-                return medicaoDate >= start && medicaoDate < end;
+                return medicaoDate >= startDate && medicaoDate < endDate;
             });
 
             if (medicoesPeriodo.length > 0) {
@@ -1603,212 +1726,55 @@ const stopDrag = async () => {
             contents: [{ parts: [{ text: prompt }] }],
         };
         try {
-            const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
+            const response = await fetch(`${GEMINI_API_URL_GENERATE}${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            const result = await response.json();
-            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            descricaoTextarea.value = description.trim();
+            const data = await response.json();
+            if (data.candidates && data.candidates.length > 0) {
+                descricaoTextarea.value = data.candidates[0].content.parts[0].text;
+            } else {
+                openModal('Erro na Geração', 'Não foi possível gerar a descrição. Tente novamente.');
+            }
         } catch (error) {
-            console.error("Erro ao gerar descrição:", error);
-            descricaoTextarea.value = "Erro ao gerar descrição. Tente novamente.";
+            console.error('Erro ao gerar descrição:', error);
+            openModal('Erro na Geração', `Ocorreu um erro ao gerar a descrição: ${error.message}`);
         } finally {
             generateBtn.disabled = false;
             generateBtn.textContent = originalBtnText;
         }
     };
 
-    const openMedicaoForm = (tarefa) => {
-        const formHtml = `
-            <form id="medicao-form" class="space-y-4">
-                <div>
-                    <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
-                    <input type="number" step="0.01" id="medicao-metragem" name="metragem" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">Adicionar Medição</button>
-            </form>
-        `;
-        openModal('Nova Medição', formHtml);
-        document.getElementById('medicao-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const metragem = parseFloat(formData.get('metragem'));
-            const observacoes = formData.get('observacoes');
-            
-            // Calculate valor automatically based on valorUnitario
-            const valor = tarefa.valorUnitario * metragem;
-
-            const newMedicao = {
-                metragem: metragem,
-                valor: valor,
-                observacoes: observacoes,
-                data: new Date().toISOString()
-            };
-            addMedicaoToTarefa(tarefa.id, newMedicao);
-            closeModal();
-        });
-    };
-
-    const openMedicoesList = (tarefaId, medicoes) => {
-        const listHtml = `
-            <ul class="space-y-2" id="medicao-list">
-                ${medicoes.map((medicao, index) => `
-                    <li class="p-4 bg-gray-100 rounded-lg flex flex-wrap justify-between items-center medicoes-list-item">
-                        <div class="mb-2 md:mb-0">
-                            <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
-                            <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
-                            <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
-                            <p class="text-xs text-gray-500">${new Date(medicao.data).toLocaleDateString()}</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button class="edit-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
-                                </svg>
-                            </button>
-                            <button class="delete-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </li>
-                `).join('')}
-            </ul>
-        `;
-        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
-
-        document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const medicaoIndex = e.currentTarget.dataset.index;
-                const medicao = medicoes[medicaoIndex];
-                openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
-            });
-        });
-        document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const medicaoIndex = e.currentTarget.dataset.index;
-                openModal('Confirmar Exclusão', `
-                    <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta medição?</p>
-                    <div class="flex justify-center space-x-4">
-                        <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
-                        <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
-                    </div>
-                `);
-                document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-                    deleteMedicao(tarefaId, medicaoIndex);
-                    closeModal();
-                });
-                document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
-            });
-        });
-    };
-
-    const openEditMedicaoForm = (tarefaId, medicaoIndex, medicao) => {
-        const formHtml = `
-            <form id="edit-medicao-form" class="space-y-4">
-                <div>
-                    <label for="edit-medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
-                    <input type="number" step="0.01" id="edit-medicao-metragem" name="metragem" value="${medicao.metragem}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                </div>
-                <div>
-                    <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
-            </form>
-        `;
-        openModal('Editar Medição', formHtml);
-        document.getElementById('edit-medicao-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const metragem = parseFloat(formData.get('metragem'));
-            const observacoes = formData.get('observacoes');
-            
-            const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
-            const tarefaDoc = await getDoc(tarefaDocRef);
-            const tarefa = tarefaDoc.data();
-            
-            const valor = tarefa.valorUnitario * metragem;
-            
-            const updatedMedicao = {
-                metragem: metragem,
-                valor: valor,
-                observacoes: observacoes,
-                data: medicao.data
-            };
-            
-            await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
-            
-            closeModal();
-        });
-    }
-
-    // Adicionar event listener para o botão de relatório de despesas
-    document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
-        const relatorioContainer = document.getElementById('relatorio-despesas-container');
-        const isVisible = !relatorioContainer.classList.contains('hidden');
-        
-        if (isVisible) {
-            relatorioContainer.classList.add('hidden');
-        } else {
-            relatorioContainer.classList.remove('hidden');
-        }
-    });
-
-    // Função para gerar relatório de despesas por período
-    document.getElementById('generate-despesa-report-btn').addEventListener('click', async () => {
-        const startDate = document.getElementById('despesa-start-date').value;
-        const endDate = document.getElementById('despesa-end-date').value;
-        
-        if (!startDate || !endDate) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione ambas as datas.</p>');
-            return;
-        }
-        
-        await renderDespesaReportPorPeriodo(startDate, endDate);
-    });
-
-    const renderDespesaReportPorPeriodo = async (startDate, endDate) => {
+    // Renderização de Relatório de Despesas por Período
+    const generateDespesaPeriodReport = async (startDateStr, endDateStr) => {
         const reportResultDiv = document.getElementById('despesa-period-report-result');
-        reportResultDiv.innerHTML = '<p class="text-center text-gray-500">Carregando...</p>';
-        
-        // Buscar despesas do período
-        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
-        const snapshot = await getDocs(despesasRef);
-        let despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Filtrar por período
-        despesas = despesas.filter(despesa => {
-            const despesaDate = new Date(despesa.data);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            end.setDate(end.getDate() + 1); // Para incluir o dia final
-            
-            return despesaDate >= start && despesaDate < end;
-        });
+        reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Gerando relatório de despesas...</p>';
 
-        if (despesas.length === 0) {
-            reportResultDiv.innerHTML = '<p class="text-center text-gray-600">Nenhuma despesa encontrada no período selecionado.</p>';
-            return;
-        }
-        
-        let totalPeriodo = despesas.reduce((sum, d) => sum + d.valor, 0);
-        // Agrupar por categoria
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999); // Incluir o dia inteiro
+
+        const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
+        const q = query(despesasRef, where("data", ">=", startDateStr), where("data", "<=", endDateStr));
+        const snapshot = await getDocs(q);
+        const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        let relatorioHtml = '';
+        let totalPeriodo = 0;
         const porCategoria = {};
+
         despesas.forEach(despesa => {
+            totalPeriodo += despesa.valor;
             if (!porCategoria[despesa.categoria]) {
                 porCategoria[despesa.categoria] = 0;
             }
             porCategoria[despesa.categoria] += despesa.valor;
         });
 
-        let relatorioHtml = `
+        document.getElementById('relatorio-despesas-container').classList.remove('hidden');
+
+        relatorioHtml = `
             <div class="p-6 bg-gray-200 rounded-lg mb-6 flex flex-col md:flex-row justify-between items-center">
                 <div>
                     <p class="text-gray-600 font-bold text-xl">Total de Despesas no Período:</p>
@@ -1929,39 +1895,74 @@ const stopDrag = async () => {
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
 
-    // Event listeners for main buttons
-    addObraBtn.addEventListener('click', () => openObraForm());
-    addTarefaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openTarefaForm();
-    });
-    addTarefaCronogramaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openTarefaForm();
-    });
-    gerarCronogramaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        renderCronograma();
-    });
-    addDespesaBtn.addEventListener('click', () => {
-        if (!currentObraId) {
-            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-            return;
-        }
-        openDespesaForm();
-    });
+    // Run app and attach event listeners after Firebase is initialized
+    const runApplication = async () => {
+        await initFirebase();
 
-    // Run app
-    initFirebase();
+        // Event listeners for authentication
+        loginForm.addEventListener('submit', async (e) => {
+            console.log("Login form submitted. Preventing default action.");
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
+            }
+        });
+        
+        createAccountBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
+            } catch (error) {
+                openModal('Erro ao Criar Conta', `<p class="text-center text-gray-700">Ocorreu um erro ao criar a conta: ${error.message}</p>`);
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            currentObraId = null; // Reset current obra
+            tabs[0].click(); // Go back to obras tab
+        });
+
+        // Event listeners for main buttons
+        addObraBtn.addEventListener('click', () => openObraForm());
+        addTarefaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openTarefaForm();
+        });
+        addTarefaCronogramaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openTarefaForm();
+        });
+        gerarCronogramaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            renderCronograma();
+        });
+        addDespesaBtn.addEventListener('click', () => {
+            if (!currentObraId) {
+                openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                return;
+            }
+            openDespesaForm();
+        });
+    };
+
+    runApplication();
 </script>
 </body>
 </html>
