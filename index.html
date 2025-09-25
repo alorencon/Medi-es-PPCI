@@ -272,12 +272,13 @@
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                            <!-- Removido botão Adicionar Tarefa -->
+<!-- <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
                                 <span>Adicionar Tarefa</span>
-                            </button>
+                            </button> -->
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -882,12 +883,18 @@
     };
 
     
+
 // --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
 const renderCronograma = async () => {
   if (!currentObraId) return;
   const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
   const snapshot = await getDocs(tarefasRef);
   const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  if (!tarefas.length) {
+    ganttChart.innerHTML = "<p class='text-center text-gray-500'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
+    return;
+  }
 
   const dias = parseInt(cronogramaDias.value) || 30;
   ganttChart.innerHTML = "";
@@ -911,7 +918,7 @@ const renderCronograma = async () => {
   ganttChart.appendChild(headerRow);
 
   ganttTasks = [];
-  tarefas.forEach((tarefa, index) => {
+  tarefas.forEach((tarefa) => {
     const row = document.createElement("div");
     row.className = "gantt-row";
     row.dataset.id = tarefa.id;
@@ -931,7 +938,7 @@ const renderCronograma = async () => {
     ganttChart.appendChild(row);
 
     let startDay = 1;
-    let duration = tarefa.prazo || 5;
+    let duration = tarefa.prazo || 5; // prazo definido pelo usuário
     ganttTasks.push({
       id: tarefa.id,
       name: tarefa.nome,
@@ -944,6 +951,7 @@ const renderCronograma = async () => {
   renderGanttBars();
   renderCurvaS(tarefas);
 };
+
 
 const renderGanttBars = () => {
   document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
