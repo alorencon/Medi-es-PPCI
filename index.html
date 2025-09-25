@@ -993,10 +993,10 @@ const renderCronograma = async () => {
       const taskId = input.dataset.id;
       const task = ganttTasks.find(t => t.id === taskId);
       const startVal = parseInt(document.querySelector(
-        \`.start-input[data-id='\${taskId}']\`
+        `.start-input[data-id='\${taskId}']`
       ).value);
       const durVal = parseInt(document.querySelector(
-        \`.duration-input[data-id='\${taskId}']\`
+        `.duration-input[data-id='\${taskId}']`
       ).value);
       task.start = Math.max(1, Math.min(startVal, dias));
       task.duration = Math.max(1, Math.min(durVal, dias - task.start + 1));
