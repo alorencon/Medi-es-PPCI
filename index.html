@@ -1031,6 +1031,53 @@ const stopDrag = async () => {
   document.removeEventListener("mouseup", stopDrag);
 };
 
+
+const renderCurvaS = (tarefas) => {
+  const ctx = document.getElementById("curva-s-chart").getContext("2d");
+  if (curvaSChart) {
+    curvaSChart.destroy();
+  }
+
+  // Ordenar tarefas pelo início previsto
+  const orderedTasks = tarefas.slice().sort((a, b) => (a.prazo || 0) - (b.prazo || 0));
+
+  let cumulative = 0;
+  const labels = [];
+  const values = [];
+
+  orderedTasks.forEach((t, idx) => {
+    cumulative += t.valorTotal || 0;
+    labels.push(`T${idx + 1}`);
+    values.push(cumulative);
+  });
+
+  curvaSChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Curva S",
+          data: values,
+          borderColor: "#E21B2F",
+          backgroundColor: "rgba(226,27,47,0.3)",
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "Valor Acumulado (R$)" } },
+        x: { title: { display: true, text: "Tarefas" } }
+      }
+    }
+  });
+};
+
+
 // Renderização de Despesas
 
     const renderDespesas = () => {
