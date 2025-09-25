@@ -1061,8 +1061,7 @@ ganttTasks.forEach(task => {
             if (task.duration > 0 && task.valorTotal > 0) {
                 const dailyCost = task.valorTotal / task.duration;
                 for (let i = 0; i < task.duration; i++) {
-                    const dayIndex = task.start + i - 1; // -1 porque o 
-array é 0-indexado
+                    const dayIndex = task.start + i - 1; // -1 porque o array é 0-indexado
                     if (dayIndex < dias) {
                         plannedValuePerDay[dayIndex] += dailyCost;
                     }
