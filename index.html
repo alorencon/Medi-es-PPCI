@@ -906,12 +906,16 @@
 // --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
 const renderCronograma = async () => {
   if (!currentObraId) return;
-  const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+  const tarefasRef = collection(
+    db,
+    `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`
+  );
   const snapshot = await getDocs(tarefasRef);
   const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   if (!tarefas.length) {
-    ganttChart.innerHTML = "<p class='text-center text-gray-500'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
+    ganttChart.innerHTML =
+      "<p class='text-center text-gray-500'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
     return;
   }
 
@@ -942,9 +946,25 @@ const renderCronograma = async () => {
     row.className = "gantt-row";
     row.dataset.id = tarefa.id;
 
+    // Nome da tarefa + inputs de prazo
     const label = document.createElement("div");
     label.className = "gantt-row-label";
-    label.textContent = tarefa.nome;
+    label.innerHTML = `
+      <div class="flex flex-col">
+        <span class="font-semibold">${tarefa.nome}</span>
+        <div class="flex space-x-2 mt-1 text-xs">
+          <label>Início:
+            <input type="number"
+              class="start-input w-16 border rounded p-1 text-black"
+              data-id="${tarefa.id}" value="1" min="1" max="${dias}">
+          </label>
+          <label>Duração:
+            <input type="number"
+              class="duration-input w-16 border rounded p-1 text-black"
+              data-id="${tarefa.id}" value="${tarefa.prazo || 5}" min="1" max="${dias}">
+          </label>
+        </div>
+      </div>`;
     row.appendChild(label);
 
     for (let i = 1; i <= dias; i++) {
@@ -957,13 +977,31 @@ const renderCronograma = async () => {
     ganttChart.appendChild(row);
 
     let startDay = 1;
-    let duration = tarefa.prazo || 5; // prazo definido pelo usuário
+    let duration = tarefa.prazo || 5;
     ganttTasks.push({
       id: tarefa.id,
       name: tarefa.nome,
       start: startDay,
       end: startDay + duration - 1,
       duration: duration
+    });
+  });
+
+  // Atualizar gráfico quando os inputs mudarem
+  document.querySelectorAll(".start-input, .duration-input").forEach(input => {
+    input.addEventListener("change", () => {
+      const taskId = input.dataset.id;
+      const task = ganttTasks.find(t => t.id === taskId);
+      const startVal = parseInt(document.querySelector(
+        \`.start-input[data-id='\${taskId}']\`
+      ).value);
+      const durVal = parseInt(document.querySelector(
+        \`.duration-input[data-id='\${taskId}']\`
+      ).value);
+      task.start = Math.max(1, Math.min(startVal, dias));
+      task.duration = Math.max(1, Math.min(durVal, dias - task.start + 1));
+      task.end = task.start + task.duration - 1;
+      renderGanttBars();
     });
   });
 
