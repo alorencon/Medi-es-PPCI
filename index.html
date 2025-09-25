@@ -9,9 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
-    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.umd.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -19,39 +16,39 @@
             background-size: cover;
             color: #fff;
         }
-       .container {
+        .container {
             max-width: 1200px;
             margin: auto;
             padding: 2rem;
             color: #000;
         }
-       .card {
+        .card {
             background-color: #fff;
             border-radius: 1rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 2rem;
         }
-       .btn {
+        .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 9999px;
             font-weight: 600;
             transition: background-color 0.3s;
         }
-       .btn-primary {
+        .btn-primary {
             background-color: #E21B2F;
             color: #fff;
         }
-       .btn-primary:hover {
+        .btn-primary:hover {
             background-color: #c7172a;
         }
-       .btn-secondary {
+        .btn-secondary {
             background-color: #e9ecef;
             color: #495057;
         }
-       .btn-secondary:hover {
+        .btn-secondary:hover {
             background-color: #dee2e6;
         }
-       .tab-btn {
+        .tab-btn {
             flex-grow: 1;
             padding: 1rem;
             border-radius: 9999px;
@@ -61,7 +58,7 @@
             transition: background-color 0.3s, color 0.3s;
             cursor: pointer;
         }
-       .tab-btn.active {
+        .tab-btn.active {
             background-color: #494C4F;
             color: #fff;
         }
@@ -71,39 +68,54 @@
             color: #000;
         }
 
-       .medicoes-list-item {
+        .medicoes-list-item {
             color: #000;
         }
 
         /* Estilos para a aba de Cronograma */
-       .gantt-container {
+        .gantt-container {
             overflow-x: auto;
             margin-bottom: 2rem;
         }
-        
-        /* Estilos específicos para o Frappe Gantt */
-       .gantt.bar-progress {
-            fill: #4caf50; /* Cor do progresso */
+        .gantt-chart {
+            min-width: 100%;
+            display: grid;
+            grid-template-columns: 200px repeat(30, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
         }
-       .gantt.bar {
-            fill: #E21B2F; /* Cor principal da barra */
-        }
-       .gantt.bar-label {
-            fill: #fff;
+        .gantt-header {
+            background-color: #494C4F;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
             font-weight: bold;
         }
-       .gantt-container svg {
-            display: block; /* Garante que o SVG ocupe o espaço corretamente */
+        .gantt-task {
+            background-color: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            cursor: move;
+        }
+        .gantt-cell {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+        }
+        .gantt-cell.active {
+            background-color: #E21B2F;
+            opacity: 0.6;
         }
 
         /* Estilo para a Curva S */
-       .curva-s-container {
+        .curva-s-container {
             margin-top: 2rem;
             height: 300px;
         }
 
         /* Estilo para a lista de despesas */
-       .despesa-item {
+        .despesa-item {
             border-left: 4px solid #E21B2F;
             padding-left: 1rem;
             margin-bottom: 1rem;
@@ -111,11 +123,76 @@
         }
         
         /* Estilo para formulários de despesas */
-       .despesa-form label {
+        .despesa-form label {
             color: #000;
         }
-       .despesa-form input,.despesa-form select,.despesa-form textarea {
+        .despesa-form input, .despesa-form select, .despesa-form textarea {
             color: #000;
+        }
+
+        /* Novas regras do Gantt */
+        .gantt-task-bar {
+            height: 20px;
+            background-color: #E21B2F;
+            border-radius: 4px;
+            position: absolute;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .gantt-task-handle {
+            width: 6px;
+            height: 100%;
+            position: absolute;
+            cursor: ew-resize;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .gantt-task-handle-left {
+            left: 0;
+        }
+        
+        .gantt-task-handle-right {
+            right: 0;
+        }
+        
+        .gantt-grid {
+            display: grid;
+            grid-template-columns: 200px repeat(30, 1fr);
+            gap: 2px;
+            margin-top: 1rem;
+        }
+        
+        .gantt-day-cell {
+            border: 1px solid #dee2e6;
+            min-height: 40px;
+            position: relative;
+        }
+        
+        .gantt-day-cell.weekend {
+            background-color: #f8f9fa;
+        }
+        
+        .gantt-day-cell.today {
+            background-color: #fff3cd;
+        }
+        
+        .gantt-row {
+            display: contents;
+        }
+        
+        .gantt-row-label {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -173,7 +250,8 @@
                             <span>Nova Obra</span>
                         </button>
                     </div>
-                    <div id="obras-list" class="space-y-4"></div>
+                    <div id="obras-list" class="space-y-4">
+                        </div>
                 </div>
 
                 <div id="tarefas-view" class="tab-content hidden">
@@ -186,26 +264,40 @@
                             <span>Nova Tarefa</span>
                         </button>
                     </div>
-                    <div id="tarefas-list" class="space-y-6"></div>
+                    <div id="tarefas-list" class="space-y-6">
+                        </div>
                 </div>
 
                 <div id="cronograma-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma da Obra</h2>
                         <div class="flex space-x-2">
-                            <select id="gantt-view-mode" class="rounded-md border-gray-300 shadow-sm">
-                                <option value="Day">Dia</option>
-                                <option value="Week">Semana</option>
-                                <option value="Month">Mês</option>
-                            </select>
+                            <button id="add-tarefa-cronograma-btn" class="btn btn-primary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Adicionar Tarefa</span>
+                            </button>
+                            <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Gerar Cronograma</span>
+                            </button>
                         </div>
                     </div>
                     
-                    <div class="gantt-container">
-                        <div id="gantt-chart"></div>
+                    <div class="mb-6">
+                        <label for="cronograma-dias" class="block text-sm font-medium text-gray-700">Duração do Cronograma (dias)</label>
+                        <input type="number" id="cronograma-dias" min="1" value="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     </div>
                     
-                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira Planejada</h3>
+                    <div class="gantt-container">
+                        <div id="gantt-chart" class="gantt-chart">
+                            </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Financeira</h3>
                     <div class="curva-s-container">
                         <canvas id="curva-s-chart"></canvas>
                     </div>
@@ -213,7 +305,8 @@
 
                 <div id="relatorios-view" class="tab-content hidden">
                     <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
-                    <div id="relatorio-content" class="space-y-6"></div>
+                    <div id="relatorio-content" class="space-y-6">
+                        </div>
                 </div>
 
                 <div id="despesas-view" class="tab-content hidden">
@@ -263,10 +356,12 @@
                             </div>
                             <button id="generate-despesa-report-btn" class="btn btn-primary">Gerar Relatório</button>
                         </div>
-                        <div id="despesa-period-report-result" class="mt-6"></div>
+                        <div id="despesa-period-report-result" class="mt-6">
+                            </div>
                     </div>
                     
-                    <div id="despesas-list" class="space-y-4"></div>
+                    <div id="despesas-list" class="space-y-4">
+                        </div>
                 </div>
             </div>
         </div>
@@ -279,7 +374,8 @@
             <h3 id="modal-title" class="text-xl font-bold">Título do Modal</h3>
             <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">&times;</button>
         </div>
-        <div id="modal-body"></div>
+        <div id="modal-body">
+            </div>
     </div>
 </div>
 
@@ -296,6 +392,10 @@
     // Set Firebase log level for debugging
     setLogLevel('Debug');
 
+    // ** PASSO 1: OBTENHA ESTAS INFORMAÇÕES DO SEU PROJETO NO CONSOLE DO FIREBASE **
+    // Entre em "Configurações do projeto" > "Seus apps"
+    // Copie e cole o objeto de configuração aqui.
+    // Exemplo:
     const firebaseConfig = {
       apiKey: "AIzaSyDrTvlOw8Ug2-GvBa2hkqDYKF7avhZ5cFA",
       authDomain: "medicoes-ppci.firebaseapp.com",
@@ -306,11 +406,16 @@
       measurementId: "G-9YW2XQH2HH"
     };
 
+    // ** PASSO 2: OBTENHA A CHAVE DA API DO GEMINI **
+    // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
+    // const API_KEY = "YOUR_GEMINI_API_KEY";
+
     const API_KEY = ''; 
 
-    const __app_id = typeof window.__app_id!== 'undefined'? window.__app_id : firebaseConfig.appId;
-    const __firebase_config = typeof window.__firebase_config!== 'undefined'? JSON.parse(window.__firebase_config) : firebaseConfig;
-    const __initial_auth_token = typeof window.__initial_auth_token!== 'undefined'? window.__initial_auth_token : undefined;
+    // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
+    const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : firebaseConfig.appId;
+    const __firebase_config = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : firebaseConfig;
+    const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
 
     let app;
     let auth;
@@ -320,7 +425,6 @@
 
     let currentObraId = null;
     let curvaSChart = null;
-    let ganttInstance = null; // Variável para armazenar a instância do Frappe Gantt
 
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -329,14 +433,16 @@
     const modalBody = document.getElementById('modal-body');
     const addObraBtn = document.getElementById('add-obra-btn');
     const addTarefaBtn = document.getElementById('add-tarefa-btn');
+    const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn');
+    const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
     const addDespesaBtn = document.getElementById('add-despesa-btn');
     const obrasList = document.getElementById('obras-list');
     const tarefasList = document.getElementById('tarefas-list');
     const relatorioContent = document.getElementById('relatorio-content');
     const despesasList = document.getElementById('despesas-list');
     const userIdDisplay = document.getElementById('userIdDisplay');
-    const ganttChartContainer = document.getElementById('gantt-chart');
-    const ganttViewModeSelect = document.getElementById('gantt-view-mode');
+    const ganttChart = document.getElementById('gantt-chart');
+    const cronogramaDias = document.getElementById('cronograma-dias');
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
     const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
@@ -347,6 +453,15 @@
     const loginForm = document.getElementById('login-form');
     const loginBtn = document.getElementById('login-btn');
     const createAccountBtn = document.getElementById('create-account-btn');
+
+    // New variables for gantt drag-and-drop
+    let ganttTasks = [];
+    let isDragging = false;
+    let currentDragElement = null;
+    let dragStartX = 0;
+    let originalStartDay = 0;
+    let originalEndDay = 0;
+    let dragType = ''; // 'move' ou 'resize-left' ou 'resize-right'
 
     // Utility function to format currency
     const formatCurrency = (value) => {
@@ -391,28 +506,28 @@
             if (tab.dataset.tab === 'tarefas') {
                 if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs.click(); // Go back to obras tab
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderTarefas();
                 }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs.click(); // Go back to obras tab
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderRelatorios();
                 }
             } else if (tab.dataset.tab === 'cronograma') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs.click(); // Go back to obras tab
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderCronograma();
                 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs.click(); // Go back to obras tab
+                    tabs[0].click(); // Go back to obras tab
                 } else {
                     renderDespesas();
                 }
@@ -426,9 +541,7 @@
             app = initializeApp(__firebase_config);
             auth = getAuth(app);
             db = getFirestore(app);
-            audioContext = new (window.AudioContext |
-
-| window.webkitAudioContext)();
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
@@ -443,6 +556,7 @@
                     appView.classList.add('hidden');
                 }
             });
+
         } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
         }
@@ -452,35 +566,17 @@
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        if (!auth) {
-            try {
-                await initFirebase();
-            } catch (err) {
-                console.error("Erro ao inicializar Firebase:", err);
-                openModal('Erro', '<p class="text-center text-gray-700">Não foi possível inicializar o Firebase. Verifique a configuração.</p>');
-                return;
-            }
-        }
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
             openModal('Erro de Login', `<p class="text-center text-gray-700">Ocorreu um erro ao fazer login: ${error.message}</p>`);
         }
     });
-
+    
     createAccountBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        if (!auth) {
-            try {
-                await initFirebase();
-            } catch (err) {
-                console.error("Erro ao inicializar Firebase:", err);
-                openModal('Erro', '<p class="text-center text-gray-700">Não foi possível inicializar o Firebase. Verifique a configuração.</p>');
-                return;
-            }
-        }
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             openModal('Sucesso', '<p class="text-center text-green-600">Conta criada com sucesso! Você foi logado automaticamente.</p>');
@@ -492,18 +588,18 @@
     logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
         currentObraId = null; // Reset current obra
-        tabs.click(); // Go back to obras tab
+        tabs[0].click(); // Go back to obras tab
     });
 
     // Firestore CRUD Operations
     const listenToObras = () => {
-        if (!db ||!userId) {
+        if (!db || !userId) {
             console.error("Firestore ou UserID não inicializados. Tente novamente.");
             return;
         }
         const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
         onSnapshot(obrasRef, (snapshot) => {
-            const obras = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+            const obras = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderObras(obras);
         });
     };
@@ -519,7 +615,8 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
             await updateDoc(docRef, obra);
         } else {
-            const { id,...newObraData } = obra;
+            // Remove o campo 'id' para evitar o erro "Unsupported field value: undefined (found in field id)"
+            const { id, ...newObraData } = obra;
             await addDoc(obrasRef, newObraData);
         }
         closeModal();
@@ -537,7 +634,7 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefa.id);
             await updateDoc(docRef, tarefa);
         } else {
-            const { id,...newTarefaData } = tarefa;
+            const { id, ...newTarefaData } = tarefa;
             await addDoc(tarefasRef, newTarefaData);
         }
         closeModal();
@@ -554,7 +651,7 @@
         const tarefaDoc = await getDoc(tarefaDocRef);
         const tarefa = tarefaDoc.data();
         if (!tarefa.medicoes) {
-            tarefa.medicoes =;
+            tarefa.medicoes = [];
         }
         tarefa.medicoes.push(medicao);
         await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
@@ -579,10 +676,25 @@
         if (tarefa.medicoes && tarefa.medicoes[medicaoIndex]) {
             tarefa.medicoes.splice(medicaoIndex, 1);
             await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
+            // Re-render the list to show the change
             openMedicoesList(tarefaId, tarefa.medicoes);
         }
     };
     
+    // CRUD para Cronograma
+    const addOrUpdateCronograma = async (cronogramaData) => {
+        if (!currentObraId) return;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        await setDoc(cronogramaRef, cronogramaData, { merge: true });
+    };
+
+    const getCronograma = async () => {
+        if (!currentObraId) return null;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        const cronogramaDoc = await getDoc(cronogramaRef);
+        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
+    };
+
     // CRUD para Despesas
     const addOrUpdateDespesa = async (despesa) => {
         if (!currentObraId) return;
@@ -591,7 +703,7 @@
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`, despesa.id);
             await updateDoc(docRef, despesa);
         } else {
-            const { id,...newDespesaData } = despesa;
+            const { id, ...newDespesaData } = despesa;
             await addDoc(despesasRef, newDespesaData);
         }
         closeModal();
@@ -633,18 +745,15 @@
                     </div>
                 </div>
                 <div class="mt-4">
-                    <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal |
-
-| 0)}</span></p>
+                    <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
                 </div>
             `;
             obraCard.addEventListener('click', () => {
                 currentObraId = obra.id;
-                tabs.click(); // Switch to Tarefas tab
+                tabs[1].click(); // Switch to Tarefas tab
             });
             obrasList.appendChild(obraCard);
         });
-
         document.querySelectorAll('.edit-obra-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -653,7 +762,6 @@
                 openObraForm(obra);
             });
         });
-
         document.querySelectorAll('.delete-obra-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -680,17 +788,13 @@
         onSnapshot(tarefasRef, (snapshot) => {
             tarefasList.innerHTML = '';
             let totalMedido = 0;
-            const tarefas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             tarefas.forEach(tarefa => {
-                const valorMedido = (tarefa.medicoes ||).reduce((sum, medicao) => sum + (medicao.valor |
-
-| 0), 0);
+                const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
                 const porcentagemConcluida = calculatePercentage(valorMedido, tarefa.valorTotal);
-                const metragemConcluida = (tarefa.medicoes ||).reduce((sum, medicao) => sum + (medicao.metragem |
-
-| 0), 0);
-                const valorUnitario = tarefa.metragemTotal > 0? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
+                const metragemConcluida = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.metragem || 0), 0);
+                const valorUnitario = tarefa.metragemTotal > 0 ? (tarefa.valorTotal / tarefa.metragemTotal) : 0;
 
                 totalMedido += valorMedido;
 
@@ -739,15 +843,13 @@
                     openMedicaoForm(tarefa);
                 });
             });
-
             document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     const tarefa = tarefas.find(t => t.id === tarefaId);
-                    openMedicoesList(tarefa.id, tarefa.medicoes ||);
+                    openMedicoesList(tarefa.id, tarefa.medicoes || []);
                 });
             });
-
             document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -755,7 +857,6 @@
                     openTarefaForm(tarefa);
                 });
             });
-
             document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
@@ -773,188 +874,171 @@
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
                 });
             });
+
             // Update valor total da obra
             const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
             updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
 
-    // --- RENDER CRONOGRAMA COM FRAPPE GANTT ---
-    const renderCronograma = async () => {
-        if (!currentObraId) return;
-
-        // Limpa o contêiner antes de renderizar para evitar duplicatas
-        ganttChartContainer.innerHTML = '';
-        
-        // Adiciona o elemento SVG que o Frappe Gantt precisa para renderizar
-        const svgContainer = document.createElement('div');
-        svgContainer.innerHTML = '<svg id="gantt-svg-target"></svg>';
-        ganttChartContainer.appendChild(svgContainer);
-
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefasData = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
-
-        if (tarefasData.length === 0) {
-            ganttChartContainer.innerHTML = "<p class='text-center text-gray-500'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas' para criar o cronograma.</p>";
-            renderCurvaS(); // Limpa a curva S se não houver tarefas
-            return;
-        }
-
-        // Mapeia os dados do Firestore para o formato que o Frappe Gantt espera
-        const ganttTasks = tarefasData.map(tarefa => {
-            const valorMedido = (tarefa.medicoes ||).reduce((sum, medicao) => sum + (medicao.valor |
-
-| 0), 0);
-            const progress = Math.round(calculatePercentage(valorMedido, tarefa.valorTotal));
-            
-            // Define datas padrão se não existirem, para que a tarefa possa ser visualizada e agendada
-            const today = new Date();
-            const startDate = tarefa.start? new Date(tarefa.start) : today;
-            const endDate = tarefa.end? new Date(tarefa.end) : new Date(today.setDate(today.getDate() + 1));
-
-            return {
-                id: tarefa.id,
-                name: tarefa.nome,
-                start: `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`,
-                end: `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`,
-                progress: progress,
-                dependencies: '' // Funcionalidade de dependências pode ser adicionada aqui no futuro
-            };
-        });
-
-        // Instancia o Frappe Gantt
-        ganttInstance = new Gantt('#gantt-svg-target', ganttTasks, {
-            // Evento disparado quando o usuário arrasta ou redimensiona uma tarefa
-            on_date_change: async (task, start, end) => {
-                console.log(`Tarefa ${task.id} movida para ${start} - ${end}`);
-                const tarefaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, task.id);
-                
-                // Formata as datas para o padrão ISO para salvar no Firestore
-                const startISO = new Date(start).toISOString().split('T');
-                const endISO = new Date(end).toISOString().split('T');
-
-                await updateDoc(tarefaRef, {
-                    start: startISO,
-                    end: endISO
-                });
-                
-                // Re-renderiza a Curva S para refletir a mudança no cronograma
-                await renderCurvaS();
-            },
-            // Evento disparado ao clicar em uma tarefa
-            on_click: (task) => {
-                console.log(`Clicou na tarefa: ${task.name}`);
-            },
-            language: 'ptBr' // Define o idioma para português
-        });
-
-        // Renderiza a Curva S com base nos dados iniciais do cronograma
-        await renderCurvaS();
-    };
     
-    // Atualiza o modo de visualização do Gantt
-    ganttViewModeSelect.addEventListener('change', (e) => {
-        if (ganttInstance) {
-            ganttInstance.change_view_mode(e.target.value);
-        }
+// --- RENDER CRONOGRAMA INTERATIVO (GANTT + DRAG & DROP) ---
+const renderCronograma = async () => {
+  if (!currentObraId) return;
+  const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+  const snapshot = await getDocs(tarefasRef);
+  const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  const dias = parseInt(cronogramaDias.value) || 30;
+  ganttChart.innerHTML = "";
+
+  // Cabeçalho
+  const headerRow = document.createElement("div");
+  headerRow.className = "gantt-row";
+  const emptyHeader = document.createElement("div");
+  emptyHeader.className = "gantt-row-label";
+  headerRow.appendChild(emptyHeader);
+
+  const today = new Date();
+  for (let i = 0; i < dias; i++) {
+    const date = new Date();
+    date.setDate(today.getDate() + i);
+    const dayHeader = document.createElement("div");
+    dayHeader.className = "gantt-day-cell gantt-header";
+    dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
+    headerRow.appendChild(dayHeader);
+  }
+  ganttChart.appendChild(headerRow);
+
+  ganttTasks = [];
+  tarefas.forEach((tarefa, index) => {
+    const row = document.createElement("div");
+    row.className = "gantt-row";
+    row.dataset.id = tarefa.id;
+
+    const label = document.createElement("div");
+    label.className = "gantt-row-label";
+    label.textContent = tarefa.nome;
+    row.appendChild(label);
+
+    for (let i = 1; i <= dias; i++) {
+      const cell = document.createElement("div");
+      cell.className = "gantt-day-cell";
+      cell.dataset.day = i;
+      cell.dataset.taskId = tarefa.id;
+      row.appendChild(cell);
+    }
+    ganttChart.appendChild(row);
+
+    let startDay = 1;
+    let duration = tarefa.prazo || 5;
+    ganttTasks.push({
+      id: tarefa.id,
+      name: tarefa.nome,
+      start: startDay,
+      end: startDay + duration - 1,
+      duration: duration
     });
+  });
 
-    // --- RENDER CURVA S DINÂMICA ---
-    const renderCurvaS = async () => {
-        if (!currentObraId) return;
+  renderGanttBars();
+  renderCurvaS(tarefas);
+};
 
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        
-        // Filtra apenas tarefas que já foram agendadas (têm data de início)
-        let tarefas = snapshot.docs
-           .map(doc => ({ id: doc.id,...doc.data() }))
-           .filter(t => t.start);
+const renderGanttBars = () => {
+  document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
+  const firstCell = document.querySelector(".gantt-day-cell");
+  if (!firstCell) return;
+  const cellWidth = firstCell.offsetWidth;
 
-        const ctx = document.getElementById("curva-s-chart").getContext("2d");
-        if (curvaSChart) {
-            curvaSChart.destroy();
-        }
+  ganttTasks.forEach(task => {
+    const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
+    if (!row) return;
+    const rowCells = row.querySelectorAll(".gantt-day-cell");
+    const rowTop = rowCells[0].offsetTop;
+    const barLeft = (task.start - 1) * cellWidth;
+    const barWidth = task.duration * cellWidth;
 
-        if (tarefas.length === 0) {
-            // Se não houver tarefas agendadas, mostra um gráfico vazio
-            curvaSChart = new Chart(ctx, { type: "line", data: { labels:, datasets: } });
-            return;
-        }
+    const bar = document.createElement("div");
+    bar.className = "gantt-task-bar";
+    bar.dataset.taskId = task.id;
+    bar.style.top = rowTop + "px";
+    bar.style.left = barLeft + "px";
+    bar.style.width = barWidth + "px";
+    bar.innerHTML = `
+      <div class="gantt-task-handle gantt-task-handle-left"></div>
+      <div class="gantt-task-handle gantt-task-handle-right"></div>
+      <span>${task.name}</span>
+    `;
+    ganttChart.appendChild(bar);
+    bar.addEventListener("mousedown", startDrag);
+  });
+};
 
-        // Ordena as tarefas pela data de início para construir a curva corretamente
-        tarefas.sort((a, b) => new Date(a.start) - new Date(b.start));
+const startDrag = (e) => {
+  e.preventDefault();
+  isDragging = true;
+  currentDragElement = e.target.closest(".gantt-task-bar");
+  dragStartX = e.clientX;
+  const taskId = currentDragElement.dataset.taskId;
+  const task = ganttTasks.find(t => t.id === taskId);
+  originalStartDay = task.start;
+  originalEndDay = task.end;
+  dragType = e.target.classList.contains("gantt-task-handle-left")
+    ? "resize-left"
+    : e.target.classList.contains("gantt-task-handle-right")
+    ? "resize-right"
+    : "move";
+  document.addEventListener("mousemove", handleDrag);
+  document.addEventListener("mouseup", stopDrag);
+};
 
-        let cumulativeValue = 0;
-        const labels =;
-        const values =;
+const handleDrag = (e) => {
+  if (!isDragging || !currentDragElement) return;
+  const firstCell = document.querySelector(".gantt-day-cell");
+  if (!firstCell) return;
+  const cellWidth = firstCell.offsetWidth;
+  const deltaX = e.clientX - dragStartX;
+  const deltaDays = Math.round(deltaX / cellWidth);
+  const taskId = currentDragElement.dataset.taskId;
+  const task = ganttTasks.find(t => t.id === taskId);
 
-        // Adiciona um ponto inicial (marco zero)
-        labels.push('Início');
-        values.push(0);
+  if (dragType === "move") {
+    const newStart = Math.max(1, originalStartDay + deltaDays);
+    task.start = newStart;
+    task.end = newStart + task.duration - 1;
+  } else if (dragType === "resize-left") {
+    const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, task.end - 1));
+    task.start = newStart;
+    task.duration = task.end - newStart + 1;
+  } else if (dragType === "resize-right") {
+    const newEnd = Math.max(task.start, originalEndDay + deltaDays);
+    task.end = newEnd;
+    task.duration = newEnd - task.start + 1;
+  }
+  renderGanttBars();
+};
 
-        tarefas.forEach(t => {
-            cumulativeValue += t.valorTotal |
+const stopDrag = async () => {
+  if (!isDragging) return;
+  isDragging = false;
+  const cronogramaData = {};
+  ganttTasks.forEach(t => {
+    cronogramaData[t.id] = { start: t.start, end: t.end };
+  });
+  await addOrUpdateCronograma(cronogramaData);
+  document.removeEventListener("mousemove", handleDrag);
+  document.removeEventListener("mouseup", stopDrag);
+};
 
-| 0;
-            labels.push(t.nome);
-            values.push(cumulativeValue);
-        });
+// Renderização de Despesas
 
-        curvaSChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels,
-                datasets:
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: true },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label |
-
-| '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y!== null) {
-                                    label += formatCurrency(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        title: { display: true, text: "Valor Acumulado (R$)" },
-                        ticks: {
-                            callback: function(value) {
-                                return formatCurrency(value);
-                            }
-                        }
-                    },
-                    x: { 
-                        title: { display: true, text: "Etapas do Projeto (em ordem de execução)" } 
-                    }
-                }
-            }
-        });
-    };
-
-    // Renderização de Despesas
     const renderDespesas = () => {
         if (!currentObraId) return;
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         onSnapshot(despesasRef, (snapshot) => {
             despesasList.innerHTML = '';
-            const despesas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+            const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
             let total = 0;
             let maiorDespesa = 0;
@@ -977,10 +1061,14 @@
                             <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
                             <div class="flex space-x-2 mt-2">
                                 <button class="edit-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                    </svg>
                                 </button>
                                 <button class="delete-despesa-btn text-gray-500 hover:text-gray-700" data-id="${despesa.id}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -988,12 +1076,16 @@
                 `;
                 despesasList.appendChild(despesaItem);
             });
-
+            
+            // Atualizar totais
             document.getElementById('total-despesas').textContent = formatCurrency(total);
             document.getElementById('maior-despesa').textContent = formatCurrency(maiorDespesa);
+            
+            // Calcular média por dia (considerando últimos 30 dias)
             const media = total / 30;
             document.getElementById('media-despesas').textContent = formatCurrency(media);
             
+            // Adicionar event listeners para editar e excluir
             document.querySelectorAll('.edit-despesa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const despesaId = e.currentTarget.dataset.id;
@@ -1001,7 +1093,6 @@
                     openDespesaForm(despesa);
                 });
             });
-
             document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const despesaId = e.currentTarget.dataset.id;
@@ -1019,7 +1110,8 @@
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
                 });
             });
-
+            
+            // Se não houver despesas, mostrar mensagem
             if (despesas.length === 0) {
                 despesasList.innerHTML = '<p class="text-center text-gray-500">Nenhuma despesa registrada.</p>';
             }
@@ -1038,15 +1130,11 @@
 
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         let totalTarefas = tarefas.length;
-        let totalConcluidas = tarefas.filter(t => (t.medicoes ||).reduce((sum, m) => sum + (m.valor |
-
-| 0), 0) >= t.valorTotal).length;
-        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes ||).reduce((sum, m) => sum + (m.valor |
-
-| 0), 0), 0);
+        let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
+        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
         let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
 
         relatorioContent.innerHTML = `
@@ -1068,7 +1156,9 @@
                     <p class="text-sm text-gray-500">média das tarefas</p>
                 </div>
             </div>
+
             <hr class="my-8">
+
             <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
                 Relatório por Período
                 <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
@@ -1085,7 +1175,8 @@
                     </div>
                     <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
                 </div>
-                <div id="period-report-result" class="mt-6"></div>
+                <div id="period-report-result" class="mt-6">
+                    </div>
             </div>
         `;
         const generateBtn = document.getElementById('generate-period-report-btn');
@@ -1100,6 +1191,7 @@
         });
     };
 
+    // Função para converter ArrayBuffer para Blob
     const pcmToWav = (pcm16, sampleRate) => {
         const pcmData = pcm16.buffer;
         const numChannels = 1;
@@ -1110,9 +1202,12 @@
         const fileSize = wavDataSize + 44;
         const buffer = new ArrayBuffer(fileSize);
         const view = new DataView(buffer);
+        // RIFF chunk
         writeString(view, 0, 'RIFF');
         view.setUint32(4, fileSize - 8, true);
         writeString(view, 8, 'WAVE');
+
+        // fmt chunk
         writeString(view, 12, 'fmt ');
         view.setUint32(16, 16, true);
         view.setUint16(20, 1, true);
@@ -1121,12 +1216,15 @@
         view.setUint32(28, byteRate, true);
         view.setUint16(32, blockAlign, true);
         view.setUint16(34, bitsPerSample, true);
+        // data chunk
         writeString(view, 36, 'data');
         view.setUint32(40, wavDataSize, true);
+        // PCM data
         const pcmView = new Int16Array(pcmData);
         for (let i = 0; i < pcmView.length; i++) {
             view.setInt16(44 + i * 2, pcmView[i], true);
         }
+
         return new Blob([view], { type: 'audio/wav' });
     };
 
@@ -1136,6 +1234,7 @@
         }
     };
 
+    // Function to convert Base64 to ArrayBuffer
     const base64ToArrayBuffer = (base64) => {
         const binaryString = window.atob(base64);
         const len = binaryString.length;
@@ -1146,15 +1245,12 @@
         return bytes.buffer;
     };
 
+    // Speak text with TTS API
     const speakText = async (text) => {
-        if (!API_KEY) {
-            openModal('Atenção', 'A chave da API do Gemini não foi configurada. A funcionalidade de áudio está desativada.');
-            return;
-        }
         const payload = {
             contents: [{ parts: [{ text: text }] }],
             generationConfig: {
-                responseModalities:,
+                responseModalities: ["AUDIO"],
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: { voiceName: "Iapetus" }
@@ -1172,18 +1268,20 @@
                 console.error('API call failed:', response.status, response.statusText);
                 return;
             }
+
             const result = await response.json();
-            const part = result?.candidates?.?.content?.parts?.;
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
             const audioData = part?.inlineData?.data;
             const mimeType = part?.inlineData?.mimeType;
             if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/), 10);
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
                 const pcmData = base64ToArrayBuffer(audioData);
                 const pcm16 = new Int16Array(pcmData);
                 const wavBlob = pcmToWav(pcm16, sampleRate);
                 const audioUrl = URL.createObjectURL(wavBlob);
                 const audio = new Audio(audioUrl);
                 audio.play();
+
             } else {
                 console.error('Invalid audio data received');
             }
@@ -1196,38 +1294,37 @@
         const reportResultDiv = document.getElementById('period-report-result');
         reportResultDiv.innerHTML = '';
 
-        if (!startDate ||!endDate) {
+        if (!startDate || !endDate) {
             reportResultDiv.innerHTML = '<p class="text-red-500">Por favor, selecione as duas datas para gerar o relatório.</p>';
             return;
         }
 
         const start = new Date(startDate);
         const end = new Date(endDate);
-        end.setDate(end.getDate() + 1);
+        end.setDate(end.getDate() + 1); // Garante que o dia final seja incluído
 
         let totalPeriodo = 0;
         let relatorioHtml = '';
         let hasData = false;
-        const reportData =;
-        const taskTotals = {};
 
+        const reportData = [];
+        const taskTotals = {};
         tarefas.forEach(tarefa => {
-            const medicoesPeriodo = (tarefa.medicoes ||).filter(medicao => {
+            const medicoesPeriodo = (tarefa.medicoes || []).filter(medicao => {
                 const medicaoDate = new Date(medicao.data);
                 return medicaoDate >= start && medicaoDate < end;
             });
 
             if (medicoesPeriodo.length > 0) {
                 hasData = true;
-                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor |
-
-| 0), 0);
+                const valorPeriodoTarefa = medicoesPeriodo.reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
                 totalPeriodo += valorPeriodoTarefa;
                 
                 if (!taskTotals[tarefa.nome]) {
                     taskTotals[tarefa.nome] = 0;
                 }
                 taskTotals[tarefa.nome] += valorPeriodoTarefa;
+
 
                 relatorioHtml += `
                     <div class="card p-4 mb-4">
@@ -1242,9 +1339,7 @@
                                     'Unidade': tarefa.unidade,
                                     'Valor': m.valor,
                                     'Data': new Date(m.data).toLocaleDateString(),
-                                    'Observacoes': m.observacoes |
-
-| ''
+                                    'Observacoes': m.observacoes || ''
                                 });
                                 return `<li>${medicaoInfo}</li>`;
                             }).join('')}
@@ -1288,31 +1383,70 @@
         
         doc.setFontSize(18);
         doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
+
         doc.setFontSize(12);
         doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
         doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
-
-        const columns =;
-        const rows = data.map(item =>);
-        doc.autoTable({ head: [columns], body: rows, startY: 45 });
-
-        const taskTotalColumns =;
-        const taskTotalRows = Object.keys(taskTotals).map(taskName =>)
+        // First table: detailed report
+        const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
+        const rows = data.map(item => [
+            item.Tarefa,
+            item.Metragem.toFixed(2),
+            item.Unidade,
+            item.Valor.toFixed(2),
+            item.Data,
+            item.Observacoes
         ]);
         doc.autoTable({
-            head:, body: taskTotalRows, startY: doc.autoTable.previous.finalY + 10,
-            theme: 'striped', headStyles: { fillColor:  }
+            head: [columns],
+            body: rows,
+            startY: 45
+        });
+        // Second table: task totals
+        const taskTotalColumns = ["Tarefa", "Total a Receber"];
+        const taskTotalRows = Object.keys(taskTotals).map(taskName => [
+            taskName,
+            formatCurrency(taskTotals[taskName])
+        ]);
+        doc.autoTable({
+            head: [taskTotalColumns],
+            body: taskTotalRows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor: [52, 58, 64] },
+            bodyStyles: { textColor: [33, 37, 41] },
         });
         doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
     };
 
     const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
-        const detailedData =, [`Obra: ${nomeObra}`],
-           ,
-           ,,,
-           .concat(data.map(item =>));
-
-        const taskTotalData =,,,.concat(Object.keys(taskTotals).map(taskName =>));
+        // Prepare detailed data
+        const detailedData = [
+            ["Relatório de Medições"],
+            [`Obra: ${nomeObra}`],
+            [`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`],
+            [`Total a Receber: ${formatCurrency(total)}`],
+            [],
+            ["Relatório Detalhado"],
+            ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"]
+        ].concat(data.map(item => [
+            item.Tarefa,
+            item.Metragem,
+            item.Unidade,
+            item.Valor,
+            item.Data,
+            item.Observacoes
+        ]));
+        // Prepare task totals data
+        const taskTotalData = [
+            [],
+            [],
+            ["Totais por Tarefa"],
+            ["Tarefa", "Total a Receber"]
+        ].concat(Object.keys(taskTotals).map(taskName => [
+            taskName,
+            taskTotals[taskName]
+        ]));
 
         const worksheet = XLSX.utils.aoa_to_sheet(detailedData.concat(taskTotalData));
         const workbook = XLSX.utils.book_new();
@@ -1326,26 +1460,20 @@
             <form id="obra-form" class="space-y-4">
                 <div>
                     <label for="obra-nome" class="block text-sm font-medium text-gray-700">Nome da Obra</label>
-                    <input type="text" id="obra-nome" name="nome" value="${obra.nome |
-
-| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="obra-nome" name="nome" value="${obra.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
                 <div>
                     <label for="obra-localizacao" class="block text-sm font-medium text-gray-700">Localização</label>
-                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao |
-
-| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="obra-localizacao" name="localizacao" value="${obra.localizacao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
                 <div>
                     <label for="obra-valor" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
-                    <input type="number" id="obra-valor" name="valorTotal" value="${obra.valorTotal |
-
-| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" id="obra-valor" name="valorTotal" value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${obra.id? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${obra.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(obra.id? 'Editar Obra' : 'Nova Obra', formHtml);
+        openModal(obra.id ? 'Editar Obra' : 'Nova Obra', formHtml);
         document.getElementById('obra-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -1353,11 +1481,9 @@
                 nome: formData.get('nome'),
                 localizacao: formData.get('localizacao'),
                 valorTotal: parseFloat(formData.get('valorTotal')),
-                valorMedido: obra.valorMedido |
-
-| 0
+                valorMedido: obra.valorMedido || 0
             };
-            addOrUpdateObra({...newObra, id: obra.id });
+            addOrUpdateObra({ ...newObra, id: obra.id });
         });
     };
     
@@ -1366,45 +1492,35 @@
             <form id="tarefa-form" class="space-y-4">
                 <div>
                     <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
-                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome |
-
-| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
-                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal |
-
-| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-unidade" class="block text-sm font-medium text-gray-700">Unidade (m, un, etc.)</label>
-                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade |
-
-| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="tarefa-unidade" name="unidade" value="${tarefa.unidade || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
-                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal |
-
-| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="tarefa-valor-total" name="valorTotal" value="${tarefa.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao |
-
-| ''}</textarea>
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
                     <button type="button" id="gerar-descricao-btn" class="btn btn-secondary mt-2">Gerar Descrição ✨</button>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${tarefa.id? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(tarefa.id? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
+        openModal(tarefa.id ? 'Editar Tarefa' : 'Nova Tarefa', formHtml);
         document.getElementById('tarefa-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const metragemTotal = parseFloat(formData.get('metragemTotal'));
             const valorTotal = parseFloat(formData.get('valorTotal'));
-            const valorUnitario = metragemTotal > 0? (valorTotal / metragemTotal) : 0;
+            const valorUnitario = metragemTotal > 0 ? (valorTotal / metragemTotal) : 0;
             const newTarefa = {
                 nome: formData.get('nome'),
                 metragemTotal: metragemTotal,
@@ -1412,9 +1528,9 @@
                 valorUnitario: valorUnitario,
                 valorTotal: valorTotal,
                 descricao: formData.get('descricao'),
-                medicoes: tarefa.medicoes ||
+                medicoes: tarefa.medicoes || []
             };
-            addOrUpdateTarefa({...newTarefa, id: tarefa.id });
+            addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
         });
         document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
             const nome = document.getElementById('tarefa-nome').value;
@@ -1427,47 +1543,40 @@
         });
     };
 
+    // Formulário para Despesas
     const openDespesaForm = (despesa = {}) => {
         const formHtml = `
             <form id="despesa-form" class="space-y-4">
                 <div>
                     <label for="despesa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao |
-
-| ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-valor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor |
-
-| 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-data" class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="despesa-data" name="data" value="${despesa.data |
-
-| new Date().toISOString().split('T')}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
                 <div>
                     <label for="despesa-categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
                     <select id="despesa-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                        <option value="Gasolina" ${despesa.categoria === 'Gasolina'? 'selected' : ''}>Gasolina</option>
-                        <option value="Alimentação" ${despesa.categoria === 'Alimentação'? 'selected' : ''}>Alimentação</option>
-                        <option value="Hospedagem" ${despesa.categoria === 'Hospedagem'? 'selected' : ''}>Hospedagem</option>
-                        <option value="Materiais" ${despesa.categoria === 'Materiais'? 'selected' : ''}>Materiais</option>
-                        <option value="Outros" ${despesa.categoria === 'Outros'? 'selected' : ''}>Outros</option>
+                        <option value="Gasolina" ${despesa.categoria === 'Gasolina' ? 'selected' : ''}>Gasolina</option>
+                        <option value="Alimentação" ${despesa.categoria === 'Alimentação' ? 'selected' : ''}>Alimentação</option>
+                        <option value="Hospedagem" ${despesa.categoria === 'Hospedagem' ? 'selected' : ''}>Hospedagem</option>
+                        <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
+                        <option value="Outros" ${despesa.categoria === 'Outros' ? 'selected' : ''}>Outros</option>
                     </select>
                 </div>
                 <div>
                     <label for="despesa-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes |
-
-| ''}</textarea>
+                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes || ''}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary w-full">${despesa.id? 'Atualizar' : 'Salvar'}</button>
+                <button type="submit" class="btn btn-primary w-full">${despesa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-        openModal(despesa.id? 'Editar Despesa' : 'Nova Despesa', formHtml);
+        openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
         document.getElementById('despesa-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -1478,22 +1587,21 @@
                 categoria: formData.get('categoria'),
                 observacoes: formData.get('observacoes')
             };
-            addOrUpdateDespesa({...newDespesa, id: despesa.id });
+            addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
         });
     };
 
+    // LLM - Gerador de Descrição de Tarefa
     const generateTaskDescription = async (nome, unidade) => {
-        if (!API_KEY) {
-            openModal('Atenção', 'A chave da API do Gemini não foi configurada. A funcionalidade de geração de texto está desativada.');
-            return;
-        }
         const descricaoTextarea = document.getElementById('tarefa-descricao');
         const generateBtn = document.getElementById('gerar-descricao-btn');
         const originalBtnText = generateBtn.textContent;
         generateBtn.disabled = true;
         generateBtn.textContent = 'Gerando...';
         const prompt = `Gere uma descrição concisa e profissional para uma tarefa de engenharia de combate a incêndio. O nome da tarefa é "${nome}" e a unidade de medição é "${unidade}". A descrição deve ser focada em detalhes técnicos relevantes para a medição da obra, como "Instalação da tubulação principal de 4 polegadas. A medição será por metro linear (m)."`;
-        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+        };
         try {
             const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
                 method: 'POST',
@@ -1501,9 +1609,7 @@
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
-            const description = result?.candidates?.?.content?.parts?.?.text |
-
-| '';
+            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
             descricaoTextarea.value = description.trim();
         } catch (error) {
             console.error("Erro ao gerar descrição:", error);
@@ -1534,7 +1640,10 @@
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
+            
+            // Calculate valor automatically based on valorUnitario
             const valor = tarefa.valorUnitario * metragem;
+
             const newMedicao = {
                 metragem: metragem,
                 valor: valor,
@@ -1554,22 +1663,26 @@
                         <div class="mb-2 md:mb-0">
                             <p><strong>Metragem:</strong> ${medicao.metragem.toFixed(2)}</p>
                             <p><strong>Valor:</strong> ${formatCurrency(medicao.valor)}</p>
-                            <p><strong>Observações:</strong> ${medicao.observacoes |
-
-| 'N/A'}</p>
+                            <p><strong>Observações:</strong> ${medicao.observacoes || 'N/A'}</p>
                             <p class="text-xs text-gray-500">${new Date(medicao.data).toLocaleDateString()}</p>
                         </div>
                         <div class="flex space-x-2">
-                            <button class="edit-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path></svg></button>
-                            <button class="delete-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                            <button class="edit-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
+                                </svg>
+                            </button>
+                            <button class="delete-medicao-btn text-gray-500 hover:text-gray-700" data-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
                     </li>
                 `).join('')}
             </ul>
         `;
-        openModal('Medições Anteriores', listHtml |
-
-| '<p>Nenhuma medição registrada.</p>');
+        openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.</p>');
 
         document.querySelectorAll('.edit-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1578,7 +1691,6 @@
                 openEditMedicaoForm(tarefaId, medicaoIndex, medicao);
             });
         });
-
         document.querySelectorAll('.delete-medicao-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const medicaoIndex = e.currentTarget.dataset.index;
@@ -1607,9 +1719,7 @@
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes |
-
-| ''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
@@ -1624,6 +1734,7 @@
             const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
             const tarefaDoc = await getDoc(tarefaDocRef);
             const tarefa = tarefaDoc.data();
+            
             const valor = tarefa.valorUnitario * metragem;
             
             const updatedMedicao = {
@@ -1634,23 +1745,33 @@
             };
             
             await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
+            
             closeModal();
         });
     }
 
+    // Adicionar event listener para o botão de relatório de despesas
     document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
         const relatorioContainer = document.getElementById('relatorio-despesas-container');
-        relatorioContainer.classList.toggle('hidden');
+        const isVisible = !relatorioContainer.classList.contains('hidden');
+        
+        if (isVisible) {
+            relatorioContainer.classList.add('hidden');
+        } else {
+            relatorioContainer.classList.remove('hidden');
+        }
     });
 
+    // Função para gerar relatório de despesas por período
     document.getElementById('generate-despesa-report-btn').addEventListener('click', async () => {
         const startDate = document.getElementById('despesa-start-date').value;
         const endDate = document.getElementById('despesa-end-date').value;
         
-        if (!startDate ||!endDate) {
+        if (!startDate || !endDate) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione ambas as datas.</p>');
             return;
         }
+        
         await renderDespesaReportPorPeriodo(startDate, endDate);
     });
 
@@ -1658,15 +1779,17 @@
         const reportResultDiv = document.getElementById('despesa-period-report-result');
         reportResultDiv.innerHTML = '<p class="text-center text-gray-500">Carregando...</p>';
         
+        // Buscar despesas do período
         const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
         const snapshot = await getDocs(despesasRef);
-        let despesas = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
-
+        let despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Filtrar por período
         despesas = despesas.filter(despesa => {
             const despesaDate = new Date(despesa.data);
             const start = new Date(startDate);
             const end = new Date(endDate);
-            end.setDate(end.getDate() + 1);
+            end.setDate(end.getDate() + 1); // Para incluir o dia final
+            
             return despesaDate >= start && despesaDate < end;
         });
 
@@ -1676,6 +1799,7 @@
         }
         
         let totalPeriodo = despesas.reduce((sum, d) => sum + d.valor, 0);
+        // Agrupar por categoria
         const porCategoria = {};
         despesas.forEach(despesa => {
             if (!porCategoria[despesa.categoria]) {
@@ -1720,12 +1844,13 @@
                             <p class="text-red-600 font-bold">${formatCurrency(despesa.valor)}</p>
                         </div>
                     </div>
-                    ${despesa.observacoes? `<p class="text-sm text-gray-600 mt-2">${despesa.observacoes}</p>` : ''}
+                    ${despesa.observacoes ? `<p class="text-sm text-gray-600 mt-2">${despesa.observacoes}</p>` : ''}
                 </div>
             `;
         });
         reportResultDiv.innerHTML = relatorioHtml;
         
+        // Adicionar event listeners para os botões de exportação
         document.getElementById('export-despesa-pdf-btn').addEventListener('click', () => {
             exportDespesaPDF(despesas, porCategoria, startDate, endDate, totalPeriodo);
         });
@@ -1740,35 +1865,63 @@
         
         doc.setFontSize(18);
         doc.text(`Relatório de Despesas`, 14, 22);
+        
         doc.setFontSize(12);
         doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
         doc.text(`Total de Despesas: ${formatCurrency(total)}`, 14, 38);
         
-        const categoriaColumns =;
+        // Tabela de totais por categoria
+        const categoriaColumns = ["Categoria", "Total"];
         const categoriaRows = Object.keys(porCategoria).map(cat => [cat, formatCurrency(porCategoria[cat])]);
-        doc.autoTable({ head: [categoriaColumns], body: categoriaRows, startY: 45 });
-
-        const columns =;
-        const rows = despesas.map(d =>);
+        
         doc.autoTable({
-            head: [columns], body: rows, startY: doc.autoTable.previous.finalY + 10,
-            theme: 'striped', headStyles: { fillColor:  }
+            head: [categoriaColumns],
+            body: categoriaRows,
+            startY: 45
+        });
+        // Tabela detalhada
+        const columns = ["Descrição", "Categoria", "Valor (R$)", "Data", "Observações"];
+        const rows = despesas.map(d => [
+            d.descricao,
+            d.categoria,
+            d.valor.toFixed(2),
+            new Date(d.data).toLocaleDateString(),
+            d.observacoes || ''
+        ]);
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: doc.autoTable.previous.finalY + 10,
+            theme: 'striped',
+            headStyles: { fillColor: [52, 58, 64] },
+            bodyStyles: { textColor: [33, 37, 41] },
         });
         doc.save(`relatorio_despesas_${startDate}_${endDate}.pdf`);
     };
 
     const exportDespesaExcel = (despesas, porCategoria, startDate, endDate, total) => {
-        const data =,
-           ,
-           ,
-           ,,;
+        // Preparar dados para exportação
+        const data = [
+            ["Relatório de Despesas"],
+            [`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`],
+            [`Total de Despesas: ${formatCurrency(total)}`],
+            [],
+            ["Totais por Categoria"],
+            ["Categoria", "Total"]
+        ];
         Object.keys(porCategoria).forEach(cat => {
             data.push([cat, porCategoria[cat]]);
         });
-        data.push(,,);
-        data.push();
+        data.push([], [], ["Despesas Detalhadas"]);
+        data.push(["Descrição", "Categoria", "Valor (R$)", "Data", "Observações"]);
         despesas.forEach(d => {
-            data.push();
+            data.push([
+                d.descricao,
+                d.categoria,
+                d.valor,
+                new Date(d.data).toLocaleDateString(),
+                d.observacoes || ''
+            ]);
         });
         const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
@@ -1784,6 +1937,20 @@
             return;
         }
         openTarefaForm();
+    });
+    addTarefaCronogramaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        openTarefaForm();
+    });
+    gerarCronogramaBtn.addEventListener('click', () => {
+        if (!currentObraId) {
+            openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+            return;
+        }
+        renderCronograma();
     });
     addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
