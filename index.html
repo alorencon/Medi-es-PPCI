@@ -491,10 +491,8 @@ const tabContents = document.querySelectorAll('.tab-content');
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
-    const addObraBtn = document.getElementById('add-obra-btn');
-const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    // const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn'); // CORREÇÃO: Botão foi removido do HTML, esta linha causaria um erro.
-const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
+  const addObraBtn = document.getElementById('add-obra-btn');
+    const addTarefaBtn = document.getElementById('add-tarefa-btn');
     const addDespesaBtn = document.getElementById('add-despesa-btn');
     const obrasList = document.getElementById('obras-list');
 const tarefasList = document.getElementById('tarefas-list');
@@ -510,16 +508,7 @@ const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/mod
 const logoutBtn = document.getElementById('logout-btn');
     const loginForm = document.getElementById('login-form');
 const loginBtn = document.getElementById('login-btn');
-    const createAccountBtn = document.getElementById('create-account-btn');
-// New variables for gantt drag-and-drop
-    let ganttTasks = [];
-let isDragging = false;
-let currentDragElement = null;
-    let dragStartX = 0;
-    let originalStartDay = 0;
-    let originalEndDay = 0;
-let dragType = '';
-// 'move' ou 'resize-left' ou 'resize-right'
+    const createAccountBtn = document.getElementById('create-account-btn');  
 
     // Utility function to format currency
     const formatCurrency = (value) => {
@@ -2415,3 +2404,4 @@ addTarefaBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
+
