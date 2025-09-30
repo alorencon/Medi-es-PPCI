@@ -1125,74 +1125,83 @@ await addOrUpdateCronograma({ tasks: cronogramaData });
         renderCurvaS(dias);
     };
 
-    const renderCurvaS = (dias) => {
+   const renderCurvaS = (dias) => {
         const ctx = document.getElementById("curva-s-chart").getContext("2d");
-if (curvaSChart) {
+        if (curvaSChart) {
             curvaSChart.destroy();
-}
+        }
 
+        // Se não houver tarefas, limpa o gráfico e para a execução.
         if (!ganttTasks || ganttTasks.length === 0) {
-            // Limpa o gráfico se não houver tarefas
             const canvas = document.getElementById("curva-s-chart");
-const context = canvas.getContext('2d');
+            const context = canvas.getContext('2d');
             context.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
         const plannedValuePerDay = new Array(dias).fill(0);
-ganttTasks.forEach(task => {
+        ganttTasks.forEach(task => {
             if (task.duration > 0 && task.valorTotal > 0) {
                 const dailyCost = task.valorTotal / task.duration;
                 for (let i = 0; i < task.duration; i++) {
-                    const dayIndex = task.start + i - 1; // -1 porque o 
-array é 0-indexado
+                    // O calculo usa -1 porque a contagem de dias comeca em 1, mas o array em 0.
+                    const dayIndex = task.start + i - 1;
                     if (dayIndex < dias) {
                         plannedValuePerDay[dayIndex] += dailyCost;
                     }
                 }
-            
-
-}
+            }
         });
 
         const cumulativePlannedValue = [];
         let cumulative = 0;
-plannedValuePerDay.forEach(value => {
+        plannedValuePerDay.forEach(value => {
             cumulative += value;
             cumulativePlannedValue.push(cumulative);
         });
-const labels = Array.from({ length: dias }, (_, i) => `Dia ${i + 1}`);
-curvaSChart = new Chart(ctx, {
+
+        const labels = Array.from({
+            length: dias
+        }, (_, i) => `Dia ${i + 1}`);
+
+        curvaSChart = new Chart(ctx, {
             type: "line",
             data: {
                 labels: labels,
                 datasets: [{
                     label: "Curva S (Planejado)",
-             
-
-       data: cumulativePlannedValue,
+                    data: cumulativePlannedValue,
                     borderColor: "#E21B2F",
                     backgroundColor: "rgba(226,27,47,0.3)",
                     fill: true,
                     tension: 0.3
-        
-
-        }]
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: true } },
-          
-
-      scales: {
-                    y: { beginAtZero: true, title: { display: true, text: "Valor Acumulado (R$)" } },
-                    x: { title: { display: true, text: "Dias do Cronograma" } }
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: "Valor Acumulado (R$)"
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Dias do Cronograma"
+                        }
+                    }
                 }
             }
- 
-
-       });
+        });
     };
 
     const renderGanttBars = () => {
@@ -2587,3 +2596,4 @@ addDespesaBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
+
