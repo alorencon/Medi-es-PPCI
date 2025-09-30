@@ -1032,297 +1032,354 @@ updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
 
-    // --- [INÍCIO] SEÇÃO DO CRONOGRAMA CORRIGIDA ---
-    // Esta seção foi reescrita para corrigir o erro de sintaxe e implementar a lógica correta da Curva S.
+    // --- [INÍCIO] SEÇÃO DO CRONOGRAMA - REFEITA COMPLETAMENTE ---
+// Esta versão reescreve a aba "Cronograma" mantendo as integrações com Firestore.
+// Principais recursos implementados:
+// - Geração de cronograma (Gantt) a partir das tarefas da obra
+// - Permite definir início + duração (dias) por tarefa (tarefas podem se sobrepor)
+// - Drag & drop para mover/ajustar barras do Gantt (mover e redimensionar)
+// - Persistência do cronograma no documento 'cronograma' da obra
+// - Curva S: linha projetada (planejado) e linha real (baseada em medições de cada tarefa)
+// - A Curva S atualiza automaticamente conforme alterações nas medições ou no cronograma
 
-    const saveAndUpdateSchedule = async () => {
-        const cronogramaData = {};
-ganttTasks.forEach(t => {
-            cronogramaData[t.id] = { start: t.start, end: t.end };
-        });
-await addOrUpdateCronograma({ tasks: cronogramaData });
+const saveAndUpdateSchedule = async () => {
+    if (!currentObraId) return;
+    const cronogramaData = { tasks: {} };
+    ganttTasks.forEach(t => {
+        cronogramaData.tasks[t.id] = { start: t.start, end: t.end, duration: t.duration };
+    });
+    await addOrUpdateCronograma(cronogramaData);
+    // Re-render Curva S
+    const dias = parseInt(cronogramaDias.value) || 30;
+    renderCurvaS(dias);
+};
 
-        // Após salvar, renderiza novamente a Curva S com os dados atualizados
-        const dias = parseInt(cronogramaDias.value) || 30;
-        renderCurvaS(dias);
-    };
+// Renderiza a Curva S (planejado vs real). Usa medicoes armazenadas nas tarefas para linha "real".
+const renderCurvaS = async (dias) => {
+    const ctx = document.getElementById("curva-s-chart").getContext("2d");
+    if (curvaSChart) curvaSChart.destroy();
 
-    const renderCurvaS = (dias) => {
-        const ctx = document.getElementById("curva-s-chart").getContext("2d");
-if (curvaSChart) {
-            curvaSChart.destroy();
-}
+    if (!ganttTasks || ganttTasks.length === 0) {
+        // limpa canvas
+        const canvas = document.getElementById("curva-s-chart");
+        const ctx2 = canvas.getContext('2d');
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
 
-        if (!ganttTasks || ganttTasks.length === 0) {
-            // Limpa o gráfico se não houver tarefas
-            const canvas = document.getElementById("curva-s-chart");
-            const context = canvas.getContext('2d');
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            return;
-        }
-
-        const plannedValuePerDay = new Array(dias).fill(0);
-ganttTasks.forEach(task => {
-            if (task.duration > 0 && task.valorTotal > 0) {
-                const dailyCost = task.valorTotal / task.duration;
-                for (let i = 0; i < task.duration; i++) {
-                    const dayIndex = task.start + i - 1; // -1 porque o array é 0-indexado
-                    if (dayIndex < dias) {
-                        plannedValuePerDay[dayIndex] += dailyCost;
-                    }
-                }
-            
-}
-        });
-
-        const cumulativePlannedValue = [];
-        let cumulative = 0;
-plannedValuePerDay.forEach(value => {
-            cumulative += value;
-            cumulativePlannedValue.push(cumulative);
-        });
-const labels = Array.from({ length: dias }, (_, i) => `Dia ${i + 1}`);
-curvaSChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Curva S (Planejado)",
-             
-       data: cumulativePlannedValue,
-                    borderColor: "#E21B2F",
-                    backgroundColor: "rgba(226,27,47,0.3)",
-                    fill: true,
-                    tension: 0.3
-        
-        }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: true } },
-          
-      scales: {
-                    y: { beginAtZero: true, title: { display: true, text: "Valor Acumulado (R$)" } },
-                    x: { title: { display: true, text: "Dias do Cronograma" } }
-                }
+    // Planejado: distribuir valorTotal da tarefa uniformemente ao longo dos dias do seu intervalo (start..end)
+    const plannedDaily = new Array(dias).fill(0);
+    ganttTasks.forEach(task => {
+        if (task.duration > 0 && task.valorTotal > 0) {
+            const daily = task.valorTotal / task.duration;
+            for (let d = 0; d < task.duration; d++) {
+                const idx = task.start - 1 + d;
+                if (idx >= 0 && idx < dias) plannedDaily[idx] += daily;
             }
- 
-       });
-    };
-
-    const renderGanttBars = () => {
-        document.querySelectorAll(".gantt-task-bar").forEach(b => b.remove());
-const firstCell = document.querySelector(".gantt-day-cell");
-        if (!firstCell) return;
-        
-        const cellWidth = firstCell.offsetWidth;
-        const gap = 2; // O gap definido no CSS do .gantt-chart
-
-        ganttTasks.forEach(task => {
-            const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
-            if (!row) return;
-            
-            const rowCells = row.querySelectorAll(".gantt-day-cell");
-            if (rowCells.length === 0) return;
-
-           
- const containerTop = ganttChart.offsetTop;
-            const rowTop = rowCells[0].offsetTop - containerTop;
-            
-            const barLeft = (task.start - 1) * (cellWidth + gap);
-            const barWidth = task.duration * (cellWidth + gap) - gap;
-
-            const bar = document.createElement("div");
-          
-  bar.className = "gantt-task-bar";
-            bar.dataset.taskId = task.id;
-            bar.style.position = 'absolute'; // Garante o posicionamento correto
-            bar.style.top = `${rowTop + 10}px`; // Ajuste para centralizar
-            bar.style.left = `${barLeft}px`;
-            bar.style.width = `${barWidth}px`;
-bar.innerHTML = `
-                <div class="gantt-task-handle gantt-task-handle-left"></div>
-                <div class="gantt-task-handle gantt-task-handle-right"></div>
-                <span style="pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px;">${task.name}</span>
-            `;
-ganttChart.appendChild(bar);
-            bar.addEventListener("mousedown", startDrag);
-        });
-    };
-
-    const startDrag = (e) => {
-        e.preventDefault();
-isDragging = true;
-        currentDragElement = e.target.closest(".gantt-task-bar");
-        dragStartX = e.clientX;
-        const taskId = currentDragElement.dataset.taskId;
-const task = ganttTasks.find(t => t.id === taskId);
-        if (!task) return;
-        
-        originalStartDay = task.start;
-        originalEndDay = task.end;
-dragType = e.target.classList.contains("gantt-task-handle-left") ? "resize-left"
-                 : e.target.classList.contains("gantt-task-handle-right") ? "resize-right"
-                 : "move";
-document.addEventListener("mousemove", handleDrag);
-        document.addEventListener("mouseup", stopDrag);
-    };
-
-    const handleDrag = (e) => {
-        if (!isDragging || !currentDragElement) return;
-const firstCell = document.querySelector(".gantt-day-cell");
-        if (!firstCell) return;
-        
-        const cellWidth = firstCell.offsetWidth + 2; // Inclui o gap
-        const deltaX = e.clientX - dragStartX;
-const deltaDays = Math.round(deltaX / cellWidth);
-        const taskId = currentDragElement.dataset.taskId;
-        const task = ganttTasks.find(t => t.id === taskId);
-if (!task) return;
-        
-        const dias = parseInt(cronogramaDias.value) || 30;
-
-        if (dragType === "move") {
-            const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, dias - task.duration + 1));
-task.start = newStart;
-            task.end = newStart + task.duration - 1;
-} else if (dragType === "resize-left") {
-            const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, originalEndDay));
-task.start = newStart;
-            task.duration = originalEndDay - newStart + 1;
-} else if (dragType === "resize-right") {
-            const newEnd = Math.max(task.start, Math.min(originalEndDay + deltaDays, dias));
-task.end = newEnd;
-            task.duration = newEnd - task.start + 1;
         }
-        renderGanttBars();
-    };
-const stopDrag = async () => {
-        if (!isDragging) return;
-        isDragging = false;
-document.removeEventListener("mousemove", handleDrag);
-        document.removeEventListener("mouseup", stopDrag);
+    });
+    const plannedCumulative = plannedDaily.reduce((acc, val, i) => { acc.push((acc.length?acc[acc.length-1]:0) + val); return acc; }, []);
 
-        const taskId = currentDragElement.dataset.taskId;
-        const task = ganttTasks.find(t => t.id === taskId);
-if (task) {
-            document.querySelector(`.start-input[data-id='${taskId}']`).value = task.start;
-            document.querySelector(`.duration-input[data-id='${taskId}']`).value = task.duration;
-}
-        await saveAndUpdateSchedule();
-    };
-const renderCronograma = async () => {
-        if (!currentObraId) return;
-const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+    // Real: usar medições por tarefa (as medicoes possuem 'data' e 'valor' assumidos)
+    // Para simplificar, convertendo cada medição para o dia relativo do cronograma com base na data da medição
+    const realDaily = new Array(dias).fill(0);
+
+    // Carregar tarefas completas (para ler medicoes) diretamente do banco para garantir dados atualizados
+    try {
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
         const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        const dias = parseInt(cronogramaDias.value) || 30;
-        
-        ganttChart.innerHTML = ""; // Limpa o conteúdo anterior
-        ganttChart.style.gridTemplateColumns = `200px repeat(${dias}, 1fr)`;
-
-        if (tarefas.length === 0) {
-            ganttChart.innerHTML = "<p class='text-center text-gray-500 col-span-full'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
-ganttTasks = [];
-            renderCurvaS(dias); // Limpa a curva S
-            return;
+        const baseDate = new Date(); // dia 1 do cronograma = hoje (consistente com cabeçalho que mostra datas a partir de hoje)
+        for (const tarefa of tarefas) {
+            const cronTask = ganttTasks.find(t => t.id === tarefa.id);
+            // se tarefa não estiver no cronograma, considerar início = 1
+            const taskStart = cronTask ? cronTask.start : 1;
+            if (tarefa.medicoes && Array.isArray(tarefa.medicoes)) {
+                tarefa.medicoes.forEach(m => {
+                    // se medicao tem 'data' use ela; caso contrário, tente inferir por index
+                    let medDate = m.data ? new Date(m.data) : null;
+                    if (!medDate && m.dia) medDate = new Date(); // fallback
+                    // calcular dia relativo
+                    if (medDate) {
+                        // calculamos diferença em dias entre medDate e hoje
+                        const diffMs = medDate.setHours(0,0,0,0) - (new Date()).setHours(0,0,0,0);
+                        const diffDays = Math.round(diffMs / (1000*60*60*24));
+                        const relativeDay = diffDays + 1; // se medição hoje => 1
+                        const idx = relativeDay - 1;
+                        if (idx >= 0 && idx < dias) realDaily[idx] += (m.valor || 0);
+                    } else {
+                        // se não tem data, distribuir proporcionalmente dentro do intervalo da tarefa
+                        const valor = m.valor || 0;
+                        const dur = cronTask ? cronTask.duration : Math.max(1, Math.round((tarefa.prazo||5)));
+                        const perDay = valor / dur;
+                        for (let i = 0; i < dur; i++) {
+                            const idx = taskStart - 1 + i;
+                            if (idx >=0 && idx < dias) realDaily[idx] += perDay;
+                        }
+                    }
+                });
+            }
         }
+    } catch (err) {
+        console.error("Erro ao obter tarefas para Curva S:", err);
+    }
 
-        const cronogramaData = (await getCronograma())?.tasks || {};
+    const realCumulative = realDaily.reduce((acc, val, i) => { acc.push((acc.length?acc[acc.length-1]:0) + val); return acc; }, []);
 
-        const headerRow = document.createElement("div");
-headerRow.className = "gantt-row";
-        
-        const emptyHeader = document.createElement("div");
-        emptyHeader.className = "gantt-row-label";
-        headerRow.appendChild(emptyHeader);
-for (let i = 0; i < dias; i++) {
-            const date = new Date();
-date.setDate(new Date().getDate() + i);
-            const dayHeader = document.createElement("div");
-            dayHeader.className = "gantt-day-cell gantt-header";
-            dayHeader.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
-            headerRow.appendChild(dayHeader);
-}
-        ganttChart.appendChild(headerRow);
+    const labels = Array.from({length: dias}, (_, i) => `Dia ${i+1}`);
 
-        ganttTasks = [];
-tarefas.forEach((tarefa) => {
-            const row = document.createElement("div");
-            row.className = "gantt-row";
-            row.dataset.id = tarefa.id;
-
-            const savedTask = cronogramaData[tarefa.id];
-            let startDay = savedTask?.start || 1;
-            let duration = savedTask ? (savedTask.end - savedTask.start + 1) : (tarefa.prazo || 5);
-
-            const label = document.createElement("div");
-            label.className = "gantt-row-label";
-            label.innerHTML = `
-                <div class="flex flex-col text-xs">
-                    <span class="font-semibold">${tarefa.nome}</span>
-               
-     <div class="flex space-x-2 mt-1">
-                        <label>Início:
-                            <input type="number" class="start-input w-14 border rounded p-1 text-black" data-id="${tarefa.id}" value="${startDay}" min="1" max="${dias}">
-                        </label>
-     
-                   <label>Duração:
-                            <input type="number" class="duration-input w-14 border rounded p-1 text-black" data-id="${tarefa.id}" value="${duration}" min="1" max="${dias}">
-                        </label>
-                  
-  </div>
-                </div>`;
-            row.appendChild(label);
-for (let i = 1; i <= dias; i++) {
-                const cell = document.createElement("div");
-cell.className = "gantt-day-cell";
-                cell.dataset.day = i;
-                cell.dataset.taskId = tarefa.id;
-                row.appendChild(cell);
-}
-            ganttChart.appendChild(row);
-ganttTasks.push({
-                id: tarefa.id,
-                name: tarefa.nome,
-                valorTotal: tarefa.valorTotal || 0,
-                start: startDay,
-                end: startDay + duration - 1,
-         
-       duration: duration
-            });
-});
-
-        document.querySelectorAll(".start-input, .duration-input").forEach(input => {
-            input.addEventListener("change", async () => {
-                const taskId = input.dataset.id;
-                const task = ganttTasks.find(t => t.id === taskId);
-                if (task) {
-                    
-const dias = parseInt(cronogramaDias.value) || 30;
-                    const startVal = parseInt(document.querySelector(`.start-input[data-id='${taskId}']`).value);
-                    const durVal = parseInt(document.querySelector(`.duration-input[data-id='${taskId}']`).value);
-                    
-                    task.start = Math.max(1, Math.min(startVal, dias));
-     
-               task.duration = Math.max(1, Math.min(durVal, dias - task.start + 1));
-                    task.end = task.start + task.duration - 1;
-                    
-                    renderGanttBars();
-           
-         await saveAndUpdateSchedule();
-                }
-            });
-        });
-setTimeout(() => {
-            renderGanttBars();
-            renderCurvaS(dias);
-        }, 100);
+    curvaSChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Planejado', data: plannedCumulative, borderColor: '#E21B2F', backgroundColor: 'rgba(226,27,47,0.15)', fill: true, tension: 0.3 },
+                { label: 'Real', data: realCumulative, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.12)', fill: true, tension: 0.3 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Valor Acumulado (R$)' } },
+                x: { title: { display: true, text: 'Dias' } }
+            }
+        }
+    });
 };
 
-    // --- [FIM] SEÇÃO DO CRONOGRAMA CORRIGIDA ---
+// Render das barras do Gantt (posicionamento absoluto dentro do container .gantt-chart)
+const renderGanttBars = () => {
+    // remove barras existentes
+    document.querySelectorAll('.gantt-task-bar').forEach(b => b.remove());
+
+    const firstCell = document.querySelector('.gantt-day-cell');
+    if (!firstCell) return;
+    const cellWidth = firstCell.offsetWidth;
+    const gap = 2;
+
+    ganttTasks.forEach(task => {
+        const row = document.querySelector(`.gantt-row[data-id='${task.id}']`);
+        if (!row) return;
+        const rowCells = row.querySelectorAll('.gantt-day-cell');
+        if (!rowCells || rowCells.length === 0) return;
+
+        const containerRect = ganttChart.getBoundingClientRect();
+        const rowRect = rowCells[0].getBoundingClientRect();
+        const top = rowRect.top - containerRect.top + ganttChart.scrollTop;
+
+        const left = (task.start - 1) * (cellWidth + gap) + 200; // 200 = label column width
+        const width = task.duration * (cellWidth + gap) - gap;
+
+        const bar = document.createElement('div');
+        bar.className = 'gantt-task-bar';
+        bar.style.top = `${top + 8}px`;
+        bar.style.left = `${left}px`;
+        bar.style.width = `${Math.max(8, width)}px`;
+        bar.dataset.taskId = task.id;
+        bar.innerHTML = `
+            <div class="gantt-task-handle gantt-task-handle-left"></div>
+            <div class="gantt-task-handle gantt-task-handle-right"></div>
+            <span style="pointer-events:none; padding:0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${task.name}</span>
+        `;
+        ganttChart.appendChild(bar);
+
+        // events
+        bar.addEventListener('mousedown', startDrag);
+    });
+};
+
+let isDragging = false;
+let currentDragElement = null;
+let dragStartX = 0;
+let originalStartDay = 0;
+let originalEndDay = 0;
+let dragType = ''; // 'move' | 'resize-left' | 'resize-right'
+
+const startDrag = (e) => {
+    e.preventDefault();
+    isDragging = true;
+    currentDragElement = e.target.closest('.gantt-task-bar');
+    dragStartX = e.clientX;
+    const id = currentDragElement.dataset.taskId;
+    const task = ganttTasks.find(t => t.id === id);
+    if (!task) return;
+    originalStartDay = task.start;
+    originalEndDay = task.end;
+    dragType = e.target.classList.contains('gantt-task-handle-left') ? 'resize-left' :
+               e.target.classList.contains('gantt-task-handle-right') ? 'resize-right' : 'move';
+    document.addEventListener('mousemove', handleDrag);
+    document.addEventListener('mouseup', stopDrag);
+};
+
+const handleDrag = (e) => {
+    if (!isDragging || !currentDragElement) return;
+    const firstCell = document.querySelector('.gantt-day-cell');
+    if (!firstCell) return;
+    const cellWidth = firstCell.offsetWidth + 2;
+    const deltaX = e.clientX - dragStartX;
+    const deltaDays = Math.round(deltaX / cellWidth);
+
+    const id = currentDragElement.dataset.taskId;
+    const task = ganttTasks.find(t => t.id === id);
+    const dias = parseInt(cronogramaDias.value) || 30;
+    if (!task) return;
+
+    if (dragType === 'move') {
+        const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, dias - task.duration + 1));
+        task.start = newStart;
+        task.end = task.start + task.duration - 1;
+    } else if (dragType === 'resize-left') {
+        const newStart = Math.max(1, Math.min(originalStartDay + deltaDays, originalEndDay));
+        task.start = newStart;
+        task.duration = originalEndDay - newStart + 1;
+    } else if (dragType === 'resize-right') {
+        const newEnd = Math.max(task.start, Math.min(originalEndDay + deltaDays, dias));
+        task.end = newEnd;
+        task.duration = newEnd - task.start + 1;
+    }
+
+    renderGanttBars();
+};
+
+const stopDrag = async () => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.removeEventListener('mousemove', handleDrag);
+    document.removeEventListener('mouseup', stopDrag);
+
+    if (!currentDragElement) return;
+    const id = currentDragElement.dataset.taskId;
+    const task = ganttTasks.find(t => t.id === id);
+    if (task) {
+        const startInput = document.querySelector(`.start-input[data-id='${id}']`);
+        const durationInput = document.querySelector(`.duration-input[data-id='${id}']`);
+        if (startInput) startInput.value = task.start;
+        if (durationInput) durationInput.value = task.duration;
+    }
+    await saveAndUpdateSchedule();
+};
+
+// Render do cronograma: monta a grade, carrega tarefas do Firestore, aplica dados salvos e habilita edição
+const renderCronograma = async () => {
+    if (!currentObraId) return;
+    const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+    const snapshot = await getDocs(tarefasRef);
+    const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const dias = parseInt(cronogramaDias.value) || 30;
+    ganttChart.innerHTML = '';
+    ganttChart.style.gridTemplateColumns = `200px repeat(${dias}, 1fr)`;
+
+    if (tarefas.length === 0) {
+        ganttChart.innerHTML = "<p class='text-center text-gray-500 col-span-full'>Nenhuma tarefa encontrada. Adicione tarefas na aba 'Tarefas'.</p>";
+        ganttTasks = [];
+        renderCurvaS(dias);
+        return;
+    }
+
+    const cronogramaData = (await getCronograma())?.tasks || {};
+
+    // Header row (dias)
+    const headerRow = document.createElement('div');
+    headerRow.className = 'gantt-row';
+    const labelHeader = document.createElement('div');
+    labelHeader.className = 'gantt-row-label';
+    headerRow.appendChild(labelHeader);
+    for (let i=0;i<dias;i++) {
+        const dh = document.createElement('div');
+        dh.className = 'gantt-day-cell gantt-header';
+        const date = new Date();
+        date.setDate(new Date().getDate() + i);
+        dh.textContent = `${date.getDate()}/${date.getMonth()+1}`;
+        headerRow.appendChild(dh);
+    }
+    ganttChart.appendChild(headerRow);
+
+    // Rows por tarefa
+    ganttTasks = [];
+    tarefas.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'gantt-row';
+        row.dataset.id = t.id;
+
+        const saved = cronogramaData[t.id];
+        const start = saved?.start || 1;
+        const end = saved ? saved.end : (start + (t.prazo||5) - 1);
+        const duration = (end - start + 1);
+
+        const label = document.createElement('div');
+        label.className = 'gantt-row-label';
+        label.innerHTML = `
+            <div class="flex flex-col text-xs">
+                <span class="font-semibold">${t.nome}</span>
+                <div class="flex space-x-2 mt-1">
+                    <label>Início:
+                        <input type="number" class="start-input w-14 border rounded p-1 text-black" data-id="${t.id}" value="${start}" min="1" max="${dias}">
+                    </label>
+                    <label>Duração:
+                        <input type="number" class="duration-input w-14 border rounded p-1 text-black" data-id="${t.id}" value="${duration}" min="1" max="${dias}">
+                    </label>
+                </div>
+            </div>
+        `;
+        row.appendChild(label);
+
+        for (let i=1;i<=dias;i++) {
+            const cell = document.createElement('div');
+            cell.className = 'gantt-day-cell';
+            cell.dataset.day = i;
+            cell.dataset.taskId = t.id;
+            row.appendChild(cell);
+        }
+        ganttChart.appendChild(row);
+
+        ganttTasks.push({
+            id: t.id,
+            name: t.nome,
+            valorTotal: t.valorTotal || 0,
+            start,
+            end,
+            duration
+        });
+    });
+
+    // listeners inputs
+    document.querySelectorAll('.start-input, .duration-input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+            const id = input.dataset.id;
+            const task = ganttTasks.find(tt => tt.id === id);
+            if (!task) return;
+            const dias = parseInt(cronogramaDias.value) || 30;
+            const startVal = parseInt(document.querySelector(`.start-input[data-id='${id}']`).value);
+            const durVal = parseInt(document.querySelector(`.duration-input[data-id='${id}']`).value);
+            task.start = Math.max(1, Math.min(startVal, dias));
+            task.duration = Math.max(1, Math.min(durVal, dias - task.start + 1));
+            task.end = task.start + task.duration - 1;
+            renderGanttBars();
+            await saveAndUpdateSchedule();
+        });
+    });
+
+    // small delay to let browser calculate cell sizes
+    setTimeout(() => {
+        renderGanttBars();
+        renderCurvaS(dias);
+    }, 120);
+};
+
+// Ao alterar número de dias, re-renderiza cronograma (mantendo dados salvos)
+cronogramaDias.addEventListener('change', async () => {
+    await renderCronograma();
+});
+
+// Botão gerar cronograma: força render
+gerarCronogramaBtn.addEventListener('click', async () => {
+    await renderCronograma();
+});
+// --- [FIM] SEÇÃO DO CRONOGRAMA - REFEITA COMPLETAMENTE ---
+
 
 
     const renderDespesas = () => {
