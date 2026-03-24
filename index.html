@@ -1270,7 +1270,21 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 }
             });
 
-            const labels = Array.from({ length: diasTotais }, (_, i) => `Dia ${i + 1}`);
+           const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            
+            const labels = Array.from({ length: diasTotais }, (_, i) => {
+                // Cria uma cópia da data de início para não alterar a original
+                const dataAtual = new Date(scheduleStart);
+                // Soma a quantidade de dias
+                dataAtual.setDate(scheduleStart.getDate() + i);
+                
+                // Formata o dia e o mês para sempre terem 2 dígitos (ex: 05/04)
+                const dia = String(dataAtual.getDate()).padStart(2, '0');
+                const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+                const nomeDia = diasDaSemana[dataAtual.getDay()];
+                
+                return `${dia}/${mes} ${nomeDia}`;
+            });
 
             curvaSChart = new Chart(ctx, {
                 type: "line",
