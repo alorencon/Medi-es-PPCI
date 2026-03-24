@@ -72,7 +72,7 @@ color: #fff;
             color: #000;
 }
 
-        /* Estilos para a aba de Cronograma */
+        /* Estilos para a aba de  */
         .gantt-container {
             overflow-x: auto;
 margin-bottom: 2rem;
@@ -245,7 +245,7 @@ padding: 10px;
 
  <button class="tab-btn active" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
-                <button class="tab-btn" data-tab="cronograma">Cronograma</button>
+                <button class="tab-btn" data-tab=""></button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
             </div>
@@ -295,10 +295,10 @@ flex-wrap justify-between items-center mb-6">
  </div>
                 </div>
 
-                <div id="cronograma-view" class="tab-content hidden">
+                <div id="-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Planejamento e Curva S</h2>
-                        <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
+                        <button id="gerar--btn" class="btn btn-secondary flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
                             </svg>
@@ -308,12 +308,12 @@ flex-wrap justify-between items-center mb-6">
 
                     <div class="bg-gray-100 p-4 rounded-lg mb-6 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <div class="flex-1">
-                            <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início da Obra</label>
-                            <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
+                            <label for="-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início da Obra</label>
+                            <input type="date" id="-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
                         </div>
                         <div class="flex-1">
-                            <label for="cronograma-dias-total" class="block text-sm font-medium text-gray-700">Duração Total Prevista (Dias)</label>
-                            <input type="number" id="cronograma-dias-total" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-200 text-gray-600 cursor-not-allowed" readonly>
+                            <label for="-dias-total" class="block text-sm font-medium text-gray-700">Duração Total Prevista (Dias)</label>
+                            <input type="number" id="-dias-total" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-200 text-gray-600 cursor-not-allowed" readonly>
                             <span class="text-xs text-gray-500">Calculado automaticamente (maior dia de término).</span>
                         </div>
                     </div>
@@ -328,7 +328,7 @@ flex-wrap justify-between items-center mb-6">
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração (Dias)</th>
                                 </tr>
                             </thead>
-                            <tbody id="cronograma-table-body" class="bg-white divide-y divide-gray-200">
+                            <tbody id="-table-body" class="bg-white divide-y divide-gray-200">
                                 </tbody>
                         </table>
                     </div>
@@ -505,8 +505,8 @@ const tabContents = document.querySelectorAll('.tab-content');
     const modalBody = document.getElementById('modal-body');
     const addObraBtn = document.getElementById('add-obra-btn');
 const addTarefaBtn = document.getElementById('add-tarefa-btn');
-    // const addTarefaCronogramaBtn = document.getElementById('add-tarefa-cronograma-btn'); // CORREÇÃO: Botão foi removido do HTML, esta linha causaria um erro.
-const gerarCronogramaBtn = document.getElementById('gerar-cronograma-btn');
+    // const addTarefaBtn = document.getElementById('add-tarefa--btn'); // CORREÇÃO: Botão foi removido do HTML, esta linha causaria um erro.
+const gerarBtn = document.getElementById('gerar--btn');
     const addDespesaBtn = document.getElementById('add-despesa-btn');
     const obrasList = document.getElementById('obras-list');
 const tarefasList = document.getElementById('tarefas-list');
@@ -514,7 +514,7 @@ const tarefasList = document.getElementById('tarefas-list');
 const despesasList = document.getElementById('despesas-list');
     const userIdDisplay = document.getElementById('userIdDisplay');
     const ganttChart = document.getElementById('gantt-chart');
-const cronogramaDias = document.getElementById('cronograma-dias');
+const Dias = document.getElementById('-dias');
 
     const GEMINI_API_URL_GENERATE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
 const GEMINI_API_URL_TTS = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=';
@@ -594,12 +594,12 @@ modalTitle.textContent = '';
                 } else {
                     renderRelatorios();
 }
-            } else if (tab.dataset.tab === 'cronograma') {
+            } else if (tab.dataset.tab === '') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
 tabs[0].click(); // Go back to obras tab
                 } else {
-                    renderCronograma();
+                    render();
 }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
@@ -782,17 +782,17 @@ await updateDoc(tarefaDocRef, { medicoes: tarefa.medicoes });
 }
     };
     
-    // CRUD para Cronograma
-    const addOrUpdateCronograma = async (cronogramaData) => {
+    // CRUD para 
+    const addOrUpdate = async (Data) => {
         if (!currentObraId) return;
-const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
-        await setDoc(cronogramaRef, cronogramaData, { merge: true });
+const Ref = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, '');
+        await setDoc(Ref, Data, { merge: true });
     };
-const getCronograma = async () => {
+const get = async () => {
         if (!currentObraId) return null;
-const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
-        const cronogramaDoc = await getDoc(cronogramaRef);
-        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
+const Ref = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, '');
+        const Doc = await getDoc(Ref);
+        return Doc.exists() ? Doc.data() : null;
     };
 // CRUD para Despesas
     const addOrUpdateDespesa = async (despesa) => {
@@ -1040,228 +1040,277 @@ updateDoc(obraRef, { valorMedido: totalMedido });
    let scheduleTasks = [];
 
     const saveAndUpdateSchedule = async () => {
-        const cronogramaData = {};
-        let maxEndDay = 1;
+        try {
+            if (!currentObraId) return;
+            
+            const cronogramaData = {};
+            let maxEndDay = 1;
 
-        scheduleTasks.forEach(t => {
-            cronogramaData[t.id] = { start: t.start, duration: t.duration };
-            const endDay = t.start + t.duration - 1;
-            if (endDay > maxEndDay) maxEndDay = endDay;
-        });
-        
-        const dataInicio = document.getElementById('cronograma-data-inicio').value;
-        await addOrUpdateCronograma({ tasks: cronogramaData, dataInicio: dataInicio });
-        
-        document.getElementById('cronograma-dias-total').value = maxEndDay;
-        renderCurvaS(maxEndDay, dataInicio);
+            scheduleTasks.forEach(t => {
+                cronogramaData[t.id] = { start: t.start, duration: t.duration };
+                const endDay = t.start + t.duration - 1;
+                if (endDay > maxEndDay) maxEndDay = endDay;
+            });
+            
+            const dataInicioInput = document.getElementById('cronograma-data-inicio');
+            const dataInicio = dataInicioInput ? dataInicioInput.value : new Date().toISOString().split('T')[0];
+            
+            await addOrUpdateCronograma({ tasks: cronogramaData, dataInicio: dataInicio });
+            
+            const diasInput = document.getElementById('cronograma-dias-total');
+            if(diasInput) diasInput.value = maxEndDay;
+            
+            renderCurvaS(maxEndDay, dataInicio);
+        } catch (error) {
+            console.error("Erro ao salvar cronograma:", error);
+            alert("Erro ao salvar as datas. Verifique a conexão com a internet.");
+        }
     };
 
     const renderCronograma = async () => {
-        if (!currentObraId) return;
-        
-        // 1. Buscar Tarefas
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        const snapshot = await getDocs(tarefasRef);
-        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        // 2. Buscar Cronograma Salvo
-        const cronogramaSaved = await getCronograma();
-        const cronogramaData = cronogramaSaved?.tasks || {};
-        
-        // 3. Configurar Data de Início
-        const inputDataInicio = document.getElementById('cronograma-data-inicio');
-        if (cronogramaSaved?.dataInicio && !inputDataInicio.value) {
-            inputDataInicio.value = cronogramaSaved.dataInicio;
-        } else if (!inputDataInicio.value) {
-            inputDataInicio.value = new Date().toISOString().split('T')[0];
-        }
-
-        const tableBody = document.getElementById('cronograma-table-body');
-        tableBody.innerHTML = '';
-        scheduleTasks = [];
-        let maxEndDay = 1;
-
-        // 4. Montar a Tabela
-        tarefas.forEach(tarefa => {
-            const saved = cronogramaData[tarefa.id];
-            const startDay = saved?.start || 1;
-            const duration = saved?.duration || (tarefa.prazo || 5);
+        try {
+            if (!currentObraId) return;
             
-            const endDay = startDay + duration - 1;
-            if (endDay > maxEndDay) maxEndDay = endDay;
+            const tableBody = document.getElementById('cronograma-table-body');
+            if (!tableBody) return; // Se não achar a tabela, aborta para não quebrar
+            
+            tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Carregando tarefas...</td></tr>';
+            
+            // 1. Buscar Tarefas no Banco
+            const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+            const snapshot = await getDocs(tarefasRef);
+            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            scheduleTasks.push({
-                id: tarefa.id,
-                name: tarefa.nome,
-                valorTotal: tarefa.valorTotal || 0,
-                start: startDay,
-                duration: duration,
-                medicoes: tarefa.medicoes || []
+            // 2. Buscar Configuração do Cronograma Salvo
+            const cronogramaSaved = await getCronograma();
+            const cronogramaData = cronogramaSaved?.tasks || {};
+            
+            // 3. Configurar Data de Início no Input
+            const inputDataInicio = document.getElementById('cronograma-data-inicio');
+            if (inputDataInicio) {
+                if (cronogramaSaved?.dataInicio) {
+                    inputDataInicio.value = cronogramaSaved.dataInicio;
+                } else if (!inputDataInicio.value) {
+                    inputDataInicio.value = new Date().toISOString().split('T')[0];
+                }
+            }
+
+            tableBody.innerHTML = '';
+            scheduleTasks = [];
+            let maxEndDay = 1;
+
+            // Se não houver tarefas, avisa na tela e renderiza gráfico vazio
+            if (tarefas.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Nenhuma tarefa encontrada. Vá na aba "Tarefas" e adicione tarefas primeiro.</td></tr>';
+                renderCurvaS(30, inputDataInicio ? inputDataInicio.value : null);
+                return;
+            }
+
+            // 4. Montar a Tabela Linha por Linha
+            tarefas.forEach(tarefa => {
+                const saved = cronogramaData[tarefa.id];
+                const startDay = saved?.start || 1;
+                // Se a tarefa já tiver um 'prazo' cadastrado usa ele, se não usa 1
+                const duration = saved?.duration || (tarefa.prazo || 1); 
+                
+                const endDay = startDay + duration - 1;
+                if (endDay > maxEndDay) maxEndDay = endDay;
+
+                scheduleTasks.push({
+                    id: tarefa.id,
+                    name: tarefa.nome,
+                    valorTotal: tarefa.valorTotal || 0,
+                    start: startDay,
+                    duration: duration,
+                    medicoes: tarefa.medicoes || []
+                });
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tarefa.nome}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(tarefa.valorTotal || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="number" class="crono-start-input w-24 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${startDay}" min="1">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="number" class="crono-duration-input w-24 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${duration}" min="1">
+                    </td>
+                `;
+                tableBody.appendChild(tr);
             });
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tarefa.nome}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(tarefa.valorTotal || 0)}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <input type="number" class="start-input w-20 border-gray-300 rounded-md shadow-sm text-black" data-id="${tarefa.id}" value="${startDay}" min="1">
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <input type="number" class="duration-input w-20 border-gray-300 rounded-md shadow-sm text-black" data-id="${tarefa.id}" value="${duration}" min="1">
-                </td>
-            `;
-            tableBody.appendChild(tr);
-        });
+            // Atualiza o input de total de dias
+            const diasInput = document.getElementById('cronograma-dias-total');
+            if (diasInput) diasInput.value = maxEndDay;
 
-        document.getElementById('cronograma-dias-total').value = maxEndDay;
-
-        // 5. Adicionar Listeners para os Inputs da Tabela
-        document.querySelectorAll(".start-input, .duration-input").forEach(input => {
-            input.addEventListener("change", async (e) => {
-                const taskId = e.target.dataset.id;
-                const task = scheduleTasks.find(t => t.id === taskId);
-                if (!task) return;
-                
-                const startVal = parseInt(document.querySelector(`.start-input[data-id='${taskId}']`).value) || 1;
-                const durVal = parseInt(document.querySelector(`.duration-input[data-id='${taskId}']`).value) || 1;
-                
-                task.start = Math.max(1, startVal);
-                task.duration = Math.max(1, durVal);
-                
-                await saveAndUpdateSchedule();
+            // 5. Adicionar Listeners nos inputs recém-criados para salvar sozinhos
+            document.querySelectorAll(".crono-start-input, .crono-duration-input").forEach(input => {
+                input.addEventListener("change", async (e) => {
+                    const taskId = e.target.dataset.id;
+                    const task = scheduleTasks.find(t => t.id === taskId);
+                    if (!task) return;
+                    
+                    const startVal = parseInt(document.querySelector(`.crono-start-input[data-id='${taskId}']`).value) || 1;
+                    const durVal = parseInt(document.querySelector(`.crono-duration-input[data-id='${taskId}']`).value) || 1;
+                    
+                    task.start = Math.max(1, startVal);
+                    task.duration = Math.max(1, durVal);
+                    
+                    await saveAndUpdateSchedule();
+                });
             });
-        });
 
-        // 6. Renderizar Gráfico
-        renderCurvaS(maxEndDay, inputDataInicio.value);
+            // 6. Finalmente, Renderiza a Curva S
+            renderCurvaS(maxEndDay, inputDataInicio ? inputDataInicio.value : null);
+            
+        } catch (error) {
+            console.error("Erro fatal em renderCronograma:", error);
+            const tableBody = document.getElementById('cronograma-table-body');
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Erro ao carregar os dados. Recarregue a página.</td></tr>`;
+        }
     };
 
     const renderCurvaS = (diasTotais, dataInicioStr) => {
-        const ctx = document.getElementById("curva-s-chart").getContext("2d");
-        if (curvaSChart) curvaSChart.destroy();
-        if (!scheduleTasks || scheduleTasks.length === 0) return;
-
-        // --- Curva S Planejada ---
-        const plannedValuePerDay = new Array(diasTotais).fill(0);
-        scheduleTasks.forEach(task => {
-            if (task.duration > 0 && task.valorTotal > 0) {
-                const dailyCost = task.valorTotal / task.duration;
-                for (let i = 0; i < task.duration; i++) {
-                    const dayIndex = task.start + i - 1;
-                    if (dayIndex >= 0 && dayIndex < diasTotais) {
-                        plannedValuePerDay[dayIndex] += dailyCost;
-                    }
-                }
+        try {
+            const canvas = document.getElementById("curva-s-chart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            
+            if (curvaSChart) curvaSChart.destroy();
+            
+            // Fallback se estiver vazio
+            if (!scheduleTasks || scheduleTasks.length === 0) {
+                curvaSChart = new Chart(ctx, {
+                    type: "line",
+                    data: { labels: ["Dia 1"], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
             }
-        });
 
-        const cumulativePlanned = [];
-        let accPlanned = 0;
-        plannedValuePerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned); });
-
-        // --- Curva S Real (Baseada nas Medições) ---
-        const actualValuePerDay = new Array(diasTotais).fill(0);
-        
-        let scheduleStart;
-        if (dataInicioStr) {
-            const parts = dataInicioStr.split('-');
-            scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]); 
-        } else {
-            scheduleStart = new Date();
-            scheduleStart.setHours(0,0,0,0);
-        }
-
-        scheduleTasks.forEach(task => {
-            const taskMedicoes = task.medicoes || [];
-            taskMedicoes.forEach(m => {
-                if (!m.data) return;
-                const medDate = new Date(m.data);
-                medDate.setHours(0,0,0,0);
-                
-                const diffTime = medDate.getTime() - scheduleStart.getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays >= 0 && diffDays < diasTotais) {
-                    actualValuePerDay[diffDays] += (m.valor || 0);
-                } else if (diffDays < 0) {
-                    actualValuePerDay[0] += (m.valor || 0);
-                } else if (diffDays >= diasTotais) {
-                    actualValuePerDay[diasTotais - 1] += (m.valor || 0);
+            // --- Curva S Planejada ---
+            const plannedValuePerDay = new Array(diasTotais).fill(0);
+            scheduleTasks.forEach(task => {
+                if (task.duration > 0 && task.valorTotal > 0) {
+                    const dailyCost = task.valorTotal / task.duration;
+                    for (let i = 0; i < task.duration; i++) {
+                        const dayIndex = task.start + i - 1;
+                        if (dayIndex >= 0 && dayIndex < diasTotais) {
+                            plannedValuePerDay[dayIndex] += dailyCost;
+                        }
+                    }
                 }
             });
-        });
 
-        const cumulativeActual = [];
-        let accActual = 0;
-        
-        // Verifica até que dia temos medições para não traçar a linha real para o futuro
-        let lastDayWithMeasurement = -1;
-        for (let i = diasTotais - 1; i >= 0; i--) {
-            if (actualValuePerDay[i] > 0) {
-                lastDayWithMeasurement = i;
-                break;
-            }
-        }
+            const cumulativePlanned = [];
+            let accPlanned = 0;
+            plannedValuePerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned); });
 
-        actualValuePerDay.forEach((v, index) => { 
-            accActual += v; 
-            // Só adiciona ao gráfico até o dia da última medição ou o dia atual
-            if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) {
-                cumulativeActual.push(accActual); 
-            }
-        });
-
-        const labels = Array.from({ length: diasTotais }, (_, i) => `Dia ${i + 1}`);
-
-        curvaSChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "Curva S Planejada",
-                        data: cumulativePlanned,
-                        borderColor: "#E21B2F",
-                        backgroundColor: "rgba(226,27,47,0.12)",
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: "Curva S Realizada (Medições)",
-                        data: cumulativeActual,
-                        borderColor: "#1f7a1f",
-                        backgroundColor: "rgba(31,122,31,0.08)",
-                        fill: true,
-                        tension: 0.3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: true } },
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: "Valor Acumulado (R$)" } },
-                    x: { title: { display: true, text: "Dias de Obra" } }
+            // --- Curva S Real (Baseada nas Medições) ---
+            const actualValuePerDay = new Array(diasTotais).fill(0);
+            
+            let scheduleStart = new Date();
+            scheduleStart.setHours(0,0,0,0);
+            if (dataInicioStr) {
+                const parts = dataInicioStr.split('-');
+                if (parts.length === 3) {
+                    scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]); 
                 }
             }
-        });
+
+            scheduleTasks.forEach(task => {
+                const taskMedicoes = task.medicoes || [];
+                taskMedicoes.forEach(m => {
+                    if (!m.data) return;
+                    const medDate = new Date(m.data);
+                    medDate.setHours(0,0,0,0);
+                    
+                    const diffTime = medDate.getTime() - scheduleStart.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays >= 0 && diffDays < diasTotais) {
+                        actualValuePerDay[diffDays] += (m.valor || 0);
+                    } else if (diffDays < 0) {
+                        actualValuePerDay[0] += (m.valor || 0);
+                    } else if (diffDays >= diasTotais) {
+                        actualValuePerDay[diasTotais - 1] += (m.valor || 0);
+                    }
+                });
+            });
+
+            const cumulativeActual = [];
+            let accActual = 0;
+            
+            let lastDayWithMeasurement = -1;
+            for (let i = diasTotais - 1; i >= 0; i--) {
+                if (actualValuePerDay[i] > 0) {
+                    lastDayWithMeasurement = i;
+                    break;
+                }
+            }
+
+            actualValuePerDay.forEach((v, index) => { 
+                accActual += v; 
+                // A curva real só caminha até onde existem medições preenchidas
+                if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) {
+                    cumulativeActual.push(accActual); 
+                }
+            });
+
+            const labels = Array.from({ length: diasTotais }, (_, i) => `Dia ${i + 1}`);
+
+            curvaSChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Curva S Planejada (Base)",
+                            data: cumulativePlanned,
+                            borderColor: "#E21B2F",
+                            backgroundColor: "rgba(226,27,47,0.12)",
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Curva S Realizada (Medições)",
+                            data: cumulativeActual,
+                            borderColor: "#1f7a1f",
+                            backgroundColor: "rgba(31,122,31,0.08)",
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: "Valor Financeiro (R$)" } },
+                        x: { title: { display: true, text: "Dias de Obra" } }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Erro ao desenhar o gráfico Curva S:", error);
+        }
     };
 
-    if (gerarCronogramaBtn) {
-        gerarCronogramaBtn.addEventListener('click', () => {
-            renderCronograma();
-        });
+    // Anexar eventos aos botões e inputs gerais
+    const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
+    if (btnAtualizarCronograma) {
+        // Remove ouvintes duplicados clonando e substituindo o elemento
+        const novoBtn = btnAtualizarCronograma.cloneNode(true);
+        btnAtualizarCronograma.parentNode.replaceChild(novoBtn, btnAtualizarCronograma);
+        novoBtn.addEventListener('click', renderCronograma);
     }
 
     const dataInicioInputObj = document.getElementById('cronograma-data-inicio');
     if (dataInicioInputObj) {
         dataInicioInputObj.addEventListener('change', () => {
-            if (currentObraId) {
-                saveAndUpdateSchedule();
-            }
+            if (currentObraId) saveAndUpdateSchedule();
         });
-    }
     // --- FIM CRONOGRAMA REFORMULADO ---
 
 
