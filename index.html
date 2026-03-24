@@ -1043,13 +1043,15 @@ updateDoc(obraRef, { valorMedido: totalMedido });
     // Recriando as funções de comunicação com o Firestore para garantir que existam
     const addOrUpdateCronogramaConfig = async (cronogramaData) => {
         if (!currentObraId || !db) return;
-        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        // CORREÇÃO: Adicionado '/cronograma/dados' para ter um número PAR de segmentos
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
         await setDoc(cronogramaRef, cronogramaData, { merge: true });
     };
 
     const getCronogramaConfig = async () => {
         if (!currentObraId || !db) return null;
-        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        // CORREÇÃO: Adicionado '/cronograma/dados' para ter um número PAR de segmentos
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
         const cronogramaDoc = await getDoc(cronogramaRef);
         return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
     };
