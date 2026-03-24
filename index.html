@@ -1040,6 +1040,20 @@ updateDoc(obraRef, { valorMedido: totalMedido });
     // --- CRONOGRAMA REFORMULADO ---
    let scheduleTasks = [];
 
+    // Recriando as funções de comunicação com o Firestore para garantir que existam
+    const addOrUpdateCronogramaConfig = async (cronogramaData) => {
+        if (!currentObraId || !db) return;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        await setDoc(cronogramaRef, cronogramaData, { merge: true });
+    };
+
+    const getCronogramaConfig = async () => {
+        if (!currentObraId || !db) return null;
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}`, 'cronograma');
+        const cronogramaDoc = await getDoc(cronogramaRef);
+        return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
+    };
+
     const saveAndUpdateSchedule = async () => {
         try {
             if (!currentObraId) return;
@@ -1056,7 +1070,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             const dataInicioInput = document.getElementById('cronograma-data-inicio');
             const dataInicio = dataInicioInput ? dataInicioInput.value : new Date().toISOString().split('T')[0];
             
-            await addOrUpdateCronograma({ tasks: cronogramaData, dataInicio: dataInicio });
+            await addOrUpdateCronogramaConfig({ tasks: cronogramaData, dataInicio: dataInicio });
             
             const diasInput = document.getElementById('cronograma-dias-total');
             if(diasInput) diasInput.value = maxEndDay;
@@ -1064,7 +1078,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             renderCurvaS(maxEndDay, dataInicio);
         } catch (error) {
             console.error("Erro ao salvar cronograma:", error);
-            alert("Erro ao salvar as datas. Verifique a conexão com a internet.");
+            alert("Erro ao salvar o cronograma: " + error.message);
         }
     };
 
@@ -1073,7 +1087,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             if (!currentObraId) return;
             
             const tableBody = document.getElementById('cronograma-table-body');
-            if (!tableBody) return; // Se não achar a tabela, aborta para não quebrar
+            if (!tableBody) return; 
             
             tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Carregando tarefas...</td></tr>';
             
@@ -1083,7 +1097,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             // 2. Buscar Configuração do Cronograma Salvo
-            const cronogramaSaved = await getCronograma();
+            const cronogramaSaved = await getCronogramaConfig();
             const cronogramaData = cronogramaSaved?.tasks || {};
             
             // 3. Configurar Data de Início no Input
@@ -1100,7 +1114,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             scheduleTasks = [];
             let maxEndDay = 1;
 
-            // Se não houver tarefas, avisa na tela e renderiza gráfico vazio
             if (tarefas.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Nenhuma tarefa encontrada. Vá na aba "Tarefas" e adicione tarefas primeiro.</td></tr>';
                 renderCurvaS(30, inputDataInicio ? inputDataInicio.value : null);
@@ -1110,17 +1123,16 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             // 4. Montar a Tabela Linha por Linha
             tarefas.forEach(tarefa => {
                 const saved = cronogramaData[tarefa.id];
-                const startDay = saved?.start || 1;
-                // Se a tarefa já tiver um 'prazo' cadastrado usa ele, se não usa 1
-                const duration = saved?.duration || (tarefa.prazo || 1); 
+                const startDay = saved?.start ? Number(saved.start) : 1;
+                const duration = saved?.duration ? Number(saved.duration) : (tarefa.prazo ? Number(tarefa.prazo) : 1);
                 
                 const endDay = startDay + duration - 1;
                 if (endDay > maxEndDay) maxEndDay = endDay;
 
                 scheduleTasks.push({
                     id: tarefa.id,
-                    name: tarefa.nome,
-                    valorTotal: tarefa.valorTotal || 0,
+                    name: tarefa.nome || 'Tarefa sem nome',
+                    valorTotal: Number(tarefa.valorTotal) || 0,
                     start: startDay,
                     duration: duration,
                     medicoes: tarefa.medicoes || []
@@ -1140,11 +1152,10 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 tableBody.appendChild(tr);
             });
 
-            // Atualiza o input de total de dias
             const diasInput = document.getElementById('cronograma-dias-total');
             if (diasInput) diasInput.value = maxEndDay;
 
-            // 5. Adicionar Listeners nos inputs recém-criados para salvar sozinhos
+            // 5. Adicionar Listeners nos inputs recém-criados
             document.querySelectorAll(".crono-start-input, .crono-duration-input").forEach(input => {
                 input.addEventListener("change", async (e) => {
                     const taskId = e.target.dataset.id;
@@ -1167,7 +1178,8 @@ updateDoc(obraRef, { valorMedido: totalMedido });
         } catch (error) {
             console.error("Erro fatal em renderCronograma:", error);
             const tableBody = document.getElementById('cronograma-table-body');
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Erro ao carregar os dados. Recarregue a página.</td></tr>`;
+            // Mostra exatamente o que falhou direto na tabela
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Erro: ${error.message}</td></tr>`;
         }
     };
 
@@ -1179,7 +1191,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             
             if (curvaSChart) curvaSChart.destroy();
             
-            // Fallback se estiver vazio
             if (!scheduleTasks || scheduleTasks.length === 0) {
                 curvaSChart = new Chart(ctx, {
                     type: "line",
@@ -1252,7 +1263,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
 
             actualValuePerDay.forEach((v, index) => { 
                 accActual += v; 
-                // A curva real só caminha até onde existem medições preenchidas
                 if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) {
                     cumulativeActual.push(accActual); 
                 }
@@ -1298,10 +1308,8 @@ updateDoc(obraRef, { valorMedido: totalMedido });
         }
     };
 
-    // Anexar eventos aos botões e inputs gerais
     const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
     if (btnAtualizarCronograma) {
-        // Remove ouvintes duplicados clonando e substituindo o elemento
         const novoBtn = btnAtualizarCronograma.cloneNode(true);
         btnAtualizarCronograma.parentNode.replaceChild(novoBtn, btnAtualizarCronograma);
         novoBtn.addEventListener('click', renderCronograma);
