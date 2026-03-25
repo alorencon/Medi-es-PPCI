@@ -1628,12 +1628,12 @@ const renderRelatorios = async () => {
             });
         }
 
-        // --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
+       // --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
         const iaBtn = document.getElementById('gerar-parecer-ia-btn');
         if (iaBtn) {
             iaBtn.addEventListener('click', async () => {
                 if (!API_KEY || API_KEY === '') {
-                    openModal('Atenção', '<p class="text-center text-red-600 font-bold">Você precisa inserir sua chave da API do Gemini no código (variável API_KEY) para usar este recurso.</p>');
+                    openModal('Atenção', '<p class="text-center text-red-600 font-bold">Você precisa inserir sua chave da API do Gemini no código (variável API_KEY).</p>');
                     return;
                 }
 
@@ -1654,28 +1654,47 @@ const renderRelatorios = async () => {
                     contents: [{ parts: [{ text: prompt }] }],
                 };
 
+                // Link oficial e definitivo do Gemini 1.5 Flash injetado diretamente aqui
+                const apiLinkDefinitivo = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
                 try {
-                    const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
+                    const response = await fetch(apiLinkDefinitivo, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
                     const result = await response.json();
-                    const analise = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Não foi possível gerar a análise.';
+                    
+                    // NOVO: Detetor de Erros Reais do Google
+                    if (result.error) {
+                         openModal('Erro recusado pelo Google', `
+                            <p class="text-red-600 font-bold">O servidor do Google recusou a sua chave.</p>
+                            <p class="text-sm mt-4 text-gray-700"><strong>Motivo exato:</strong> ${result.error.message}</p>
+                            <p class="text-xs mt-2 text-gray-500">Se disser "API key not valid", significa que a chave foi copiada incompleta ou errada.</p>
+                         `);
+                         return;
+                    }
+
+                    const analise = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (!analise) {
+                         openModal('Erro Desconhecido', `<p class="text-red-600">A API ligou, mas não devolveu texto. Retorno: ${JSON.stringify(result)}</p>`);
+                         return;
+                    }
                     
                     const formatHtml = analise.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-black">$1</strong>');
-                    
                     openModal('Parecer Técnico da Obra (IA)', `<div class="text-gray-700 text-sm leading-relaxed p-2">${formatHtml}</div>`);
+                    
                 } catch (error) {
                     console.error("Erro na IA:", error);
-                    openModal('Erro', '<p class="text-red-600">Ocorreu um erro de conexão ao gerar a análise.</p>');
+                    openModal('Erro de Conexão', `<p class="text-red-600">Falha ao tentar conectar com a internet: ${error.message}</p>`);
                 } finally {
                     iaBtn.disabled = false;
                     iaBtn.innerHTML = originalText;
                 }
             });
         }
-    };
     // Função para converter ArrayBuffer para Blob
     const pcmToWav = (pcm16, sampleRate) => {
         const pcmData = pcm16.buffer;
