@@ -2621,9 +2621,10 @@ addTarefaBtn.addEventListener('click', () => {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-        openDespesaForm();
+       openDespesaForm();
     });
-// --- WIDGET DE PREVISÃO DO TEMPO DINÂMICO ---
+
+    // --- WIDGET DE PREVISÃO DO TEMPO DINÂMICO ---
     const WEATHER_API_KEY = '7ff5cbc383978e5e93748f9b00e94b6d'; 
 
     const updateWeatherWidget = async (cidadeObra) => {
@@ -2632,18 +2633,17 @@ addTarefaBtn.addEventListener('click', () => {
         const iconElement = document.getElementById('weather-icon');
 
         if (!cidadeObra) {
-            tempElement.innerText = '--°C';
-            descElement.innerText = 'Selecione uma obra';
-            iconElement.innerHTML = '⛅';
+            if(tempElement) tempElement.innerText = '--°C';
+            if(descElement) descElement.innerText = 'Selecione uma obra';
+            if(iconElement) iconElement.innerHTML = '⛅';
             return;
         }
 
-    y {
-            // 1. Pegamos "PEDERNEIRAS/SP" e dividimos na barra
+        try {
+            // Limpeza para Pederneiras/SP -> Pederneiras
             const partes = cidadeObra.split('/');
             const cidadeApenas = partes[0].trim();
             
-            // Busca principal
             const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cidadeApenas},BR&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
             const data = await response.json();
 
@@ -2652,31 +2652,21 @@ addTarefaBtn.addEventListener('click', () => {
                 descElement.innerText = data.weather[0].description;
                 iconElement.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.weather[0].icon}.png" alt="Clima" class="w-8 h-8">`;
             } else {
-                // Se não achar, tenta o fallback
-                const fallbackRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cidadeObra.replace('/', ',')}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
-                const fallbackData = await fallbackRes.json();
-                
-                if (fallbackData.main) {
-                    tempElement.innerText = `${Math.round(fallbackData.main.temp)}°C`;
-                    descElement.innerText = fallbackData.weather[0].description;
-                    iconElement.innerHTML = `<img src="https://openweathermap.org/img/wn/${fallbackData.weather[0].icon}.png" alt="Clima" class="w-8 h-8">`;
-                } else {
-                    descElement.innerText = 'Local não encontrado';
-                }
+                descElement.innerText = 'Local não encontrado';
             }
         } catch (error) {
             console.error('Erro ao buscar clima:', error);
-            descElement.innerText = 'Erro de conexão';
+            if(descElement) descElement.innerText = 'Erro de conexão';
         }
-    }; // <--- Esta é a chave que fecha a função updateWeatherWidget
-    
-    // Inicia zerado até o usuário clicar em alguma obra
+    };
+
+    // Inicialização do Sistema
     updateWeatherWidget(null);
 
-    // Inicia o widget assim que a página carrega
-    initWeatherWidget();
     // Run app
-    initFirebase();
+    if (typeof initFirebase === 'function') {
+        initFirebase();
+    }
 </script>
 </body>
 </html>
