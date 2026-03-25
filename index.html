@@ -2090,59 +2090,47 @@ document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
             <form id="despesa-form" class="space-y-4">
                 <div>
                     <label for="despesa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                   
-
- <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="text" id="despesa-descricao" name="descricao" value="${despesa.descricao || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
                 </div>
                 <div>
                     <label for="despesa-valor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor || 0}" 
-
-class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="despesa-valor" name="valor" value="${despesa.valor || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
                 </div>
                 <div>
                     <label for="despesa-data" class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="date" id="despesa-data" name="data" value="${despesa.data || new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
                 </div>
                 <div>
                     <label for="despesa-categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
-                    <select id="despesa-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-      
-
-                  <option value="Gasolina" ${despesa.categoria === 'Gasolina' ? 'selected' : ''}>Gasolina</option>
+                    <select id="despesa-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                        <option value="Gasolina" ${despesa.categoria === 'Gasolina' ? 'selected' : ''}>Gasolina</option>
                         <option value="Alimentação" ${despesa.categoria === 'Alimentação' ? 'selected' : ''}>Alimentação</option>
                         <option value="Hospedagem" ${despesa.categoria === 'Hospedagem' ? 'selected' : ''}>Hospedagem</option>
-          
-
-              <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
+                        <option value="Materiais" ${despesa.categoria === 'Materiais' ? 'selected' : ''}>Materiais</option>
                         <option value="Outros" ${despesa.categoria === 'Outros' ? 'selected' : ''}>Outros</option>
                     </select>
                 </div>
                 <div>
                     <label for="despesa-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea 
-
-id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${despesa.observacoes || ''}</textarea>
+                    <textarea id="despesa-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${despesa.observacoes || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">${despesa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
         `;
-openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
+        openModal(despesa.id ? 'Editar Despesa' : 'Nova Despesa', formHtml);
         document.getElementById('despesa-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const newDespesa = {
                 descricao: formData.get('descricao'),
                 valor: parseFloat(formData.get('valor')),
-            
-
-    data: formData.get('data'),
+                data: formData.get('data'),
                 categoria: formData.get('categoria'),
                 observacoes: formData.get('observacoes')
             };
             addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
         });
-};
+    };
 
     // LLM - Gerador de Descrição de Tarefa
     const generateTaskDescription = async (nome, unidade) => {
