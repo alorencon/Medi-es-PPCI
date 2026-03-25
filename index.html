@@ -1892,48 +1892,28 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
         // --- ADIÇÃO DA CURVA S NO PDF ---
         const canvas = document.getElementById("curva-s-chart");
         
+        // Verifica se o gráfico já foi renderizado na tela alguma vez nesta sessão
         if (canvas && curvaSChart) {
-            // Tira o "print" do gráfico
+            // Cria uma nova página para o gráfico não sobrepor as tabelas
+            doc.addPage();
+            doc.setFontSize(16);
+            doc.text("Curva S - Evolução Físico-Financeira", 14, 22);
+            
+            // Tira um "print" do gráfico atual com fundo branco (prevenindo transparência)
             const chartImg = canvas.toDataURL("image/png", 1.0);
             
-            // Dimensões da folha A4 em Paisagem (Deitada)
-            const pageWidth = 297; 
+            // Calcula as proporções para a imagem caber na folha A4 (largura de 210mm)
+            const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 14;
-            const usableWidth = pageWidth - (margin * 2); // Largura útil por página
+            const imgWidth = pageWidth - (margin * 2);
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
-            // Trava a altura do gráfico no PDF (140mm deixa espaço para título e não espreme)
-            const imgHeight = 140; 
-            // Calcula a largura total real que o gráfico exige
-            const imgWidth = (canvas.width * imgHeight) / canvas.height;
-            
-            // Adiciona a 1ª página em Paisagem ('l' = landscape)
-            doc.addPage('a4', 'l');
-            doc.setFontSize(16);
-            doc.text("Curva S - Evolução Físico-Financeira", margin, 22);
-            
-            let positionX = margin;
-            let widthLeft = imgWidth;
-            
-            // Cola a imagem na primeira página
-            doc.addImage(chartImg, 'PNG', positionX, 35, imgWidth, imgHeight);
-            widthLeft -= usableWidth;
-            
-            // Se ainda sobrar largura do gráfico, vai criando novas páginas paisagem automaticamente
-            while (widthLeft > 0) {
-                positionX -= usableWidth; // Desloca a imagem "para a esquerda" para mostrar a continuação
-                
-                doc.addPage('a4', 'l'); // Nova folha deitada
-                doc.setFontSize(16);
-                doc.text("Curva S - Evolução Físico-Financeira (Continuação)", margin, 22);
-                
-                // Cola a imagem com deslocamento (o PDF corta automaticamente o que fica fora da folha)
-                doc.addImage(chartImg, 'PNG', positionX, 35, imgWidth, imgHeight);
-                
-                widthLeft -= usableWidth;
-            }
+            // Cola a imagem no PDF
+            doc.addImage(chartImg, 'PNG', margin, 35, imgWidth, imgHeight);
         }
 
         doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
+    };
     const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
         // Prepare detailed data
         const detailedData = [
