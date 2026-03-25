@@ -1558,44 +1558,38 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
 const renderRelatorios = async () => {
         if (!currentObraId) {
             relatorioContent.innerHTML = '<p class="text-center text-gray-600">Selecione uma obra na aba "Obras" para visualizar os relatórios.</p>';
-return;
+            return;
         }
 
         const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
         const obraDoc = await getDoc(obraDocRef);
-const obra = obraDoc.data();
+        const obra = obraDoc.data();
 
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         const snapshot = await getDocs(tarefasRef);
-const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         let totalTarefas = tarefas.length;
-let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
-let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
-let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
+        let totalConcluidas = tarefas.filter(t => (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0) >= t.valorTotal).length;
+        let valorMedidoTotal = tarefas.reduce((sum, t) => sum + (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0), 0);
+        let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
 
         relatorioContent.innerHTML = `
             <h3 class="text-xl font-semibold mb-4">Relatório Geral da Obra</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="p-6 bg-gray-100 rounded-lg">
                     <p class="text-gray-500">Total de Tarefas</p>
-                
-
-    <p class="text-3xl font-bold">${totalTarefas}</p>
+                    <p class="text-3xl font-bold">${totalTarefas}</p>
                     <p class="text-sm text-gray-500">${totalConcluidas} concluídas</p>
                 </div>
                 <div class="p-6 bg-gray-100 rounded-lg">
                     <p class="text-gray-500">Valor Total Medido</p>
-             
-
-       <p class="text-3xl font-bold text-green-600">${formatCurrency(valorMedidoTotal)}</p>
+                    <p class="text-3xl font-bold text-green-600">${formatCurrency(valorMedidoTotal)}</p>
                     <p class="text-sm text-gray-500">de ${formatCurrency(obra.valorTotal)} total</p>
                 </div>
                 <div class="p-6 bg-gray-100 rounded-lg">
                     <p class="text-gray-500">Progresso Geral</p>
-         
-
-           <p class="text-3xl font-bold">${progressoGeral.toFixed(1)}%</p>
+                    <p class="text-3xl font-bold">${progressoGeral.toFixed(1)}%</p>
                     <p class="text-sm text-gray-500">média das tarefas</p>
                 </div>
             </div>
@@ -1610,41 +1604,34 @@ let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
             </h3>
             <div class="space-y-4">
                 <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
-                
-
-    <div class="flex-1">
+                    <div class="flex-1">
                         <label for="start-date" class="block text-sm font-medium text-gray-700">Data de Início</label>
-                        <input type="date" id="start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <input type="date" id="start-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
                     </div>
-            
-
-        <div class="flex-1">
+                    <div class="flex-1">
                         <label for="end-date" class="block text-sm font-medium text-gray-700">Data de Fim</label>
-                        <input type="date" id="end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <input type="date" id="end-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
                     </div>
-        
-
-            <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
+                    <button id="generate-period-report-btn" class="btn btn-primary">Gerar Relatório</button>
                 </div>
                 <div id="period-report-result" class="mt-6">
-                    </div>
+                </div>
             </div>
         `;
-const generateBtn = document.getElementById('generate-period-report-btn');
-        generateBtn.addEventListener('click', () => {
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            renderRelatorioPorPeriodo(startDate, endDate, tarefas, obra.nome);
-        });
-document.getElementById('read-summary-btn').addEventListener('click', async () => {
-            const summaryText = `Resumo da obra ${obra.nome}. Total de tarefas: ${totalTarefas}. ${totalConcluidas} concluídas. Valor total medido: ${formatCurrency(valorMedidoTotal)}. Progresso geral: ${progressoGeral.toFixed(1)}%`;
-            await speakText(summaryText);
-        });
-// --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
+
+        const generateBtn = document.getElementById('generate-period-report-btn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                renderRelatorioPorPeriodo(startDate, endDate, tarefas, obra.nome);
+            });
+        }
+
+        // --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
         const iaBtn = document.getElementById('gerar-parecer-ia-btn');
         if (iaBtn) {
             iaBtn.addEventListener('click', async () => {
-                // Se não houver chave da API configurada, avisa o usuário
                 if (!API_KEY || API_KEY === '') {
                     openModal('Atenção', '<p class="text-center text-red-600 font-bold">Você precisa inserir sua chave da API do Gemini no código (variável API_KEY) para usar este recurso.</p>');
                     return;
@@ -1654,7 +1641,6 @@ document.getElementById('read-summary-btn').addEventListener('click', async () =
                 iaBtn.disabled = true;
                 iaBtn.innerHTML = 'Analisando... ⏳';
 
-                // Cria o comando (prompt) passando os dados reais da sua obra para a IA
                 const prompt = `Atue como um Engenheiro Civil e Gestor de Obras experiente. Faça um breve parecer técnico (máximo de 3 parágrafos curtos) sobre o status atual desta obra, com base nos seguintes dados:
                 - Nome da Obra: ${obra.nome}
                 - Total de Tarefas: ${totalTarefas} (sendo ${totalConcluidas} totalmente concluídas)
@@ -1677,10 +1663,8 @@ document.getElementById('read-summary-btn').addEventListener('click', async () =
                     const result = await response.json();
                     const analise = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Não foi possível gerar a análise.';
                     
-                    // Formata a resposta para o HTML (transforma quebras de linha e negritos do markdown)
                     const formatHtml = analise.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-black">$1</strong>');
                     
-                    // Abre o modal com o parecer
                     openModal('Parecer Técnico da Obra (IA)', `<div class="text-gray-700 text-sm leading-relaxed p-2">${formatHtml}</div>`);
                 } catch (error) {
                     console.error("Erro na IA:", error);
@@ -1691,8 +1675,7 @@ document.getElementById('read-summary-btn').addEventListener('click', async () =
                 }
             });
         }
-};
-
+    };
     // Função para converter ArrayBuffer para Blob
     const pcmToWav = (pcm16, sampleRate) => {
         const pcmData = pcm16.buffer;
