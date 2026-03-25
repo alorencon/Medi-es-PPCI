@@ -308,7 +308,7 @@ flex-wrap justify-between items-center mb-6">
                         </div>
                     </div>
 
-                    <div class="bg-gray-100 p-4 rounded-lg mb-6 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="bg-gray-100 p-4 rounded-lg mb-4 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <div class="flex-1">
                             <label for="cronograma-data-inicio" class="block text-sm font-medium text-gray-700">Data de Início da Obra</label>
                             <input type="date" id="cronograma-data-inicio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
@@ -318,7 +318,15 @@ flex-wrap justify-between items-center mb-6">
                             <input type="number" id="cronograma-dias-total" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-200 text-gray-600 cursor-not-allowed" readonly>
                             <span class="text-xs text-gray-500">Calculado automaticamente (maior dia de término).</span>
                         </div>
+                        <div class="flex-1">
+                            <label for="novo-feriado" class="block text-sm font-medium text-gray-700">Adicionar Feriado Local/Municipal</label>
+                            <div class="flex mt-1">
+                                <input type="date" id="novo-feriado" class="block w-full rounded-l-md border-gray-300 shadow-sm text-black">
+                                <button id="add-feriado-btn" class="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 font-bold transition-colors">+</button>
+                            </div>
+                        </div>
                     </div>
+                    <div id="feriados-list" class="flex flex-wrap gap-2 mb-6"></div>
 
                     <div class="overflow-x-auto mb-8 bg-white rounded-lg shadow">
                         <table class="min-w-full divide-y divide-gray-200 text-black">
@@ -1038,19 +1046,50 @@ updateDoc(obraRef, { valorMedido: totalMedido });
 
 
     // --- CRONOGRAMA REFORMULADO ---
-   let scheduleTasks = [];
+ let scheduleTasks = [];
+    let feriadosPersonalizados = []; // Guarda os feriados locais
 
-    // Recriando as funções de comunicação com o Firestore para garantir que existam
+    // Função para calcular feriados nacionais e móveis do Brasil no ano
+    const getFeriadosNacionais = (ano) => {
+        const feriados = [
+            `${ano}-01-01`, // Confraternização Universal
+            `${ano}-04-21`, // Tiradentes
+            `${ano}-05-01`, // Dia do Trabalhador
+            `${ano}-09-07`, // Independência
+            `${ano}-10-12`, // Nossa Sra Aparecida
+            `${ano}-11-02`, // Finados
+            `${ano}-11-15`, // Proclamação da República
+            `${ano}-12-25`  // Natal
+        ];
+
+        // Cálculo da Páscoa
+        const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+        const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451), mesPascoa = Math.floor((h + l - 7 * m + 114) / 31);
+        const diaPascoa = ((h + l - 7 * m + 114) % 31) + 1;
+        const dataPascoa = new Date(ano, mesPascoa - 1, diaPascoa);
+
+        // Adiciona Feriados Móveis
+        const carnaval = new Date(dataPascoa); carnaval.setDate(dataPascoa.getDate() - 47);
+        const sextaSanta = new Date(dataPascoa); sextaSanta.setDate(dataPascoa.getDate() - 2);
+        const corpusChristi = new Date(dataPascoa); corpusChristi.setDate(dataPascoa.getDate() + 60);
+
+        feriados.push(carnaval.toISOString().split('T')[0]);
+        feriados.push(sextaSanta.toISOString().split('T')[0]);
+        feriados.push(corpusChristi.toISOString().split('T')[0]);
+
+        return feriados;
+    };
+
     const addOrUpdateCronogramaConfig = async (cronogramaData) => {
         if (!currentObraId || !db) return;
-        // CORREÇÃO: Adicionado '/cronograma/dados' para ter um número PAR de segmentos
         const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
         await setDoc(cronogramaRef, cronogramaData, { merge: true });
     };
 
     const getCronogramaConfig = async () => {
         if (!currentObraId || !db) return null;
-        // CORREÇÃO: Adicionado '/cronograma/dados' para ter um número PAR de segmentos
         const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
         const cronogramaDoc = await getDoc(cronogramaRef);
         return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
@@ -1059,7 +1098,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
     const saveAndUpdateSchedule = async () => {
         try {
             if (!currentObraId) return;
-            
             const cronogramaData = {};
             let maxEndDay = 1;
 
@@ -1072,7 +1110,11 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             const dataInicioInput = document.getElementById('cronograma-data-inicio');
             const dataInicio = dataInicioInput ? dataInicioInput.value : new Date().toISOString().split('T')[0];
             
-            await addOrUpdateCronogramaConfig({ tasks: cronogramaData, dataInicio: dataInicio });
+            await addOrUpdateCronogramaConfig({ 
+                tasks: cronogramaData, 
+                dataInicio: dataInicio,
+                feriados: feriadosPersonalizados 
+            });
             
             const diasInput = document.getElementById('cronograma-dias-total');
             if(diasInput) diasInput.value = maxEndDay;
@@ -1080,29 +1122,52 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             renderCurvaS(maxEndDay, dataInicio);
         } catch (error) {
             console.error("Erro ao salvar cronograma:", error);
-            alert("Erro ao salvar o cronograma: " + error.message);
         }
+    };
+
+    const renderFeriadosUI = () => {
+        const listDiv = document.getElementById('feriados-list');
+        if (!listDiv) return;
+        listDiv.innerHTML = '';
+        feriadosPersonalizados.forEach((feriado, index) => {
+            const parts = feriado.split('-');
+            const dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            listDiv.innerHTML += `
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full flex items-center border border-blue-200">
+                    ${dataFormatada}
+                    <button class="ml-2 text-blue-600 hover:text-blue-900 font-bold remover-feriado-btn" data-index="${index}">&times;</button>
+                </span>
+            `;
+        });
+
+        document.querySelectorAll('.remover-feriado-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const idx = e.target.dataset.index;
+                feriadosPersonalizados.splice(idx, 1);
+                renderFeriadosUI();
+                await saveAndUpdateSchedule();
+            });
+        });
     };
 
     const renderCronograma = async () => {
         try {
             if (!currentObraId) return;
-            
             const tableBody = document.getElementById('cronograma-table-body');
             if (!tableBody) return; 
             
             tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Carregando tarefas...</td></tr>';
             
-            // 1. Buscar Tarefas no Banco
             const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
             const snapshot = await getDocs(tarefasRef);
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // 2. Buscar Configuração do Cronograma Salvo
             const cronogramaSaved = await getCronogramaConfig();
             const cronogramaData = cronogramaSaved?.tasks || {};
+            feriadosPersonalizados = cronogramaSaved?.feriados || [];
             
-            // 3. Configurar Data de Início no Input
+            renderFeriadosUI();
+
             const inputDataInicio = document.getElementById('cronograma-data-inicio');
             if (inputDataInicio) {
                 if (cronogramaSaved?.dataInicio) {
@@ -1122,7 +1187,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 return;
             }
 
-            // 4. Montar a Tabela Linha por Linha
             tarefas.forEach(tarefa => {
                 const saved = cronogramaData[tarefa.id];
                 const startDay = saved?.start ? Number(saved.start) : 1;
@@ -1157,7 +1221,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             const diasInput = document.getElementById('cronograma-dias-total');
             if (diasInput) diasInput.value = maxEndDay;
 
-            // 5. Adicionar Listeners nos inputs recém-criados
             document.querySelectorAll(".crono-start-input, .crono-duration-input").forEach(input => {
                 input.addEventListener("change", async (e) => {
                     const taskId = e.target.dataset.id;
@@ -1174,13 +1237,11 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 });
             });
 
-            // 6. Finalmente, Renderiza a Curva S
             renderCurvaS(maxEndDay, inputDataInicio ? inputDataInicio.value : null);
             
         } catch (error) {
             console.error("Erro fatal em renderCronograma:", error);
             const tableBody = document.getElementById('cronograma-table-body');
-            // Mostra exatamente o que falhou direto na tabela
             if (tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Erro: ${error.message}</td></tr>`;
         }
     };
@@ -1194,24 +1255,18 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             if (curvaSChart) curvaSChart.destroy();
             
             if (!scheduleTasks || scheduleTasks.length === 0) {
-                curvaSChart = new Chart(ctx, {
-                    type: "line",
-                    data: { labels: ["Dia 1"], datasets: [] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
+                curvaSChart = new Chart(ctx, { type: "line", data: { labels: [], datasets: [] } });
                 return;
             }
 
-            // --- Curva S Planejada ---
+            // --- Cálculos Matemáticos ---
             const plannedValuePerDay = new Array(diasTotais).fill(0);
             scheduleTasks.forEach(task => {
                 if (task.duration > 0 && task.valorTotal > 0) {
                     const dailyCost = task.valorTotal / task.duration;
                     for (let i = 0; i < task.duration; i++) {
                         const dayIndex = task.start + i - 1;
-                        if (dayIndex >= 0 && dayIndex < diasTotais) {
-                            plannedValuePerDay[dayIndex] += dailyCost;
-                        }
+                        if (dayIndex >= 0 && dayIndex < diasTotais) plannedValuePerDay[dayIndex] += dailyCost;
                     }
                 }
             });
@@ -1220,16 +1275,12 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             let accPlanned = 0;
             plannedValuePerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned); });
 
-            // --- Curva S Real (Baseada nas Medições) ---
             const actualValuePerDay = new Array(diasTotais).fill(0);
-            
             let scheduleStart = new Date();
             scheduleStart.setHours(0,0,0,0);
             if (dataInicioStr) {
                 const parts = dataInicioStr.split('-');
-                if (parts.length === 3) {
-                    scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]); 
-                }
+                if (parts.length === 3) scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]); 
             }
 
             scheduleTasks.forEach(task => {
@@ -1238,92 +1289,106 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     if (!m.data) return;
                     const medDate = new Date(m.data);
                     medDate.setHours(0,0,0,0);
-                    
-                    const diffTime = medDate.getTime() - scheduleStart.getTime();
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays >= 0 && diffDays < diasTotais) {
-                        actualValuePerDay[diffDays] += (m.valor || 0);
-                    } else if (diffDays < 0) {
-                        actualValuePerDay[0] += (m.valor || 0);
-                    } else if (diffDays >= diasTotais) {
-                        actualValuePerDay[diasTotais - 1] += (m.valor || 0);
-                    }
+                    const diffDays = Math.floor((medDate.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
+                    if (diffDays >= 0 && diffDays < diasTotais) actualValuePerDay[diffDays] += (m.valor || 0);
+                    else if (diffDays < 0) actualValuePerDay[0] += (m.valor || 0);
+                    else if (diffDays >= diasTotais) actualValuePerDay[diasTotais - 1] += (m.valor || 0);
                 });
             });
 
             const cumulativeActual = [];
             let accActual = 0;
-            
             let lastDayWithMeasurement = -1;
             for (let i = diasTotais - 1; i >= 0; i--) {
-                if (actualValuePerDay[i] > 0) {
-                    lastDayWithMeasurement = i;
-                    break;
-                }
+                if (actualValuePerDay[i] > 0) { lastDayWithMeasurement = i; break; }
             }
 
             actualValuePerDay.forEach((v, index) => { 
                 accActual += v; 
-                if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) {
-                    cumulativeActual.push(accActual); 
-                }
+                if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) cumulativeActual.push(accActual); 
             });
 
-           const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            // --- Formatação dos Dias do Gráfico ---
+            const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            const arrayDatasGrafico = []; // Guarda o objeto Date para o Plugin de Fundo usar
             
             const labels = Array.from({ length: diasTotais }, (_, i) => {
-                // Cria uma cópia da data de início para não alterar a original
                 const dataAtual = new Date(scheduleStart);
-                // Soma a quantidade de dias
                 dataAtual.setDate(scheduleStart.getDate() + i);
+                arrayDatasGrafico.push(dataAtual);
                 
-                // Formata o dia e o mês para sempre terem 2 dígitos (ex: 05/04)
                 const dia = String(dataAtual.getDate()).padStart(2, '0');
                 const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-                const nomeDia = diasDaSemana[dataAtual.getDay()];
-                
-                return `${dia}/${mes} ${nomeDia}`;
+                return `${dia}/${mes} ${diasDaSemana[dataAtual.getDay()]}`;
             });
+
+            // --- PLUGIN PERSONALIZADO: Fundos para Finais de Semana e Feriados ---
+            const customBackgroundPlugin = {
+                id: 'customHolidaysBackground',
+                beforeDraw: (chart) => {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
+                    ctx.save();
+                    
+                    // Descobre a largura aproximada de cada "coluna" de dia no gráfico
+                    const tickWidth = x.width / Math.max(x.ticks.length - 1, 1);
+                    
+                    x.ticks.forEach((tick, index) => {
+                        const dataObj = arrayDatasGrafico[index];
+                        if (!dataObj) return;
+                        
+                        // Verifica Fim de Semana
+                        const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
+                        
+                        // Verifica Feriados Nacionais e Personalizados
+                        const dataString = dataObj.toISOString().split('T')[0];
+                        const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
+                        const isHoliday = feriadosNacionais.includes(dataString) || feriadosPersonalizados.includes(dataString);
+
+                        if (isWeekend || isHoliday) {
+                            // Define a cor: Azul claro para feriado, cinza para final de semana
+                            ctx.fillStyle = isHoliday ? 'rgba(100, 181, 246, 0.25)' : 'rgba(200, 200, 200, 0.3)';
+                            
+                            // Calcula as coordenadas exatas da coluna
+                            let startX = x.getPixelForTick(index) - (tickWidth / 2);
+                            let width = tickWidth;
+                            
+                            // Ajustes para não desenhar fora dos limites do gráfico
+                            if (startX < left) { width -= (left - startX); startX = left; }
+                            if (startX + width > right) { width = right - startX; }
+                            
+                            // Pinta o retângulo de cima a baixo
+                            ctx.fillRect(startX, top, width, bottom - top);
+                        }
+                    });
+                    ctx.restore();
+                }
+            };
 
             curvaSChart = new Chart(ctx, {
                 type: "line",
                 data: {
                     labels: labels,
                     datasets: [
-                        {
-                            label: "Curva S Planejada (Base)",
-                            data: cumulativePlanned,
-                            borderColor: "#E21B2F",
-                            backgroundColor: "rgba(226,27,47,0.12)",
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: "Curva S Realizada (Medições)",
-                            data: cumulativeActual,
-                            borderColor: "#1f7a1f",
-                            backgroundColor: "rgba(31,122,31,0.08)",
-                            fill: true,
-                            tension: 0.3
-                        }
+                        { label: "Curva S Planejada (Base)", data: cumulativePlanned, borderColor: "#E21B2F", backgroundColor: "rgba(226,27,47,0.12)", fill: true, tension: 0.3 },
+                        { label: "Curva S Realizada (Medições)", data: cumulativeActual, borderColor: "#1f7a1f", backgroundColor: "rgba(31,122,31,0.08)", fill: true, tension: 0.3 }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: true } },
                     scales: {
                         y: { beginAtZero: true, title: { display: true, text: "Valor Financeiro (R$)" } },
                         x: { title: { display: true, text: "Dias de Obra" } }
                     }
-                }
+                },
+                plugins: [customBackgroundPlugin] // Adicionando o nosso plugin customizado!
             });
         } catch (error) {
             console.error("Erro ao desenhar o gráfico Curva S:", error);
         }
     };
 
+    // Listeners da interface
     const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
     if (btnAtualizarCronograma) {
         const novoBtn = btnAtualizarCronograma.cloneNode(true);
@@ -1335,6 +1400,22 @@ updateDoc(obraRef, { valorMedido: totalMedido });
     if (dataInicioInputObj) {
         dataInicioInputObj.addEventListener('change', () => {
             if (currentObraId) saveAndUpdateSchedule();
+        });
+    }
+
+    const addFeriadoBtn = document.getElementById('add-feriado-btn');
+    if (addFeriadoBtn) {
+        addFeriadoBtn.addEventListener('click', async () => {
+            const novoFeriadoInput = document.getElementById('novo-feriado');
+            if (novoFeriadoInput.value) {
+                if (!feriadosPersonalizados.includes(novoFeriadoInput.value)) {
+                    feriadosPersonalizados.push(novoFeriadoInput.value);
+                    feriadosPersonalizados.sort(); // Mantém as datas em ordem
+                    novoFeriadoInput.value = '';
+                    renderFeriadosUI();
+                    if (currentObraId) await saveAndUpdateSchedule();
+                }
+            }
         });
     }
     // --- FIM CRONOGRAMA REFORMULADO ---
