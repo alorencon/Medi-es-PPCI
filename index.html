@@ -1603,10 +1603,10 @@ let progressoGeral = calculatePercentage(valorMedidoTotal, obra.valorTotal);
             <hr class="my-8">
 
             <h3 class="text-xl font-semibold mb-4 flex items-center justify-between">
-    
-
-            Relatório por Período
-                <button id="read-summary-btn" class="btn btn-primary ml-4">Ouvir Resumo ✨</button>
+                Relatório por Período
+                <button id="gerar-parecer-ia-btn" class="btn ml-4 bg-purple-600 text-white hover:bg-purple-700 font-bold px-4 py-2 rounded-full shadow transition-colors">
+                    Análise Inteligente IA ✨
+                </button>
             </h3>
             <div class="space-y-4">
                 <div class="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
@@ -1640,6 +1640,57 @@ document.getElementById('read-summary-btn').addEventListener('click', async () =
             const summaryText = `Resumo da obra ${obra.nome}. Total de tarefas: ${totalTarefas}. ${totalConcluidas} concluídas. Valor total medido: ${formatCurrency(valorMedidoTotal)}. Progresso geral: ${progressoGeral.toFixed(1)}%`;
             await speakText(summaryText);
         });
+// --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
+        const iaBtn = document.getElementById('gerar-parecer-ia-btn');
+        if (iaBtn) {
+            iaBtn.addEventListener('click', async () => {
+                // Se não houver chave da API configurada, avisa o usuário
+                if (!API_KEY || API_KEY === '') {
+                    openModal('Atenção', '<p class="text-center text-red-600 font-bold">Você precisa inserir sua chave da API do Gemini no código (variável API_KEY) para usar este recurso.</p>');
+                    return;
+                }
+
+                const originalText = iaBtn.innerHTML;
+                iaBtn.disabled = true;
+                iaBtn.innerHTML = 'Analisando... ⏳';
+
+                // Cria o comando (prompt) passando os dados reais da sua obra para a IA
+                const prompt = `Atue como um Engenheiro Civil e Gestor de Obras experiente. Faça um breve parecer técnico (máximo de 3 parágrafos curtos) sobre o status atual desta obra, com base nos seguintes dados:
+                - Nome da Obra: ${obra.nome}
+                - Total de Tarefas: ${totalTarefas} (sendo ${totalConcluidas} totalmente concluídas)
+                - Progresso Físico-Financeiro: ${progressoGeral.toFixed(1)}%
+                - Valor Total da Obra: ${formatCurrency(obra.valorTotal)}
+                - Valor Total Medido (Executado): ${formatCurrency(valorMedidoTotal)}
+                
+                Seja profissional, direto e forneça um breve insight ou recomendação sobre a saúde financeira e o ritmo da obra.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                };
+
+                try {
+                    const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const analise = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Não foi possível gerar a análise.';
+                    
+                    // Formata a resposta para o HTML (transforma quebras de linha e negritos do markdown)
+                    const formatHtml = analise.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-black">$1</strong>');
+                    
+                    // Abre o modal com o parecer
+                    openModal('Parecer Técnico da Obra (IA)', `<div class="text-gray-700 text-sm leading-relaxed p-2">${formatHtml}</div>`);
+                } catch (error) {
+                    console.error("Erro na IA:", error);
+                    openModal('Erro', '<p class="text-red-600">Ocorreu um erro de conexão ao gerar a análise.</p>');
+                } finally {
+                    iaBtn.disabled = false;
+                    iaBtn.innerHTML = originalText;
+                }
+            });
+        }
 };
 
     // Função para converter ArrayBuffer para Blob
