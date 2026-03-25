@@ -1327,18 +1327,24 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             });
 
             // --- PLUGIN PERSONALIZADO: Fundos para Finais de Semana e Feriados ---
-            const customBackgroundPlugin = {
+           const customBackgroundPlugin = {
                 id: 'customHolidaysBackground',
                 beforeDraw: (chart) => {
                     const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
                     ctx.save();
                     
-                    // Descobre a largura aproximada de cada "coluna" de dia no gráfico
                     const tickWidth = x.width / Math.max(x.ticks.length - 1, 1);
+                    
+                    // Pega a data de "Hoje" zerando as horas para comparar exatamente o dia
+                    const dataHoje = new Date();
+                    dataHoje.setHours(0, 0, 0, 0);
                     
                     x.ticks.forEach((tick, index) => {
                         const dataObj = arrayDatasGrafico[index];
                         if (!dataObj) return;
+                        
+                        // Verifica se a coluna é o dia de "Hoje"
+                        const isToday = dataObj.getTime() === dataHoje.getTime();
                         
                         // Verifica Fim de Semana
                         const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
@@ -1348,19 +1354,22 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                         const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
                         const isHoliday = feriadosNacionais.includes(dataString) || feriadosPersonalizados.includes(dataString);
 
-                        if (isWeekend || isHoliday) {
-                            // Define a cor: Azul claro para feriado, cinza para final de semana
-                            ctx.fillStyle = isHoliday ? 'rgba(100, 181, 246, 0.25)' : 'rgba(200, 200, 200, 0.3)';
+                        if (isToday || isWeekend || isHoliday) {
+                            // Define a cor de prioridade: 1º Hoje (Dourado), 2º Feriado (Azul), 3º Fim de Semana (Cinza)
+                            if (isToday) {
+                                ctx.fillStyle = 'rgba(255, 215, 0, 0.35)'; // Dourado mais suave
+                            } else if (isHoliday) {
+                                ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
+                            } else {
+                                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                            }
                             
-                            // Calcula as coordenadas exatas da coluna
                             let startX = x.getPixelForTick(index) - (tickWidth / 2);
                             let width = tickWidth;
                             
-                            // Ajustes para não desenhar fora dos limites do gráfico
                             if (startX < left) { width -= (left - startX); startX = left; }
                             if (startX + width > right) { width = right - startX; }
                             
-                            // Pinta o retângulo de cima a baixo
                             ctx.fillRect(startX, top, width, bottom - top);
                         }
                     });
