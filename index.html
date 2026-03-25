@@ -343,9 +343,13 @@ flex-wrap justify-between items-center mb-6">
                         </table>
                     </div>
 
-                    <h3 class="text-xl font-semibold mb-4">Curva S - Evolução Físico-Financeira</h3>
-                    <div class="curva-s-container bg-white p-4 rounded-lg shadow" style="height: 400px;">
-                        <canvas id="curva-s-chart"></canvas>
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Físico-Financeira</h3>
+                    <div class="bg-white p-4 rounded-lg shadow w-full">
+                        <div class="w-full overflow-x-auto pb-4">
+                            <div id="chart-scroll-wrapper" style="height: 400px; position: relative;">
+                                <canvas id="curva-s-chart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
              <div id="relatorios-view" class="tab-content hidden">
@@ -1363,7 +1367,13 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     ctx.restore();
                 }
             };
-
+// --- AJUSTE DE RESPONSIVIDADE (MOBILE) ---
+            const scrollWrapper = document.getElementById("chart-scroll-wrapper");
+            if (scrollWrapper) {
+                // Garante no mínimo 25 pixels de largura para cada dia (ideal para leitura vertical)
+                // Se a tela do computador for maior que isso, ele usa 100% da tela normalmente.
+                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`;
+            }
             curvaSChart = new Chart(ctx, {
                 type: "line",
                 data: {
