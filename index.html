@@ -884,12 +884,18 @@ obras.forEach(obra => {
 <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
                 </div>
             `;
-obraCard.addEventListener('click', () => {
+obraCard.addEventListener('click', async () => {
                 currentObraId = obra.id;
-    // --- ATUALIZA O CLIMA PARA A CIDADE DA OBRA SELECIONADA ---
-                // (Use 'localizacao' ou o nome exato do campo que você usa no banco de dados)
-                updateWeatherWidget(obra.localizacao);
-                tabs[1].click(); // Switch to Tarefas tab
+                
+                // Busca as tarefas da obra clicada para o clima poder analisar
+                const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+                const snapshot = await getDocs(tarefasRef);
+                const tarefasParaClima = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Envia a cidade E as tarefas para o widget
+                updateWeatherWidget(obra.localizacao, tarefasParaClima);
+                
+                tabs[1].click(); // Vai para a aba de tarefas
             });
 obrasList.appendChild(obraCard);
         });
@@ -2621,84 +2627,98 @@ addTarefaBtn.addEventListener('click', () => {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-       openDespesaForm();
-    });
+       // --- 1. FUNÇÃO DE ALERTA VISUAL (INTELIGÊNCIA DE OBRA) ---
+    const mostrarAlertaTarefa = (listaTarefas) => {
+        const containerTarefas = document.getElementById('main-content');
+        if (!containerTarefas || !listaTarefas) return;
 
-    // --- WIDGET DE PREVISÃO DO TEMPO DINÂMICO ---
+        // Verifica se há tarefas [EXTERNO] que ainda não foram 100% concluídas
+        const temTarefaExternaPendente = listaTarefas.some(t => {
+            const valorMedido = (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0);
+            const concluida = valorMedido >= (t.valorTotal || 0);
+            const ehExterno = t.nome && t.nome.toUpperCase().includes('[EXTERNO]');
+            return !concluida && ehExterno;
+        });
+
+        // Se não houver risco (sem tarefas externas abertas), remove alerta se existir
+        if (!temTarefaExternaPendente) {
+            const alertaExistente = document.getElementById('alerta-clima-obra');
+            if (alertaExistente) alertaExistente.remove();
+            return;
+        }
+
+        // Se houver risco e o alerta ainda não estiver na tela, cria o banner
+        if (document.getElementById('alerta-clima-obra')) return;
+
+        const alertaHtml = `
+            <div id="alerta-clima-obra" class="mb-6 p-4 bg-red-600 text-white rounded-lg shadow-lg flex items-center animate-pulse">
+                <span class="text-3xl mr-4">⛈️</span>
+                <div class="flex-1">
+                    <p class="font-bold text-lg">ALERTA DE GESTÃO: RISCO EM TAREFAS EXTERNAS</p>
+                    <p class="text-sm opacity-90 text-white">Há tarefas marcadas como <strong>[EXTERNO]</strong> pendentes e a previsão indica chuva forte. Recomendamos reprogramar serviços de campo.</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-4 text-white font-bold bg-red-800 px-3 py-1 rounded hover:bg-red-900 border-none">Ocultar</button>
+            </div>
+        `;
+        
+        containerTarefas.insertAdjacentHTML('afterbegin', alertaHtml);
+    };
+
+    // --- 2. WIDGET DE PREVISÃO DO TEMPO DINÂMICO ---
     const WEATHER_API_KEY = '7ff5cbc383978e5e93748f9b00e94b6d'; 
 
-   const updateWeatherWidget = async (cidadeObra) => {
+    const updateWeatherWidget = async (cidadeObra, listaTarefas = null) => {
         const tempElement = document.getElementById('weather-temp');
         const descElement = document.getElementById('weather-desc');
         const iconElement = document.getElementById('weather-icon');
         const widget = document.getElementById('weather-widget');
 
-        if (!cidadeObra) return;
+        if (!cidadeObra) {
+            if(tempElement) tempElement.innerText = '--°C';
+            if(descElement) descElement.innerText = 'Selecione uma obra';
+            return;
+        }
 
         try {
             const partes = cidadeObra.split('/');
             const cidadeApenas = partes[0].trim();
             
-            // Mudamos para 'forecast' para pegar os próximos dias
+            // Usamos 'forecast' para prever as próximas horas
             const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${cidadeApenas},BR&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
             const data = await response.json();
 
             if (data.list) {
                 const agora = data.list[0];
-                const previsaoProximasHoras = data.list.slice(1, 4); // Pega as próximas 12h
-                
-                // Atualiza o widget principal
                 tempElement.innerText = `${Math.round(agora.main.temp)}°C`;
                 descElement.innerText = agora.weather[0].description;
                 iconElement.innerHTML = `<img src="https://openweathermap.org/img/wn/${agora.weather[0].icon}.png" class="w-8 h-8">`;
 
-                // --- LÓGICA DE ALERTA DE CHUVA FORTE ---
-                // Verifica se há códigos de chuva forte (ID 502, 503, 504 ou 2xx para tempestades)
-                const chuvaForte = data.list.slice(0, 8).some(item => item.weather[0].id >= 502 && item.weather[0].id <= 504 || item.weather[0].id < 300);
+                // Verifica se há chuva forte prevista (IDs 502, 503, 504 ou tempestades < 300) nas próximas 24h
+                const chuvaForte = data.list.slice(0, 8).some(item => 
+                    (item.weather[0].id >= 502 && item.weather[0].id <= 504) || item.weather[0].id < 300
+                );
 
                 if (chuvaForte) {
                     widget.classList.add('border-red-500', 'bg-red-900', 'animate-pulse');
-                    descElement.innerText = "⚠️ ALERTA: Chuva Forte Prevista";
                     descElement.classList.replace('text-gray-400', 'text-white');
                     
-                    // Mostra um banner de aviso nas tarefas
-                    mostrarAlertaTarefa();
+                    // Chama a inteligência de cruzamento com as tarefas
+                    if (listaTarefas) mostrarAlertaTarefa(listaTarefas);
                 } else {
                     widget.classList.remove('border-red-500', 'bg-red-900', 'animate-pulse');
                     descElement.classList.replace('text-white', 'text-gray-400');
+                    const alertaExistente = document.getElementById('alerta-clima-obra');
+                    if (alertaExistente) alertaExistente.remove();
                 }
             }
         } catch (error) {
-            console.error('Erro no clima:', error);
+            console.error('Erro ao buscar clima:', error);
         }
     };
-// --- FUNÇÃO PARA MOSTRAR ALERTA VISUAL NAS TAREFAS ---
-    const mostrarAlertaTarefa = () => {
-        // No seu sistema, o ID do container onde ficam as tarefas é 'tarefas-view' ou 'tarefas-list'
-        const containerTarefas = document.getElementById('main-content'); 
-        
-        // Evita duplicar o alerta se ele já estiver na tela
-        if (document.getElementById('alerta-clima-obra')) return;
 
-        const alertaHtml = `
-            <div id="alerta-clima-obra" class="mb-6 p-4 bg-red-600 text-white rounded-lg shadow-lg flex items-center animate-bounce">
-                <span class="text-3xl mr-4">⚠️</span>
-                <div>
-                    <p class="font-bold text-lg text-white">RECOMENDAÇÃO TÉCNICA: CHUVA FORTE</p>
-                    <p class="text-sm opacity-90 text-white">Previsão de tempestade para as próximas horas. Recomendamos adiar serviços de escavação, assentamento de tubulações em valas abertas e concretagens externas.</p>
-                </div>
-            </div>
-        `;
-        
-        // Insere o alerta no topo do conteúdo principal
-        if (containerTarefas) {
-            containerTarefas.insertAdjacentHTML('afterbegin', alertaHtml);
-        }
-    };
     // Inicialização do Sistema
     updateWeatherWidget(null);
 
-    // Run app
     if (typeof initFirebase === 'function') {
         initFirebase();
     }
