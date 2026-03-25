@@ -2620,35 +2620,44 @@ addTarefaBtn.addEventListener('click', () => {
         }
         openDespesaForm();
     });
-// --- WIDGET DE PREVISÃO DO TEMPO ---
-    // Coloque a sua chave da OpenWeatherMap aqui dentro das aspas:
+// --- WIDGET DE PREVISÃO DO TEMPO DINÂMICO ---
     const WEATHER_API_KEY = '7ff5cbc383978e5e93748f9b00e94b6d'; 
-    const CIDADE_OBRA = 'Avaré,BR'; // Cidade padrão configurada
+    // Removemos a cidade fixa daqui!
 
-    const initWeatherWidget = async () => {
-        if (!WEATHER_API_KEY) {
-            document.getElementById('weather-desc').innerText = 'Falta API Key';
+    // Agora a função pede a 'cidadeObra' toda vez que for acionada
+    const updateWeatherWidget = async (cidadeObra) => {
+        const tempElement = document.getElementById('weather-temp');
+        const descElement = document.getElementById('weather-desc');
+        const iconElement = document.getElementById('weather-icon');
+
+        // Se nenhuma obra foi selecionada ainda, mostra um aviso
+        if (!cidadeObra) {
+            tempElement.innerText = '--°C';
+            descElement.innerText = 'Selecione uma obra';
+            iconElement.innerHTML = '⛅';
             return;
         }
 
         try {
-            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CIDADE_OBRA}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
+            // Repare que agora usamos a variável ${cidadeObra} no link
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cidadeObra}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
             const data = await response.json();
 
             if (data.main) {
-                // Atualiza a temperatura e a descrição
-                document.getElementById('weather-temp').innerText = `${Math.round(data.main.temp)}°C`;
-                document.getElementById('weather-desc').innerText = data.weather[0].description;
-                
-                // Puxa o ícone oficial da OpenWeatherMap
-                const iconCode = data.weather[0].icon;
-                document.getElementById('weather-icon').innerHTML = `<img src="https://openweathermap.org/img/wn/${iconCode}.png" alt="Clima" class="w-8 h-8">`;
+                tempElement.innerText = `${Math.round(data.main.temp)}°C`;
+                descElement.innerText = data.weather[0].description;
+                iconElement.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.weather[0].icon}.png" alt="Clima" class="w-8 h-8">`;
+            } else {
+                descElement.innerText = 'Cidade inválida';
             }
         } catch (error) {
             console.error('Erro ao buscar clima:', error);
-            document.getElementById('weather-desc').innerText = 'Erro de conexão';
+            descElement.innerText = 'Erro de conexão';
         }
     };
+    
+    // Inicia zerado até o usuário clicar em alguma obra
+    updateWeatherWidget(null);
 
     // Inicia o widget assim que a página carrega
     initWeatherWidget();
