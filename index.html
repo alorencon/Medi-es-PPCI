@@ -2331,17 +2331,17 @@ openModal('Editar Medição', formHtml);
 }
 
     // Adicionar event listener para o botão de relatório de despesas
-    document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
+   document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
         const relatorioContainer = document.getElementById('relatorio-despesas-container');
         const isVisible = !relatorioContainer.classList.contains('hidden');
         
         if (isVisible) {
             relatorioContainer.classList.add('hidden');
+            despesasList.classList.remove('hidden'); // Volta a mostrar a lista geral
         } else {
             relatorioContainer.classList.remove('hidden');
-     
-
-   }
+            despesasList.classList.add('hidden'); // Esconde a lista geral para evitar duplicação
+        }
     });
 
     // Função para gerar relatório de despesas por período
