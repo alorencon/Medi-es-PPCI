@@ -2557,12 +2557,13 @@ addTarefaBtn.addEventListener('click', () => {
     });
 
     // MELHORIA: Adicionado listener para atualizar o cronograma ao mudar os dias
-    cronogramaDias.addEventListener('change', () => {
-        if (currentObraId) {
-            renderCronograma();
-        }
-    });
-
+   if (cronogramaDias) {
+        cronogramaDias.addEventListener('change', () => {
+            if (currentObraId) {
+                renderCronograma();
+            }
+        });
+    }
     addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
