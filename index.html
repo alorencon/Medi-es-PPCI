@@ -1628,7 +1628,7 @@ const renderRelatorios = async () => {
             });
         }
 
-       // --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
+        // --- FUNÇÃO DA ANÁLISE INTELIGENTE COM IA ---
         const iaBtn = document.getElementById('gerar-parecer-ia-btn');
         if (iaBtn) {
             iaBtn.addEventListener('click', async () => {
@@ -1654,7 +1654,6 @@ const renderRelatorios = async () => {
                     contents: [{ parts: [{ text: prompt }] }],
                 };
 
-                // Link oficial e definitivo do Gemini 1.5 Flash injetado diretamente aqui
                 const apiLinkDefinitivo = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
                 try {
@@ -1666,7 +1665,6 @@ const renderRelatorios = async () => {
                     
                     const result = await response.json();
                     
-                    // NOVO: Detetor de Erros Reais do Google
                     if (result.error) {
                          openModal('Erro recusado pelo Google', `
                             <p class="text-red-600 font-bold">O servidor do Google recusou a sua chave.</p>
@@ -1695,6 +1693,7 @@ const renderRelatorios = async () => {
                 }
             });
         }
+    };
     // Função para converter ArrayBuffer para Blob
     const pcmToWav = (pcm16, sampleRate) => {
         const pcmData = pcm16.buffer;
