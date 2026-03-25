@@ -1378,7 +1378,14 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     plugins: { legend: { display: true } },
                     scales: {
                         y: { beginAtZero: true, title: { display: true, text: "Valor Financeiro (R$)" } },
-                        x: { title: { display: true, text: "Dias de Obra" } }
+                        x: { 
+                            title: { display: true, text: "Dias de Obra" },
+                            ticks: {
+                                autoSkip: false, // Obriga a mostrar TODOS os dias
+                                maxRotation: 90, // Gira o texto 90 graus (vertical)
+                                minRotation: 90  // Trava em 90 graus
+                            }
+                        }
                     }
                 },
                 plugins: [customBackgroundPlugin] // Adicionando o nosso plugin customizado!
