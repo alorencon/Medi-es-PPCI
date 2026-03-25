@@ -212,7 +212,15 @@ padding: 10px;
           </div>
         </div>
         <div class="flex items-center space-x-4">
-            <span class="text-white">ID: <span id="userIdDisplay" class="font-mono"></span></span>
+            <div id="weather-widget" class="hidden md:flex items-center bg-gray-800 rounded-lg px-3 py-1 border border-gray-700 mr-2">
+                <div id="weather-icon" class="mr-2">⛅</div>
+                <div class="flex flex-col">
+                    <span id="weather-temp" class="text-white font-bold text-sm">--°C</span>
+                    <span id="weather-desc" class="text-xs text-gray-400 capitalize">Carregando...</span>
+                </div>
+            </div>
+            
+            <span class="text-white hidden md:block">ID: <span id="userIdDisplay" class="font-mono"></span></span>
             <button id="logout-btn" class="btn btn-secondary">Sair</button>
         </div>
     </div>
@@ -2612,7 +2620,39 @@ addTarefaBtn.addEventListener('click', () => {
         }
         openDespesaForm();
     });
-// Run app
+// --- WIDGET DE PREVISÃO DO TEMPO ---
+    // Coloque a sua chave da OpenWeatherMap aqui dentro das aspas:
+    const WEATHER_API_KEY = '7ff5cbc383978e5e93748f9b00e94b6d'; 
+    const CIDADE_OBRA = 'Avaré,BR'; // Cidade padrão configurada
+
+    const initWeatherWidget = async () => {
+        if (!WEATHER_API_KEY) {
+            document.getElementById('weather-desc').innerText = 'Falta API Key';
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CIDADE_OBRA}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`);
+            const data = await response.json();
+
+            if (data.main) {
+                // Atualiza a temperatura e a descrição
+                document.getElementById('weather-temp').innerText = `${Math.round(data.main.temp)}°C`;
+                document.getElementById('weather-desc').innerText = data.weather[0].description;
+                
+                // Puxa o ícone oficial da OpenWeatherMap
+                const iconCode = data.weather[0].icon;
+                document.getElementById('weather-icon').innerHTML = `<img src="https://openweathermap.org/img/wn/${iconCode}.png" alt="Clima" class="w-8 h-8">`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar clima:', error);
+            document.getElementById('weather-desc').innerText = 'Erro de conexão';
+        }
+    };
+
+    // Inicia o widget assim que a página carrega
+    initWeatherWidget();
+    // Run app
     initFirebase();
 </script>
 </body>
