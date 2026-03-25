@@ -1847,17 +1847,18 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
 
     const exportPDF = (data, taskTotals, nomeObra, startDate, endDate, total) => {
         const { jsPDF } = window.jspdf;
-const doc = new jsPDF();
+        const doc = new jsPDF();
         
         doc.setFontSize(18);
         doc.text(`Relatório de Medições - ${nomeObra}`, 14, 22);
 
         doc.setFontSize(12);
-doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
+        doc.text(`Período: ${new Date(startDate).toLocaleDateString()} a ${new Date(endDate).toLocaleDateString()}`, 14, 30);
         doc.text(`Total a Receber: ${formatCurrency(total)}`, 14, 38);
-// First table: detailed report
+
+        // Primeira tabela: relatório detalhado
         const columns = ["Tarefa", "Metragem", "Unidade", "Valor (R$)", "Data", "Observações"];
-const rows = data.map(item => [
+        const rows = data.map(item => [
             item.Tarefa,
             item.Metragem.toFixed(2),
             item.Unidade,
@@ -1865,18 +1866,21 @@ const rows = data.map(item => [
             item.Data,
             item.Observacoes
         ]);
-doc.autoTable({
+
+        doc.autoTable({
             head: [columns],
             body: rows,
             startY: 45
         });
-// Second table: task totals
+
+        // Segunda tabela: totais por tarefa
         const taskTotalColumns = ["Tarefa", "Total a Receber"];
-const taskTotalRows = Object.keys(taskTotals).map(taskName => [
+        const taskTotalRows = Object.keys(taskTotals).map(taskName => [
             taskName,
             formatCurrency(taskTotals[taskName])
         ]);
-doc.autoTable({
+
+        doc.autoTable({
             head: [taskTotalColumns],
             body: taskTotalRows,
             startY: doc.autoTable.previous.finalY + 10,
@@ -1884,9 +1888,32 @@ doc.autoTable({
             headStyles: { fillColor: [52, 58, 64] },
             bodyStyles: { textColor: [33, 37, 41] },
         });
-doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
-    };
 
+        // --- ADIÇÃO DA CURVA S NO PDF ---
+        const canvas = document.getElementById("curva-s-chart");
+        
+        // Verifica se o gráfico já foi renderizado na tela alguma vez nesta sessão
+        if (canvas && curvaSChart) {
+            // Cria uma nova página para o gráfico não sobrepor as tabelas
+            doc.addPage();
+            doc.setFontSize(16);
+            doc.text("Curva S - Evolução Físico-Financeira", 14, 22);
+            
+            // Tira um "print" do gráfico atual com fundo branco (prevenindo transparência)
+            const chartImg = canvas.toDataURL("image/png", 1.0);
+            
+            // Calcula as proporções para a imagem caber na folha A4 (largura de 210mm)
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 14;
+            const imgWidth = pageWidth - (margin * 2);
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Cola a imagem no PDF
+            doc.addImage(chartImg, 'PNG', margin, 35, imgWidth, imgHeight);
+        }
+
+        doc.save(`relatorio_${nomeObra}_${startDate}_${endDate}.pdf`);
+    };
     const exportExcel = (data, taskTotals, nomeObra, startDate, endDate, total) => {
         // Prepare detailed data
         const detailedData = [
