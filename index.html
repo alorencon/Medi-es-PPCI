@@ -374,7 +374,7 @@ flex-wrap justify-between items-center mb-6">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefa</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dia de Início (Ex: 1)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Início</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração (Dias)</th>
                                 </tr>
                             </thead>
@@ -1205,7 +1205,19 @@ updateDoc(obraRef, { valorMedido: totalMedido });
 
         return feriados;
     };
-
+// --- INTELIGÊNCIA DE DIAS ÚTEIS ---
+    const ehDiaUtil = (dataObj) => {
+        const diaSemana = dataObj.getDay();
+        if (diaSemana === 0 || diaSemana === 6) return false; // Pula Domingo (0) e Sábado (6)
+        
+        // Formata a data de forma segura (YYYY-MM-DD)
+        const dataString = `${dataObj.getFullYear()}-${String(dataObj.getMonth()+1).padStart(2,'0')}-${String(dataObj.getDate()).padStart(2,'0')}`;
+        
+        const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
+        if (feriadosNacionais.includes(dataString) || feriadosPersonalizados.includes(dataString)) return false; // Pula Feriados
+        
+        return true;
+    };
     const addOrUpdateCronogramaConfig = async (cronogramaData) => {
         if (!currentObraId || !db) return;
         const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
@@ -1223,32 +1235,56 @@ updateDoc(obraRef, { valorMedido: totalMedido });
         try {
             if (!currentObraId) return;
             const cronogramaData = {};
-            let maxEndDay = 1;
-
-            scheduleTasks.forEach(t => {
-                cronogramaData[t.id] = { start: t.start, duration: t.duration };
-                const endDay = t.start + t.duration - 1;
-                if (endDay > maxEndDay) maxEndDay = endDay;
-            });
             
             const dataInicioInput = document.getElementById('cronograma-data-inicio');
-            const dataInicio = dataInicioInput ? dataInicioInput.value : new Date().toISOString().split('T')[0];
-            
+            const dataInicioProjStr = dataInicioInput ? dataInicioInput.value : new Date().toISOString().split('T')[0];
+            const dataInicioProjObj = new Date(dataInicioProjStr + 'T00:00:00');
+
+            let maxEndDateObj = new Date(dataInicioProjObj);
+
+            scheduleTasks.forEach(t => {
+                cronogramaData[t.id] = { startDate: t.startDate, duration: t.duration };
+                
+                // Calcula a data final pulando dias úteis
+                let currentDate = new Date(t.startDate + 'T00:00:00');
+                
+                // Se o próprio dia de início for fds/feriado, empurra para o próximo dia útil
+                while (!ehDiaUtil(currentDate)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                let diasAdicionados = 1; // O primeiro dia útil já conta
+                while (diasAdicionados < t.duration) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (ehDiaUtil(currentDate)) {
+                        diasAdicionados++;
+                    }
+                }
+                
+                // Verifica se esta tarefa é a que vai mais longe no calendário
+                if (currentDate > maxEndDateObj) {
+                    maxEndDateObj = new Date(currentDate);
+                }
+            });
+
+            // Calcula dias corridos totais para desenhar o gráfico da Curva S
+            const diffTime = Math.abs(maxEndDateObj - dataInicioProjObj);
+            const maxEndDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+
             await addOrUpdateCronogramaConfig({ 
                 tasks: cronogramaData, 
-                dataInicio: dataInicio,
+                dataInicio: dataInicioProjStr,
                 feriados: feriadosPersonalizados 
             });
-            
+
             const diasInput = document.getElementById('cronograma-dias-total');
             if(diasInput) diasInput.value = maxEndDay;
             
-            renderCurvaS(maxEndDay, dataInicio);
+            renderCurvaS(maxEndDay, dataInicioProjStr);
         } catch (error) {
             console.error("Erro ao salvar cronograma:", error);
         }
     };
-
     const renderFeriadosUI = () => {
         const listDiv = document.getElementById('feriados-list');
         if (!listDiv) return;
@@ -1274,24 +1310,23 @@ updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
 
-    const renderCronograma = async () => {
+   const renderCronograma = async () => {
         try {
             if (!currentObraId) return;
             const tableBody = document.getElementById('cronograma-table-body');
             if (!tableBody) return; 
             
             tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Carregando tarefas...</td></tr>';
-            
             const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
             const snapshot = await getDocs(tarefasRef);
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+            
             const cronogramaSaved = await getCronogramaConfig();
             const cronogramaData = cronogramaSaved?.tasks || {};
             feriadosPersonalizados = cronogramaSaved?.feriados || [];
             
             renderFeriadosUI();
-
+            
             const inputDataInicio = document.getElementById('cronograma-data-inicio');
             if (inputDataInicio) {
                 if (cronogramaSaved?.dataInicio) {
@@ -1303,37 +1338,47 @@ updateDoc(obraRef, { valorMedido: totalMedido });
 
             tableBody.innerHTML = '';
             scheduleTasks = [];
-            let maxEndDay = 1;
+            const dataInicioProjStr = inputDataInicio ? inputDataInicio.value : new Date().toISOString().split('T')[0];
+            const dataInicioProjObj = new Date(dataInicioProjStr + 'T00:00:00');
+            let maxEndDateObj = new Date(dataInicioProjObj);
 
             if (tarefas.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Nenhuma tarefa encontrada. Vá na aba "Tarefas" e adicione tarefas primeiro.</td></tr>';
-                renderCurvaS(30, inputDataInicio ? inputDataInicio.value : null);
+                tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 font-medium">Nenhuma tarefa encontrada.</td></tr>';
+                renderCurvaS(30, dataInicioProjStr);
                 return;
             }
 
             tarefas.forEach(tarefa => {
                 const saved = cronogramaData[tarefa.id];
-                const startDay = saved?.start ? Number(saved.start) : 1;
+                // Se for uma tarefa antiga (que usava número), reseta para a data de início da obra
+                const startDateVal = saved?.startDate || dataInicioProjStr;
                 const duration = saved?.duration ? Number(saved.duration) : (tarefa.prazo ? Number(tarefa.prazo) : 1);
-                
-                const endDay = startDay + duration - 1;
-                if (endDay > maxEndDay) maxEndDay = endDay;
 
                 scheduleTasks.push({
                     id: tarefa.id,
                     name: tarefa.nome || 'Tarefa sem nome',
                     valorTotal: Number(tarefa.valorTotal) || 0,
-                    start: startDay,
+                    startDate: startDateVal,
                     duration: duration,
                     medicoes: tarefa.medicoes || []
                 });
+
+                // Calcula matemática de dias úteis para descobrir a Duração Total Prevista
+                let currentDate = new Date(startDateVal + 'T00:00:00');
+                while (!ehDiaUtil(currentDate)) currentDate.setDate(currentDate.getDate() + 1);
+                let diasAdicionados = 1;
+                while (diasAdicionados < duration) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (ehDiaUtil(currentDate)) diasAdicionados++;
+                }
+                if (currentDate > maxEndDateObj) maxEndDateObj = new Date(currentDate);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tarefa.nome}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(tarefa.valorTotal || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <input type="number" class="crono-start-input w-24 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${startDay}" min="1">
+                        <input type="date" class="crono-start-input w-36 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${startDateVal}">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <input type="number" class="crono-duration-input w-24 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${duration}" min="1">
@@ -1342,6 +1387,9 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 tableBody.appendChild(tr);
             });
 
+            // Atualiza o Input de Duração Total Visualmente
+            const diffTime = Math.abs(maxEndDateObj - dataInicioProjObj);
+            const maxEndDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             const diasInput = document.getElementById('cronograma-dias-total');
             if (diasInput) diasInput.value = maxEndDay;
 
@@ -1351,17 +1399,14 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     const task = scheduleTasks.find(t => t.id === taskId);
                     if (!task) return;
                     
-                    const startVal = parseInt(document.querySelector(`.crono-start-input[data-id='${taskId}']`).value) || 1;
-                    const durVal = parseInt(document.querySelector(`.crono-duration-input[data-id='${taskId}']`).value) || 1;
-                    
-                    task.start = Math.max(1, startVal);
-                    task.duration = Math.max(1, durVal);
+                    task.startDate = document.querySelector(`.crono-start-input[data-id='${taskId}']`).value;
+                    task.duration = Math.max(1, parseInt(document.querySelector(`.crono-duration-input[data-id='${taskId}']`).value) || 1);
                     
                     await saveAndUpdateSchedule();
                 });
             });
 
-            renderCurvaS(maxEndDay, inputDataInicio ? inputDataInicio.value : null);
+            renderCurvaS(maxEndDay, dataInicioProjStr);
             
         } catch (error) {
             console.error("Erro fatal em renderCronograma:", error);
@@ -1383,17 +1428,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 return;
             }
 
-            // --- Cálculos Matemáticos ---
-            const plannedValuePerDay = new Array(diasTotais).fill(0);
-            scheduleTasks.forEach(task => {
-                if (task.duration > 0 && task.valorTotal > 0) {
-                    const dailyCost = task.valorTotal / task.duration;
-                    for (let i = 0; i < task.duration; i++) {
-                        const dayIndex = task.start + i - 1;
-                        if (dayIndex >= 0 && dayIndex < diasTotais) plannedValuePerDay[dayIndex] += dailyCost;
-                    }
-                }
-            });
+           Cálculos Matemático
 
             const cumulativePlanned = [];
             let accPlanned = 0;
