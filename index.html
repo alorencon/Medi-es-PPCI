@@ -2697,11 +2697,9 @@ addTarefaBtn.addEventListener('click', () => {
                 iconElement.innerHTML = `<img src="https://openweathermap.org/img/wn/${agora.weather[0].icon}.png" class="w-8 h-8">`;
 
                 // Verifica se há chuva forte prevista (IDs 502, 503, 504 ou tempestades < 300) nas próximas 24h
-                // const chuvaForte = data.list.slice(0, 8).some(item => 
-                //     (item.weather[0].id >= 502 && item.weather[0].id <= 504) || item.weather[0].id < 300
-                // );
-                
-                const chuvaForte = true; // <-- MODO DE TESTE ATIVADO ⛈️
+                const chuvaForte = data.list.slice(0, 8).some(item => 
+                    (item.weather[0].id >= 502 && item.weather[0].id <= 504) || item.weather[0].id < 300
+                );
 
                 if (chuvaForte) {
                     widget.classList.add('border-red-500', 'bg-red-900', 'animate-pulse');
