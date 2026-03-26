@@ -963,7 +963,7 @@ obraCard.addEventListener('click', async () => {
                 // Envia a cidade E as tarefas para o widget
                 updateWeatherWidget(obra.localizacao, tarefasParaClima);
                 
-                tabs[1].click(); // Vai para a aba de tarefas
+                document.querySelector('[data-tab="tarefas"]').click(); // Vai para a aba de tarefas
             });
 obrasList.appendChild(obraCard);
         });
