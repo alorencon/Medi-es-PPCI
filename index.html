@@ -2098,6 +2098,14 @@ value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-
                     <label for="tarefa-nome" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label>
                     <input type="text" id="tarefa-nome" name="nome" value="${tarefa.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
                 </div>
+                
+                <div>
+                    <label for="tarefa-localizacao" class="block text-sm font-medium text-gray-700">Local da Tarefa (Impacto do Clima)</label>
+                    <select id="tarefa-localizacao" name="localizacaoTarefa" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
+                        <option value="Interno" ${tarefa.localizacaoTarefa === 'Interno' ? 'selected' : ''}>Interno 🏠</option>
+                        <option value="Externo" ${tarefa.localizacaoTarefa === 'Externo' ? 'selected' : ''}>Externo (Sujeito a Chuva) ⛈️</option>
+                    </select>
+                </div>
                 <div>
                     <label for="tarefa-metragem-total" class="block text-sm font-medium text-gray-700">Metragem Total</label>
                     <input type="number" step="0.01" id="tarefa-metragem-total" name="metragemTotal" value="${tarefa.metragemTotal || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
@@ -2131,13 +2139,12 @@ const valorTotal = parseFloat(formData.get('valorTotal'));
             const valorUnitario = metragemTotal > 0 ? (valorTotal / metragemTotal) : 0;
 const newTarefa = {
                 nome: formData.get('nome'),
+                localizacaoTarefa: formData.get('localizacaoTarefa') || 'Interno', 
                 metragemTotal: metragemTotal,
                 unidade: formData.get('unidade'),
                 valorUnitario: valorUnitario,
                 valorTotal: valorTotal,
-            
-
-    descricao: formData.get('descricao'),
+                descricao: formData.get('descricao'),
                 medicoes: tarefa.medicoes || []
             };
             addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
