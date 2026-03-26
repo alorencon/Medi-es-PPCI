@@ -529,7 +529,23 @@ import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-
     // Entre na página de chaves da API do Google AI Studio e crie uma nova chave.
 // const API_KEY = 'YOUR API KEY';
 
-    const API_KEY = 'AIzaSyAGBo1jzXp_XPFJzIjLDE-Hv8X-2q7WcQg'; 
+    // Tenta buscar a chave salva no navegador do usuário
+    let API_KEY = localStorage.getItem('gemini_api_key');
+
+    // Se a IA for chamada e não tiver chave, ele abre um alerta para você colar
+    const verificarChaveIA = () => {
+        if (!API_KEY || API_KEY === '') {
+            const chaveDigitada = prompt("⚠️ Segurança: Cole sua chave da API do Gemini para habilitar a Inteligência Artificial:");
+            if (chaveDigitada) {
+                API_KEY = chaveDigitada.trim();
+                localStorage.setItem('gemini_api_key', API_KEY); // Salva no cofre do navegador
+                alert("Chave salva com sucesso neste dispositivo! A IA já está pronta para uso.");
+                return true;
+            }
+            return false;
+        }
+        return true;
+    };
 
     // Variáveis que podem ser definidas pelo ambiente de execução (não altere)
     const __app_id = typeof window.__app_id !== 'undefined' ?
