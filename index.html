@@ -2120,10 +2120,7 @@ value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-
                 </div>
                 <div>
                     <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
-     
-
-               <button type="button" id="gerar-descricao-btn" class="btn btn-secondary mt-2">Gerar Descrição ✨</button>
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea
                 </div>
                 <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
@@ -2148,15 +2145,6 @@ const newTarefa = {
                 medicoes: tarefa.medicoes || []
             };
             addOrUpdateTarefa({ ...newTarefa, id: tarefa.id });
-        });
-document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
-            const nome = document.getElementById('tarefa-nome').value;
-            const unidade = document.getElementById('tarefa-unidade').value;
-            if (nome && unidade) {
-                generateTaskDescription(nome, unidade);
-            } else {
-                openModal('Atenção', 'Por favor, preencha o nome da tarefa e a unidade primeiro.');
-            }
         });
 };
 
@@ -2206,37 +2194,6 @@ document.getElementById('gerar-descricao-btn').addEventListener('click', () => {
             };
             addOrUpdateDespesa({ ...newDespesa, id: despesa.id });
         });
-    };
-
-    // LLM - Gerador de Descrição de Tarefa
-    const generateTaskDescription = async (nome, unidade) => {
-        const descricaoTextarea = document.getElementById('tarefa-descricao');
-const generateBtn = document.getElementById('gerar-descricao-btn');
-        const originalBtnText = generateBtn.textContent;
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Gerando...';
-const prompt = `Gere uma descrição concisa e profissional para uma tarefa de engenharia de combate a incêndio.
-O nome da tarefa é "${nome}" e a unidade de medição é "${unidade}".
-A descrição deve ser focada em detalhes técnicos relevantes para a medição da obra, como "Instalação da tubulação principal de 4 polegadas. A medição será por metro linear (m)."`;
-const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-        };
-try {
-            const response = await fetch(`${GEMINI_API_URL_GENERATE}${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-const result = await response.json();
-            const description = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            descricaoTextarea.value = description.trim();
-} catch (error) {
-            console.error("Erro ao gerar descrição:", error);
-descricaoTextarea.value = "Erro ao gerar descrição. Tente novamente.";
-        } finally {
-            generateBtn.disabled = false;
-generateBtn.textContent = originalBtnText;
-        }
     };
 
     const openMedicaoForm = (tarefa) => {
