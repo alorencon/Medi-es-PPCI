@@ -2749,7 +2749,6 @@ addTarefaBtn.addEventListener('click', () => {
                 const chuvaForte = data.list.slice(0, 8).some(item => 
                     (item.weather[0].id >= 502 && item.weather[0].id <= 504) || item.weather[0].id < 300
                 );
-                  const chuvaForte = true; // <-- MODO DE TESTE ATIVADO ⛈️
 
                 if (chuvaForte) {
                     widget.classList.add('border-red-500', 'bg-red-900', 'animate-pulse');
