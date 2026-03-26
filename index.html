@@ -1043,7 +1043,13 @@ const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/$
                     <div class="flex flex-wrap justify-between items-center mb-4">
                         
 
-<h3 class="text-xl font-bold mb-2 md:mb-0">${tarefa.nome}</h3>
+<div class="flex items-center space-x-3 mb-2 md:mb-0">
+                            <h3 class="text-xl font-bold">${tarefa.nome}</h3>
+                            ${tarefa.localizacaoTarefa === 'Externo' 
+                                ? '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-400">Externo ⛈️</span>' 
+                                : '<span class="bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded border border-gray-300">Interno 🏠</span>'
+                            }
+                        </div>
                         <p class="text-sm text-gray-600">${porcentagemConcluida.toFixed(1)}% concluído</p>
                     </div>
                     <div class="bg-gray-200 rounded-full h-2 mb-4">
@@ -2688,7 +2694,7 @@ addTarefaBtn.addEventListener('click', () => {
         const temTarefaExternaPendente = listaTarefas.some(t => {
             const valorMedido = (t.medicoes || []).reduce((sum, m) => sum + (m.valor || 0), 0);
             const concluida = valorMedido >= (t.valorTotal || 0);
-            const ehExterno = t.nome && t.nome.toUpperCase().includes('[EXTERNO]');
+            const ehExterno = t.localizacaoTarefa === 'Externo' || (t.nome && t.nome.toUpperCase().includes('[EXTERNO]'));
             return !concluida && ehExterno;
         });
 
