@@ -2622,12 +2622,15 @@ addTarefaBtn.addEventListener('click', () => {
             }
         });
     }
-    addDespesaBtn.addEventListener('click', () => {
+   addDespesaBtn.addEventListener('click', () => {
         if (!currentObraId) {
             openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
             return;
         }
-       // --- 1. FUNÇÃO DE ALERTA VISUAL (INTELIGÊNCIA DE OBRA) ---
+        openDespesaForm();
+    });
+
+    // --- 1. FUNÇÃO DE ALERTA VISUAL (INTELIGÊNCIA DE OBRA) ---
     const mostrarAlertaTarefa = (listaTarefas) => {
         const containerTarefas = document.getElementById('main-content');
         if (!containerTarefas || !listaTarefas) return;
