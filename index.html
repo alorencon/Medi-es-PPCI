@@ -1423,24 +1423,52 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             
             if (curvaSChart) curvaSChart.destroy();
             
-            if (!scheduleTasks || scheduleTasks.length === 0) {
+           if (!scheduleTasks || scheduleTasks.length === 0) {
                 curvaSChart = new Chart(ctx, { type: "line", data: { labels: [], datasets: [] } });
                 return;
             }
 
-           Cálculos Matemático
+            // --- Cálculos Matemáticos ---
+            let scheduleStart = new Date();
+            scheduleStart.setHours(0,0,0,0);
+            if (dataInicioStr) {
+                const parts = dataInicioStr.split('-');
+                if (parts.length === 3) scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            const plannedValuePerDay = new Array(diasTotais).fill(0);
+
+            scheduleTasks.forEach(task => {
+                // Aloca o dinheiro apenas nos dias úteis a partir da Data de Início do Calendário
+                if (task.duration > 0 && task.valorTotal > 0 && task.startDate) {
+                    const dailyCost = task.valorTotal / task.duration;
+                    let currentDate = new Date(task.startDate + 'T00:00:00');
+                    
+                    // Avança até achar o primeiro dia útil se a data de início cair em feriado/fds
+                    while (!ehDiaUtil(currentDate)) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    let diasAlocados = 0;
+                    while (diasAlocados < task.duration) {
+                        if (ehDiaUtil(currentDate)) {
+                            const diffTime = currentDate.getTime() - scheduleStart.getTime();
+                            const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            if (dayIndex >= 0 && dayIndex < diasTotais) {
+                                plannedValuePerDay[dayIndex] += dailyCost;
+                            }
+                            diasAlocados++;
+                        }
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                }
+            });
 
             const cumulativePlanned = [];
             let accPlanned = 0;
             plannedValuePerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned); });
 
             const actualValuePerDay = new Array(diasTotais).fill(0);
-            let scheduleStart = new Date();
-            scheduleStart.setHours(0,0,0,0);
-            if (dataInicioStr) {
-                const parts = dataInicioStr.split('-');
-                if (parts.length === 3) scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]); 
-            }
 
             scheduleTasks.forEach(task => {
                 const taskMedicoes = task.medicoes || [];
