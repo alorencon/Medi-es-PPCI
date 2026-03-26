@@ -1733,9 +1733,10 @@ const renderRelatorios = async () => {
         const iaBtn = document.getElementById('gerar-parecer-ia-btn');
         if (iaBtn) {
             iaBtn.addEventListener('click', async () => {
-                if (!API_KEY || API_KEY === '') {
-                    openModal('Atenção', '<p class="text-center text-red-600 font-bold">Você precisa inserir sua chave da API do Gemini no código (variável API_KEY).</p>');
-                    return;
+                
+                // 1. Chama a nossa função de cofre. Se o usuário cancelar a janela, ele para por aqui.
+                if (!verificarChaveIA()) {
+                    return; 
                 }
 
                 const originalText = iaBtn.innerHTML;
