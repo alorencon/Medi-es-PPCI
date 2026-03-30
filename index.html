@@ -401,7 +401,13 @@ flex-wrap justify-between items-center mb-6">
                     </div>
                 </div>
              <div id="fisico-view" class="tab-content hidden">
-                    <h2 class="text-2xl font-semibold mb-6">Avanço Físico (Sem Financeiro)</h2>
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Avanço Físico</h2>
+                        <div class="flex space-x-2">
+                            <button id="export-fisico-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
+                            <button id="export-fisico-excel-btn" class="btn btn-secondary">Exportar Excel</button>
+                        </div>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="p-6 bg-gray-100 rounded-lg shadow-sm border border-gray-200">
@@ -424,6 +430,13 @@ flex-wrap justify-between items-center mb-6">
                                 <canvas id="curva-s-fisica-chart"></canvas>
                             </div>
                         </div>
+                        
+                        <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-600 justify-center pb-2 border-t pt-4 border-gray-100">
+                            <div class="flex items-center"><span class="w-4 h-4 inline-block mr-2 rounded border border-yellow-400" style="background-color: rgba(255, 215, 0, 0.4);"></span> Hoje</div>
+                            <div class="flex items-center"><span class="w-4 h-4 inline-block mr-2 rounded border border-gray-400" style="background-color: rgba(200, 200, 200, 0.4);"></span> Fim de Semana</div>
+                            <div class="flex items-center"><span class="w-4 h-4 inline-block mr-2 rounded border border-blue-400" style="background-color: rgba(100, 181, 246, 0.4);"></span> Feriado</div>
+                        </div>
+
                     </div>
                 </div>
                
@@ -1697,10 +1710,29 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                         }
                     }
                 },
-                plugins: [customBackgroundPlugin] // Adicionando o nosso plugin customizado!
+               plugins: [customBackgroundPlugin]
             });
+
+            // --- NOVO: Conecta os botões de Exportação aos dados ---
+            const btnPdf = document.getElementById('export-fisico-pdf-btn');
+            const novoBtnPdf = btnPdf.cloneNode(true); // Previne duplo clique fantasma
+            btnPdf.parentNode.replaceChild(novoBtnPdf, btnPdf);
+            
+            const btnExcel = document.getElementById('export-fisico-excel-btn');
+            const novoBtnExcel = btnExcel.cloneNode(true);
+            btnExcel.parentNode.replaceChild(novoBtnExcel, btnExcel);
+
+            // Busca o nome da obra para dar nome ao arquivo
+            const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+            const obraDoc = await getDoc(obraDocRef);
+            const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
+
+            // Liga o clique à nossa nova função exportadora
+            novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome));
+            novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
+
         } catch (error) {
-            console.error("Erro ao desenhar o gráfico Curva S:", error);
+            console.error("Erro ao desenhar Curva S Física:", error);
         }
     };
 
@@ -3082,7 +3114,65 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-// Event listeners for main buttons
+// --- EXPORTAÇÃO DO AVANÇO FÍSICO ---
+    const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Relatório de Avanço Físico - ${nomeObra}`, 14, 22);
+        
+        const canvas = document.getElementById("curva-s-fisica-chart");
+        if (canvas) {
+            // Captura o gráfico como imagem
+            const chartImg = canvas.toDataURL("image/png", 1.0);
+            const imgWidth = 180;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Cola a imagem no PDF
+            doc.addImage(chartImg, 'PNG', 14, 30, imgWidth, imgHeight);
+            
+            // Cria a tabela de dados detalhados logo abaixo da imagem
+            const columns = ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"];
+            const rows = labels.map((label, index) => [
+                label,
+                (planned[index] || 0).toFixed(1) + '%',
+                (actual[index] || 0).toFixed(1) + '%'
+            ]);
+            
+            doc.autoTable({
+                head: [columns],
+                body: rows,
+                startY: 30 + imgHeight + 10,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] } // Azul estilo painel
+            });
+        }
+        doc.save(`avanco_fisico_${nomeObra}.pdf`);
+    };
+
+    const exportFisicoExcel = (labels, planned, actual, nomeObra) => {
+        const data = [
+            ["Relatório de Avanço Físico"],
+            [`Obra: ${nomeObra}`],
+            [],
+            ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"]
+        ];
+        
+        labels.forEach((label, index) => {
+            data.push([
+                label,
+                parseFloat((planned[index] || 0).toFixed(1)),
+                parseFloat((actual[index] || 0).toFixed(1))
+            ]);
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Avanço Físico");
+        XLSX.writeFile(workbook, `avanco_fisico_${nomeObra}.xlsx`);
+    };
+    // Event listeners for main buttons
     addObraBtn.addEventListener('click', () => openObraForm());
 addTarefaBtn.addEventListener('click', () => {
         if (!currentObraId) {
