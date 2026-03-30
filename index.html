@@ -680,39 +680,34 @@ modalTitle.textContent = '';
             document.getElementById(`${tab.dataset.tab}-view`).classList.remove('hidden');
 
             if (tab.dataset.tab === 'tarefas') {
-            
-
-    if (!currentObraId) {
+                if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderTarefas();
-  
-
-              }
+                }
             } else if (tab.dataset.tab === 'relatorios') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click(); 
-
-// Go back to obras tab
                 } else {
                     renderRelatorios();
-}
+                }
             } else if (tab.dataset.tab === 'cronograma') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderCronograma();
-}
+                }
             } else if (tab.dataset.tab === 'despesas') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-tabs[0].click(); // Go back to obras tab
+                    tabs[0].click();
                 } else {
                     renderDespesas();
-                     } else if (tab.dataset.tab === 'fisico') {
+                }
+            } else if (tab.dataset.tab === 'fisico') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     document.querySelector('[data-tab="obras"]').click();
@@ -720,10 +715,8 @@ tabs[0].click(); // Go back to obras tab
                     renderFisico();
                 }
             }
-}
-            }
         });
-});
+    });
 
     // Firebase Initialization & Auth
     const initFirebase = async () => {
