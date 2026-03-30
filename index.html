@@ -1040,11 +1040,27 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
     
     const renderTarefas = () => {
         if (!currentObraId) return;
-const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
-        onSnapshot(tarefasRef, (snapshot) => {
+        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+        
+        // Transformado em async para buscar a ordem global salva
+        onSnapshot(tarefasRef, async (snapshot) => {
             tarefasList.innerHTML = '';
             let totalMedido = 0;
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // --- NOVO: Busca e aplica a ordem sincronizada com o Cronograma ---
+            const cronogramaSaved = await getCronogramaConfig();
+            const ordemTarefas = cronogramaSaved?.ordemTarefas || [];
+
+            if (ordemTarefas.length > 0) {
+                tarefas.sort((a, b) => {
+                    let indexA = ordemTarefas.indexOf(a.id);
+                    let indexB = ordemTarefas.indexOf(b.id);
+                    if (indexA === -1) indexA = 999999; // Tarefas novas vão para o fim da fila
+                    if (indexB === -1) indexB = 999999;
+                    return indexA - indexB;
+                });
+            }
 
             tarefas.forEach(tarefa => {
                 const valorMedido = (tarefa.medicoes || []).reduce((sum, medicao) => sum + (medicao.valor || 0), 0);
@@ -1054,15 +1070,16 @@ const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/$
 
                 totalMedido += valorMedido;
 
-     
+                const tarefaCard = document.createElement('div');
+                // Adicionamos classes de cursor e definimos como arrastável
+                tarefaCard.className = 'card w-full mb-4 cursor-move transition-transform'; 
+                tarefaCard.draggable = true; 
+                tarefaCard.dataset.taskId = tarefa.id;
 
-           const tarefaCard = document.createElement('div');
-                tarefaCard.className = 'card w-full';
                 tarefaCard.innerHTML = `
                     <div class="flex flex-wrap justify-between items-center mb-4">
-                        
-
-<div class="flex items-center space-x-3 mb-2 md:mb-0">
+                        <div class="flex items-center space-x-3 mb-2 md:mb-0">
+                            <span class="text-gray-400 text-xl cursor-move">☰</span>
                             <h3 class="text-xl font-bold">${tarefa.nome}</h3>
                             ${tarefa.localizacaoTarefa === 'Externo' 
                                 ? '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-400">Externo ⛈️</span>' 
@@ -1072,103 +1089,117 @@ const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/$
                         <p class="text-sm text-gray-600">${porcentagemConcluida.toFixed(1)}% concluído</p>
                     </div>
                     <div class="bg-gray-200 rounded-full h-2 mb-4">
-                        <div 
-
-class="bg-green-500 h-2 rounded-full" style="width: ${porcentagemConcluida}%;"></div>
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${porcentagemConcluida}%;"></div>
                     </div>
                     <div class="flex flex-wrap justify-between items-center text-sm text-gray-600 mb-4">
                         <span class="mb-2 md:mb-0">Metragem: ${metragemConcluida.toFixed(2)} / ${tarefa.metragemTotal.toFixed(2)}</span>
-                    
-
-    <span>Unidade: ${tarefa.unidade}</span>
+                        <span>Unidade: ${tarefa.unidade}</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div>
-                          
-
-  <p class="text-sm text-gray-500">Valor Unitário</p>
+                            <p class="text-sm text-gray-500">Valor Unitário</p>
                             <p class="font-semibold">${formatCurrency(valorUnitario)}</p>
                         </div>
                         <div>
-                  
-
-          <p class="text-sm text-gray-500">Valor Total</p>
+                            <p class="text-sm text-gray-500">Valor Total</p>
                             <p class="font-semibold">${formatCurrency(tarefa.valorTotal)}</p>
                         </div>
                         <div>
-          
-
-                  <p class="text-sm text-gray-500">Valor Medido</p>
+                            <p class="text-sm text-gray-500">Valor Medido</p>
                             <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
                         </div>
                     </div>
-     
-
-               <div class="flex flex-wrap justify-start space-x-2 mt-4">
+                    <div class="flex flex-wrap justify-start space-x-2 mt-4">
                         <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
                         <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
-                  
-
-      <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
+                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
                         <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
-tarefasList.appendChild(tarefaCard);
+
+                // --- LÓGICA DE DRAG AND DROP NA TAREFA ---
+                tarefaCard.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+                    setTimeout(() => e.target.classList.add('opacity-50', 'scale-[0.98]', 'bg-gray-50'), 0);
+                });
+                tarefaCard.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('opacity-50', 'scale-[0.98]', 'bg-gray-50');
+                });
+                tarefaCard.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingCard = document.querySelector('.opacity-50');
+                    if (draggingCard && draggingCard !== tarefaCard) {
+                        const bounding = tarefaCard.getBoundingClientRect();
+                        const offset = bounding.y + (bounding.height / 2);
+                        if (e.clientY - offset > 0) tarefaCard.after(draggingCard);
+                        else tarefaCard.before(draggingCard);
+                    }
+                });
+                tarefaCard.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    // 1. Lê a nova ordem visual que você deixou na tela
+                    const novaOrdem = [];
+                    document.querySelectorAll('#tarefas-list .card').forEach(card => {
+                        if (card.dataset.taskId) novaOrdem.push(card.dataset.taskId);
+                    });
+                    
+                    // 2. Salva essa ordem no banco (sincronizando com o Cronograma!)
+                    const cronogramaAtual = await getCronogramaConfig() || {};
+                    await addOrUpdateCronogramaConfig({
+                        ...cronogramaAtual,
+                        ordemTarefas: novaOrdem
+                    });
+                });
+
+                tarefasList.appendChild(tarefaCard);
             });
 
+            // Recria as funções dos botões internos
             document.querySelectorAll('.add-medicao-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     const tarefa = tarefas.find(t => t.id === tarefaId);
                     openMedicaoForm(tarefa);
-       
-
-         });
+                });
             });
-document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
+
+            document.querySelectorAll('.ver-medicoes-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     const tarefa = tarefas.find(t => t.id === tarefaId);
                     openMedicoesList(tarefa.id, tarefa.medicoes || []);
-      
-
-          });
+                });
             });
-document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
+
+            document.querySelectorAll('.edit-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     const tarefa = tarefas.find(t => t.id === tarefaId);
                     openTarefaForm(tarefa);
-         
-
-       });
+                });
             });
-document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
+
+            document.querySelectorAll('.delete-tarefa-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tarefaId = e.currentTarget.dataset.id;
                     openModal('Confirmação', `
                         <p class="text-center text-gray-700 mb-4">Tem certeza que deseja deletar esta tarefa?</p>
-  
-
-                      <div class="flex justify-center space-x-4">
+                        <div class="flex justify-center space-x-4">
                             <button id="confirmDeleteBtn" class="btn btn-primary">Sim</button>
                             <button id="cancelDeleteBtn" class="btn btn-secondary">Não</button>
-             
-
-           </div>
+                        </div>
                     `);
                     document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
                         deleteTarefa(tarefaId);
-                      
-
-  closeModal();
+                        closeModal();
                     });
                     document.getElementById('cancelDeleteBtn').addEventListener('click', closeModal);
                 });
-});
-// Update valor total da obra
+            });
+
+            // Atualiza o valor total medido da obra
             const obraRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-updateDoc(obraRef, { valorMedido: totalMedido });
+            updateDoc(obraRef, { valorMedido: totalMedido });
         });
     };
 
