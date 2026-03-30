@@ -426,23 +426,7 @@ flex-wrap justify-between items-center mb-6">
                         </div>
                     </div>
                 </div>
-                ```
-
----
-
-### Passo 4: Fazer o Menu Abrir a Aba (JavaScript)
-Dê um `Ctrl + F` por `else if (tab.dataset.tab === 'despesas') {`.
-Veja onde esse bloco de código termina (logo depois do `renderDespesas(); }`) e cole o bloco do físico abaixo dele:
-
-```javascript
-            } else if (tab.dataset.tab === 'fisico') {
-                 if (!currentObraId) {
-                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
-                    document.querySelector('[data-tab="obras"]').click();
-                } else {
-                    renderFisico();
-                }
-            }
+               
         <div id="relatorios-view" class="tab-content hidden">
                  
    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
@@ -728,6 +712,14 @@ tabs[0].click(); // Go back to obras tab
 tabs[0].click(); // Go back to obras tab
                 } else {
                     renderDespesas();
+                     } else if (tab.dataset.tab === 'fisico') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    document.querySelector('[data-tab="obras"]').click();
+                } else {
+                    renderFisico();
+                }
+            }
 }
             }
         });
