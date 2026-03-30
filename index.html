@@ -1079,8 +1079,6 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
         
         // 2. Guarda o novo olheiro na nossa variável
         unsubscribeTarefas = onSnapshot(tarefasRef, async (snapshot) => {
-        // Transformado em async para buscar a ordem global salva
-        onSnapshot(tarefasRef, async (snapshot) => {
             tarefasList.innerHTML = '';
             let totalMedido = 0;
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
