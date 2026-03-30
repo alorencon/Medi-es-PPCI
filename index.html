@@ -600,6 +600,8 @@ let userId = null;
     let audioContext;
 
     let currentObraId = null;
+    let unsubscribeTarefas = null;
+    let unsubscribeDespesas = null;
     let curvaSChart = null;
     let curvaSFisicaChart = null;
     
@@ -1072,6 +1074,11 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
         if (!currentObraId) return;
         const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
         
+        // 1. Desliga o 'olheiro' anterior para não criar fantasmas visuais
+        if (unsubscribeTarefas) unsubscribeTarefas();
+        
+        // 2. Guarda o novo olheiro na nossa variável
+        unsubscribeTarefas = onSnapshot(tarefasRef, async (snapshot) => {
         // Transformado em async para buscar a ordem global salva
         onSnapshot(tarefasRef, async (snapshot) => {
             tarefasList.innerHTML = '';
@@ -1751,7 +1758,11 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
     const renderDespesas = () => {
         if (!currentObraId) return;
 const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
-        onSnapshot(despesasRef, (snapshot) => {
+        // 1. Desliga o 'olheiro' anterior
+        if (unsubscribeDespesas) unsubscribeDespesas();
+        
+        // 2. Controla o ouvinte de despesas
+        unsubscribeDespesas = onSnapshot(despesasRef, (snapshot) => {
             despesasList.innerHTML = '';
             const despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
