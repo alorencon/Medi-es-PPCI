@@ -376,7 +376,7 @@ flex-wrap justify-between items-center mb-6">
                     </div>
                     <div id="feriados-list" class="flex flex-wrap gap-2 mb-6"></div>
 
-                    <<div id="tabela-cronograma-container" class="overflow-x-auto mb-8 bg-white rounded-lg shadow">
+                    <div id="tabela-cronograma-container" class="overflow-x-auto mb-8 bg-white rounded-lg shadow">
                         <table class="min-w-full divide-y divide-gray-200 text-black">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -1710,32 +1710,12 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                         }
                     }
                 },
-               plugins: [customBackgroundPlugin]
+              plugins: [customBackgroundPlugin]
             });
-
-            // --- NOVO: Conecta os botões de Exportação aos dados ---
-            const btnPdf = document.getElementById('export-fisico-pdf-btn');
-            const novoBtnPdf = btnPdf.cloneNode(true); // Previne duplo clique fantasma
-            btnPdf.parentNode.replaceChild(novoBtnPdf, btnPdf);
-            
-            const btnExcel = document.getElementById('export-fisico-excel-btn');
-            const novoBtnExcel = btnExcel.cloneNode(true);
-            btnExcel.parentNode.replaceChild(novoBtnExcel, btnExcel);
-
-            // Busca o nome da obra para dar nome ao arquivo
-            const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-            const obraDoc = await getDoc(obraDocRef);
-            const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
-
-            // Liga o clique à nossa nova função exportadora
-            novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome));
-            novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
-
         } catch (error) {
-            console.error("Erro ao desenhar Curva S Física:", error);
+            console.error("Erro ao desenhar Curva S Financeira:", error);
         }
     };
-
     // Listeners da interface
     const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
     if (btnAtualizarCronograma) {
@@ -2120,6 +2100,24 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 },
                 plugins: [customBackgroundPlugin]
             });
+
+            // --- NOVO: Conecta os botões de Exportação aos dados ---
+            const btnPdf = document.getElementById('export-fisico-pdf-btn');
+            const novoBtnPdf = btnPdf.cloneNode(true); // Previne duplo clique fantasma
+            btnPdf.parentNode.replaceChild(novoBtnPdf, btnPdf);
+            
+            const btnExcel = document.getElementById('export-fisico-excel-btn');
+            const novoBtnExcel = btnExcel.cloneNode(true);
+            btnExcel.parentNode.replaceChild(novoBtnExcel, btnExcel);
+
+            // Busca o nome da obra para dar nome ao arquivo
+            const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+            const obraDoc = await getDoc(obraDocRef);
+            const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
+
+            // Liga o clique à nossa nova função exportadora
+            novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome));
+            novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
 
         } catch (error) {
             console.error("Erro ao desenhar Curva S Física:", error);
@@ -2674,7 +2672,7 @@ value="${obra.valorTotal || 0}" class="mt-1 block w-full rounded-md border-gray-
                 </div>
                 <div>
                     <label for="tarefa-descricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea
+                    <textarea id="tarefa-descricao" name="descricao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${tarefa.descricao || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">${tarefa.id ? 'Atualizar' : 'Salvar'}</button>
             </form>
