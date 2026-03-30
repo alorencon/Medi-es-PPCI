@@ -3117,9 +3117,11 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
     };
 // --- EXPORTAÇÃO DO AVANÇO FÍSICO ---
    // --- EXPORTAÇÃO DO AVANÇO FÍSICO (1 PÁGINA PAISAGEM) ---
+    // --- EXPORTAÇÃO DO AVANÇO FÍSICO (GRÁFICO HORIZONTAL + TABELA VERTICAL) ---
     const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4'); // Inicia em Paisagem
+        // 1. Inicia a PRIMEIRA folha em Paisagem (Deitada = 'l') para o Gráfico
+        const doc = new jsPDF('l', 'mm', 'a4'); 
         
         doc.setFontSize(18);
         doc.text(`Relatório de Avanço Físico - ${nomeObra}`, 14, 22);
@@ -3128,28 +3130,31 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         if (canvas) {
             const chartImg = canvas.toDataURL("image/png", 1.0);
             
-            const pageWidth = 297;
+            const pageWidth = 297; // Largura folha deitada
             const margin = 14;
             const usableWidth = pageWidth - (margin * 2);
-            const maxUsableHeight = 110; // Trava a altura para sobrar espaço para a tabela embaixo
+            const maxUsableHeight = 160; // Como não tem tabela embaixo, o gráfico pode ser mais alto e bonito!
             
-            // Calcula a escala para caber perfeitamente na largura de 1 página
             let imgWidth = usableWidth;
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
             
-            // Se ao esticar para a largura toda o gráfico ficar muito alto, ajeita pela altura
             if (imgHeight > maxUsableHeight) {
                 imgHeight = maxUsableHeight;
                 imgWidth = (canvas.width * imgHeight) / canvas.height;
             }
             
-            // Centraliza o gráfico caso ele fique menor que a largura da folha
             const positionX = margin + (usableWidth - imgWidth) / 2;
             
-            // Cola o gráfico ajustado em uma única folha
+            // Cola o gráfico gigante na folha deitada
             doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
             
-            // Cria a tabela de dados
+            // 2. CRIA UMA NOVA FOLHA, mas agora em Retrato (Em pé = 'p') para a Tabela
+            doc.addPage('a4', 'p');
+            
+            doc.setFontSize(14);
+            doc.text(`Detalhamento Diário - ${nomeObra}`, 14, 20);
+
+            // 3. Monta a tabela de dados
             const columns = ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"];
             const rows = labels.map((label, index) => [
                 label,
@@ -3160,7 +3165,7 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
             doc.autoTable({
                 head: [columns],
                 body: rows,
-                startY: 30 + imgHeight + 10,
+                startY: 28, // Começa no topo desta nova folha
                 theme: 'striped',
                 headStyles: { fillColor: [37, 99, 235] } 
             });
