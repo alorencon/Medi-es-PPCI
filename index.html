@@ -339,6 +339,13 @@ flex-wrap justify-between items-center mb-6">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Planejamento e Curva S</h2>
                         <div class="flex space-x-2">
+                            <button id="toggle-tabela-btn" class="btn btn-secondary flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span id="toggle-tabela-text">Ocultar Tarefas</span>
+                            </button>
+                            
                             <button id="gerar-cronograma-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
@@ -368,7 +375,7 @@ flex-wrap justify-between items-center mb-6">
                     </div>
                     <div id="feriados-list" class="flex flex-wrap gap-2 mb-6"></div>
 
-                    <div class="overflow-x-auto mb-8 bg-white rounded-lg shadow">
+                    <<div id="tabela-cronograma-container" class="overflow-x-auto mb-8 bg-white rounded-lg shadow">
                         <table class="min-w-full divide-y divide-gray-200 text-black">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -1242,39 +1249,36 @@ updateDoc(obraRef, { valorMedido: totalMedido });
 
             let maxEndDateObj = new Date(dataInicioProjObj);
 
+            // --- NOVO: Captura a ordem atual das tarefas na tela ---
+            const ordemTarefas = [];
+            document.querySelectorAll('#cronograma-table-body tr').forEach(tr => {
+                const taskId = tr.dataset.taskId;
+                if (taskId) ordemTarefas.push(taskId);
+            });
+
             scheduleTasks.forEach(t => {
                 cronogramaData[t.id] = { startDate: t.startDate, duration: t.duration };
                 
-                // Calcula a data final pulando dias úteis
                 let currentDate = new Date(t.startDate + 'T00:00:00');
-                
-                // Se o próprio dia de início for fds/feriado, empurra para o próximo dia útil
-                while (!ehDiaUtil(currentDate)) {
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
+                while (!ehDiaUtil(currentDate)) currentDate.setDate(currentDate.getDate() + 1);
 
-                let diasAdicionados = 1; // O primeiro dia útil já conta
+                let diasAdicionados = 1;
                 while (diasAdicionados < t.duration) {
                     currentDate.setDate(currentDate.getDate() + 1);
-                    if (ehDiaUtil(currentDate)) {
-                        diasAdicionados++;
-                    }
+                    if (ehDiaUtil(currentDate)) diasAdicionados++;
                 }
                 
-                // Verifica se esta tarefa é a que vai mais longe no calendário
-                if (currentDate > maxEndDateObj) {
-                    maxEndDateObj = new Date(currentDate);
-                }
+                if (currentDate > maxEndDateObj) maxEndDateObj = new Date(currentDate);
             });
 
-            // Calcula dias corridos totais para desenhar o gráfico da Curva S
             const diffTime = Math.abs(maxEndDateObj - dataInicioProjObj);
             const maxEndDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
 
             await addOrUpdateCronogramaConfig({ 
                 tasks: cronogramaData, 
                 dataInicio: dataInicioProjStr,
-                feriados: feriadosPersonalizados 
+                feriados: feriadosPersonalizados,
+                ordemTarefas: ordemTarefas // <-- Salva a ordem aqui!
             });
 
             const diasInput = document.getElementById('cronograma-dias-total');
@@ -1323,6 +1327,7 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             
             const cronogramaSaved = await getCronogramaConfig();
             const cronogramaData = cronogramaSaved?.tasks || {};
+            const ordemTarefas = cronogramaSaved?.ordemTarefas || []; // Recupera a ordem
             feriadosPersonalizados = cronogramaSaved?.feriados || [];
             
             renderFeriadosUI();
@@ -1348,9 +1353,19 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 return;
             }
 
+            // --- NOVO: Ordena as tarefas antes de renderizar ---
+            if (ordemTarefas.length > 0) {
+                tarefas.sort((a, b) => {
+                    let indexA = ordemTarefas.indexOf(a.id);
+                    let indexB = ordemTarefas.indexOf(b.id);
+                    if (indexA === -1) indexA = 999999; // Novas tarefas vão pro final
+                    if (indexB === -1) indexB = 999999;
+                    return indexA - indexB;
+                });
+            }
+
             tarefas.forEach(tarefa => {
                 const saved = cronogramaData[tarefa.id];
-                // Se for uma tarefa antiga (que usava número), reseta para a data de início da obra
                 const startDateVal = saved?.startDate || dataInicioProjStr;
                 const duration = saved?.duration ? Number(saved.duration) : (tarefa.prazo ? Number(tarefa.prazo) : 1);
 
@@ -1363,7 +1378,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     medicoes: tarefa.medicoes || []
                 });
 
-                // Calcula matemática de dias úteis para descobrir a Duração Total Prevista
                 let currentDate = new Date(startDateVal + 'T00:00:00');
                 while (!ehDiaUtil(currentDate)) currentDate.setDate(currentDate.getDate() + 1);
                 let diasAdicionados = 1;
@@ -1374,8 +1388,15 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                 if (currentDate > maxEndDateObj) maxEndDateObj = new Date(currentDate);
 
                 const tr = document.createElement('tr');
+                tr.draggable = true; // Permite arrastar
+                tr.dataset.taskId = tarefa.id; // Guarda o ID na linha
+                tr.className = 'cursor-move hover:bg-gray-100 transition-colors bg-white'; // Estilo de "arrastável"
+                
                 tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tarefa.nome}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center space-x-3">
+                        <span class="text-gray-400 cursor-move text-lg">☰</span>
+                        <span>${tarefa.nome}</span>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(tarefa.valorTotal || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <input type="date" class="crono-start-input w-36 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${startDateVal}">
@@ -1384,10 +1405,34 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                         <input type="number" class="crono-duration-input w-24 border border-gray-300 rounded-md shadow-sm text-black p-1 text-center" data-id="${tarefa.id}" value="${duration}" min="1">
                     </td>
                 `;
+                
+                // --- LÓGICA DE DRAG AND DROP ---
+                tr.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+                    setTimeout(() => e.target.classList.add('opacity-50', 'bg-gray-200'), 0);
+                });
+                tr.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('opacity-50', 'bg-gray-200');
+                });
+                tr.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingRow = document.querySelector('.opacity-50');
+                    if (draggingRow && draggingRow !== tr) {
+                        const bounding = tr.getBoundingClientRect();
+                        const offset = bounding.y + (bounding.height / 2);
+                        if (e.clientY - offset > 0) tr.after(draggingRow);
+                        else tr.before(draggingRow);
+                    }
+                });
+                tr.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    await saveAndUpdateSchedule(); // Salva a nova ordem
+                    renderCronograma(); // Re-desenha a Curva S com a nova ordem
+                });
+
                 tableBody.appendChild(tr);
             });
 
-            // Atualiza o Input de Duração Total Visualmente
             const diffTime = Math.abs(maxEndDateObj - dataInicioProjObj);
             const maxEndDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             const diasInput = document.getElementById('cronograma-dias-total');
@@ -1398,10 +1443,8 @@ updateDoc(obraRef, { valorMedido: totalMedido });
                     const taskId = e.target.dataset.id;
                     const task = scheduleTasks.find(t => t.id === taskId);
                     if (!task) return;
-                    
                     task.startDate = document.querySelector(`.crono-start-input[data-id='${taskId}']`).value;
                     task.duration = Math.max(1, parseInt(document.querySelector(`.crono-duration-input[data-id='${taskId}']`).value) || 1);
-                    
                     await saveAndUpdateSchedule();
                 });
             });
@@ -1410,8 +1453,6 @@ updateDoc(obraRef, { valorMedido: totalMedido });
             
         } catch (error) {
             console.error("Erro fatal em renderCronograma:", error);
-            const tableBody = document.getElementById('cronograma-table-body');
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500 font-bold">Erro: ${error.message}</td></tr>`;
         }
     };
 
@@ -1600,6 +1641,22 @@ updateDoc(obraRef, { valorMedido: totalMedido });
     // Listeners da interface
     const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
     if (btnAtualizarCronograma) {
+        // Lógica do botão de Ocultar/Mostrar Tabela do Cronograma
+    const btnToggleTabela = document.getElementById('toggle-tabela-btn');
+    if (btnToggleTabela) {
+        btnToggleTabela.addEventListener('click', () => {
+            const tabelaContainer = document.getElementById('tabela-cronograma-container');
+            const textoBotao = document.getElementById('toggle-tabela-text');
+            
+            if (tabelaContainer.classList.contains('hidden')) {
+                tabelaContainer.classList.remove('hidden');
+                textoBotao.innerText = 'Ocultar Tarefas';
+            } else {
+                tabelaContainer.classList.add('hidden');
+                textoBotao.innerText = 'Mostrar Tarefas';
+            }
+        });
+    }
         const novoBtn = btnAtualizarCronograma.cloneNode(true);
         btnAtualizarCronograma.parentNode.replaceChild(novoBtn, btnAtualizarCronograma);
         novoBtn.addEventListener('click', renderCronograma);
