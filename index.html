@@ -3116,24 +3116,40 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
 // --- EXPORTAÇÃO DO AVANÇO FÍSICO ---
+   // --- EXPORTAÇÃO DO AVANÇO FÍSICO (1 PÁGINA PAISAGEM) ---
     const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF('l', 'mm', 'a4'); // Inicia em Paisagem
         
         doc.setFontSize(18);
         doc.text(`Relatório de Avanço Físico - ${nomeObra}`, 14, 22);
         
         const canvas = document.getElementById("curva-s-fisica-chart");
         if (canvas) {
-            // Captura o gráfico como imagem
             const chartImg = canvas.toDataURL("image/png", 1.0);
-            const imgWidth = 180;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
-            // Cola a imagem no PDF
-            doc.addImage(chartImg, 'PNG', 14, 30, imgWidth, imgHeight);
+            const pageWidth = 297;
+            const margin = 14;
+            const usableWidth = pageWidth - (margin * 2);
+            const maxUsableHeight = 110; // Trava a altura para sobrar espaço para a tabela embaixo
             
-            // Cria a tabela de dados detalhados logo abaixo da imagem
+            // Calcula a escala para caber perfeitamente na largura de 1 página
+            let imgWidth = usableWidth;
+            let imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Se ao esticar para a largura toda o gráfico ficar muito alto, ajeita pela altura
+            if (imgHeight > maxUsableHeight) {
+                imgHeight = maxUsableHeight;
+                imgWidth = (canvas.width * imgHeight) / canvas.height;
+            }
+            
+            // Centraliza o gráfico caso ele fique menor que a largura da folha
+            const positionX = margin + (usableWidth - imgWidth) / 2;
+            
+            // Cola o gráfico ajustado em uma única folha
+            doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
+            
+            // Cria a tabela de dados
             const columns = ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"];
             const rows = labels.map((label, index) => [
                 label,
@@ -3146,7 +3162,7 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                 body: rows,
                 startY: 30 + imgHeight + 10,
                 theme: 'striped',
-                headStyles: { fillColor: [37, 99, 235] } // Azul estilo painel
+                headStyles: { fillColor: [37, 99, 235] } 
             });
         }
         doc.save(`avanco_fisico_${nomeObra}.pdf`);
