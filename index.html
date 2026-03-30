@@ -256,6 +256,7 @@ padding: 10px;
                 <button class="tab-btn" data-tab="obras">Obras</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
                 <button class="tab-btn" data-tab="cronograma">Cronograma</button>
+                <button class="tab-btn font-bold text-blue-800" data-tab="fisico">Avanço Físico</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
             </div>
@@ -399,7 +400,50 @@ flex-wrap justify-between items-center mb-6">
                         </div>
                     </div>
                 </div>
-             <div id="relatorios-view" class="tab-content hidden">
+             <div id="fisico-view" class="tab-content hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Avanço Físico (Sem Financeiro)</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="p-6 bg-gray-100 rounded-lg shadow-sm border border-gray-200">
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Previsto para Hoje</p>
+                            <p id="fisico-previsto" class="text-3xl font-bold text-gray-800">0.0%</p>
+                        </div>
+                        <div class="p-6 bg-blue-50 rounded-lg shadow-sm border border-blue-200">
+                            <p class="text-blue-500 text-xs font-bold uppercase tracking-wider mb-1">Realizado até Hoje</p>
+                            <p id="fisico-realizado" class="text-3xl font-bold text-blue-700">0.0%</p>
+                        </div>
+                        <div class="p-6 bg-gray-100 rounded-lg shadow-sm border border-gray-200">
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Status da Obra</p>
+                            <p id="fisico-status" class="text-3xl font-bold">-</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg shadow w-full">
+                        <div class="w-full overflow-x-auto pb-4">
+                            <div id="fisico-scroll-wrapper" style="height: 400px; position: relative;">
+                                <canvas id="curva-s-fisica-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ```
+
+---
+
+### Passo 4: Fazer o Menu Abrir a Aba (JavaScript)
+Dê um `Ctrl + F` por `else if (tab.dataset.tab === 'despesas') {`.
+Veja onde esse bloco de código termina (logo depois do `renderDespesas(); }`) e cole o bloco do físico abaixo dele:
+
+```javascript
+            } else if (tab.dataset.tab === 'fisico') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    document.querySelector('[data-tab="obras"]').click();
+                } else {
+                    renderFisico();
+                }
+            }
+        <div id="relatorios-view" class="tab-content hidden">
                  
    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
                     <div id="relatorio-content" class="space-y-6">
@@ -573,7 +617,8 @@ let userId = null;
 
     let currentObraId = null;
     let curvaSChart = null;
-
+    let curvaSFisicaChart = null;
+    
     const tabs = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
     const modal = document.getElementById('modal');
@@ -1825,7 +1870,236 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
 }
         });
     };
-const renderRelatorios = async () => {
+// --- LÓGICA DA CURVA S FÍSICA ---
+    const renderFisico = async () => {
+        try {
+            if (!currentObraId) return;
+            const canvas = document.getElementById("curva-s-fisica-chart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            
+            // 1. Busca Tarefas e Cronograma
+            const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+            const snapshot = await getDocs(tarefasRef);
+            const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const cronogramaSaved = await getCronogramaConfig() || {};
+            const cronogramaData = cronogramaSaved.tasks || {};
+            feriadosPersonalizados = cronogramaSaved.feriados || [];
+            
+            const dataInicioProjStr = cronogramaSaved.dataInicio || new Date().toISOString().split('T')[0];
+            const dataInicioProjObj = new Date(dataInicioProjStr + 'T00:00:00');
+            let maxEndDateObj = new Date(dataInicioProjObj);
+            
+            let totalDurationSum = 0;
+            const validTasks = [];
+
+            // 2. Prepara os dados alinhando com o cronograma salvo
+            tarefas.forEach(t => {
+                const saved = cronogramaData[t.id];
+                const startDateVal = saved?.startDate || dataInicioProjStr;
+                const duration = saved?.duration ? Number(saved.duration) : 1;
+                
+                totalDurationSum += duration; // O peso físico baseia-se no tempo que a tarefa leva
+
+                validTasks.push({
+                    id: t.id,
+                    metragemTotal: Number(t.metragemTotal) || 0,
+                    startDate: startDateVal,
+                    duration: duration,
+                    medicoes: t.medicoes || []
+                });
+
+                let currentDate = new Date(startDateVal + 'T00:00:00');
+                while (!ehDiaUtil(currentDate)) currentDate.setDate(currentDate.getDate() + 1);
+                let diasAdicionados = 1;
+                while (diasAdicionados < duration) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (ehDiaUtil(currentDate)) diasAdicionados++;
+                }
+                if (currentDate > maxEndDateObj) maxEndDateObj = new Date(currentDate);
+            });
+
+            const diffTime = Math.abs(maxEndDateObj - dataInicioProjObj);
+            const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            if (curvaSFisicaChart) curvaSFisicaChart.destroy();
+            if (validTasks.length === 0 || totalDurationSum === 0) {
+                curvaSFisicaChart = new Chart(ctx, { type: "line", data: { labels: [], datasets: [] } });
+                return;
+            }
+
+            // 3. Cálculos de Avanço Físico
+            let scheduleStart = new Date(dataInicioProjObj);
+            const plannedPhysicalPerDay = new Array(diasTotais).fill(0);
+            const actualPhysicalPerDay = new Array(diasTotais).fill(0);
+
+            validTasks.forEach(task => {
+                const taskWeight = task.duration / totalDurationSum; // % de impacto da tarefa na obra toda
+                const dailyWeight = taskWeight / task.duration; // % que a tarefa avança por dia
+
+                // 3A. Preenche Planejado
+                let currentDate = new Date(task.startDate + 'T00:00:00');
+                while (!ehDiaUtil(currentDate)) currentDate.setDate(currentDate.getDate() + 1);
+
+                let diasAlocados = 0;
+                while (diasAlocados < task.duration) {
+                    if (ehDiaUtil(currentDate)) {
+                        const dayIndex = Math.floor((currentDate.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
+                        if (dayIndex >= 0 && dayIndex < diasTotais) plannedPhysicalPerDay[dayIndex] += dailyWeight;
+                        diasAlocados++;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                // 3B. Preenche Realizado baseado na Medição Física (Metragem)
+                if (task.metragemTotal > 0) {
+                    task.medicoes.forEach(m => {
+                        if (!m.data || m.metragem <= 0) return;
+                        const medDate = new Date(m.data);
+                        medDate.setHours(0,0,0,0);
+                        const diffDays = Math.floor((medDate.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
+                        
+                        // % física concluída pela medição * o peso da tarefa na obra
+                        const medicaoPhysicalWeight = (m.metragem / task.metragemTotal) * taskWeight;
+                        
+                        if (diffDays >= 0 && diffDays < diasTotais) actualPhysicalPerDay[diffDays] += medicaoPhysicalWeight;
+                        else if (diffDays < 0) actualPhysicalPerDay[0] += medicaoPhysicalWeight;
+                        else if (diffDays >= diasTotais) actualPhysicalPerDay[diasTotais - 1] += medicaoPhysicalWeight;
+                    });
+                }
+            });
+
+            // 4. Acumular Porcentagens (Transforma em Curva)
+            const cumulativePlanned = [];
+            let accPlanned = 0;
+            plannedPhysicalPerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned * 100); });
+
+            const cumulativeActual = [];
+            let accActual = 0;
+            let lastDayWithMeasurement = -1;
+            for (let i = diasTotais - 1; i >= 0; i--) {
+                if (actualPhysicalPerDay[i] > 0) { lastDayWithMeasurement = i; break; }
+            }
+
+            actualPhysicalPerDay.forEach((v, index) => { 
+                accActual += v; 
+                if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) cumulativeActual.push(accActual * 100); 
+            });
+
+            // 5. Calcula o Resumo do Dia de "Hoje"
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const todayDiffDays = Math.floor((today.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
+            
+            let previstoHoje = 0;
+            if (todayDiffDays < 0) previstoHoje = 0;
+            else if (todayDiffDays >= diasTotais) previstoHoje = 100;
+            else previstoHoje = cumulativePlanned[todayDiffDays] || 0;
+
+            let realizadoHoje = accActual * 100;
+
+            // Evita que falhas de arredondamento passem de 100%
+            if(previstoHoje > 100) previstoHoje = 100;
+            if(realizadoHoje > 100) realizadoHoje = 100;
+
+            document.getElementById('fisico-previsto').textContent = `${previstoHoje.toFixed(1)}%`;
+            document.getElementById('fisico-realizado').textContent = `${realizadoHoje.toFixed(1)}%`;
+            
+            const statusEl = document.getElementById('fisico-status');
+            if (realizadoHoje >= previstoHoje) {
+                statusEl.textContent = "Adiantado / No Prazo";
+                statusEl.className = "text-3xl font-bold text-green-600";
+            } else {
+                statusEl.textContent = "Atrasado";
+                statusEl.className = "text-3xl font-bold text-red-600";
+            }
+
+            // 6. Configura o Visual do Gráfico (com Finais de Semana)
+            const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const arrayDatasGraficoFisico = [];
+            const labels = Array.from({ length: diasTotais }, (_, i) => {
+                const dataAtual = new Date(scheduleStart);
+                dataAtual.setDate(scheduleStart.getDate() + i);
+                arrayDatasGraficoFisico.push(dataAtual);
+                const dia = String(dataAtual.getDate()).padStart(2, '0');
+                const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+                return `${dia}/${mes} ${diasDaSemana[dataAtual.getDay()]}`;
+            });
+
+            const customBackgroundPlugin = {
+                id: 'customHolidaysBackgroundFisico',
+                beforeDraw: (chart) => {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
+                    ctx.save();
+                    const tickWidth = x.width / Math.max(x.ticks.length - 1, 1);
+                    const dataHoje = new Date();
+                    dataHoje.setHours(0, 0, 0, 0);
+                    
+                    x.ticks.forEach((tick, index) => {
+                        const dataObj = arrayDatasGraficoFisico[index];
+                        if (!dataObj) return;
+                        const isToday = dataObj.getTime() === dataHoje.getTime();
+                        const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
+                        const dataString = dataObj.toISOString().split('T')[0];
+                        const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
+                        const isHoliday = feriadosNacionais.includes(dataString) || feriadosPersonalizados.includes(dataString);
+
+                        if (isToday || isWeekend || isHoliday) {
+                            if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
+                            else if (isHoliday) ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
+                            else ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                            
+                            let startX = x.getPixelForTick(index) - (tickWidth / 2);
+                            let width = tickWidth;
+                            if (startX < left) { width -= (left - startX); startX = left; }
+                            if (startX + width > right) { width = right - startX; }
+                            ctx.fillRect(startX, top, width, bottom - top);
+                        }
+                    });
+                    ctx.restore();
+                }
+            };
+
+            const scrollWrapper = document.getElementById("fisico-scroll-wrapper");
+            if (scrollWrapper) scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`;
+
+            curvaSFisicaChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: "Planejado (%)", data: cumulativePlanned, borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.12)", fill: true, tension: 0.3, pointRadius: 2 },
+                        { label: "Realizado (%)", data: cumulativeActual, borderColor: "#16a34a", backgroundColor: "rgba(22,163,74,0.15)", fill: true, tension: 0.3, pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: true },
+                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; } } }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100, // Limita o eixo Y para não passar de 100%
+                            title: { display: true, text: "Avanço Físico (%)" },
+                            ticks: { callback: function(value) { return value + '%'; } }
+                        },
+                        x: { 
+                            title: { display: true, text: "Dias de Obra" },
+                            ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 }
+                        }
+                    }
+                },
+                plugins: [customBackgroundPlugin]
+            });
+
+        } catch (error) {
+            console.error("Erro ao desenhar Curva S Física:", error);
+        }
+    };
+    const renderRelatorios = async () => {
         if (!currentObraId) {
             relatorioContent.innerHTML = '<p class="text-center text-gray-600">Selecione uma obra na aba "Obras" para visualizar os relatórios.</p>';
             return;
