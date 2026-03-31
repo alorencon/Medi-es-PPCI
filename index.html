@@ -3121,7 +3121,7 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-// --- EXPORTAÇÃO DO AVANÇO FÍSICO (COM PROTEÇÃO DE ALTURA E LEGENDA NO PDF) ---
+// --- EXPORTAÇÃO DO AVANÇO FÍSICO (LEGENDA DESENHADA COM CORES REAIS NO PDF) ---
     const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); 
@@ -3134,29 +3134,23 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
             const chartImg = canvas.toDataURL("image/png", 1.0);
             
             const pageWidth = 297; 
-            const pageHeight = 210; // Altura total de uma folha A4 deitada
             const margin = 14;
             const usableWidth = pageWidth - (margin * 2);
             
-            // 1. O limite máximo de altura permitida antes de cortar o rodapé
-            const maxUsableHeight = pageHeight - 30 - margin - 15; // Deixa 15mm de sobra embaixo para a legenda
+            // Reduzimos a altura máxima para 125mm. Isso garante que o gráfico NUNCA encoste na legenda!
+            const maxUsableHeight = 125; 
             
-            let imgHeight = 135; 
+            let imgHeight = 125; 
             let imgWidth = (canvas.width * imgHeight) / canvas.height;
             
-            // Trava de Largura (Máx 2 páginas)
             if (imgWidth > usableWidth * 2) {
                 imgWidth = usableWidth * 2;
                 imgHeight = (canvas.height * imgWidth) / canvas.width; 
             }
-            
-            // Trava de Largura (Mínimo 1 página)
             if (imgWidth < usableWidth) {
                 imgWidth = usableWidth;
                 imgHeight = (canvas.height * imgWidth) / canvas.width;
             }
-            
-            // 2. A GRANDE CORREÇÃO: Se a altura esticou demais e for passar da folha, a gente espreme ela!
             if (imgHeight > maxUsableHeight) {
                 imgHeight = maxUsableHeight;
                 imgWidth = (canvas.width * imgHeight) / canvas.height;
@@ -3165,38 +3159,73 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
             let positionX = margin;
             let widthLeft = imgWidth;
             
-            // Cola a imagem da página 1
+            // --- NOVA FUNÇÃO: O PDF desenha a legenda como um pintor ---
+            const drawLegend = (doc, currentY) => {
+                const y = currentY + 12; // Dá um respiro de 12mm abaixo do gráfico
+                let x = 14;
+
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80); // Cor da fonte (Cinza escuro)
+
+                // 1. Linha Azul (Planejado)
+                doc.setFillColor(37, 99, 235);
+                doc.rect(x, y - 3, 8, 3, 'F'); // Desenha o retângulo pintado ('F' = Fill)
+                doc.text("Planejado (%)", x + 10, y);
+                x += 35;
+
+                // 2. Linha Verde (Realizado)
+                doc.setFillColor(22, 163, 74);
+                doc.rect(x, y - 3, 8, 3, 'F');
+                doc.text("Realizado (%)", x + 10, y);
+                x += 35;
+
+                // Separador
+                doc.setDrawColor(200, 200, 200);
+                doc.line(x, y - 4, x, y + 1);
+                x += 5;
+
+                // 3. Fundo Amarelo (Hoje)
+                doc.setFillColor(255, 215, 0);
+                doc.rect(x, y - 3, 4, 4, 'F');
+                doc.text("Hoje", x + 6, y);
+                x += 20;
+
+                // 4. Fundo Cinza (Fim de Semana)
+                doc.setFillColor(200, 200, 200);
+                doc.rect(x, y - 3, 4, 4, 'F');
+                doc.text("Fim de Semana", x + 6, y);
+                x += 35;
+
+                // 5. Fundo Azul Claro (Feriado)
+                doc.setFillColor(100, 181, 246);
+                doc.rect(x, y - 3, 4, 4, 'F');
+                doc.text("Feriado", x + 6, y);
+            };
+
+            // Cola a imagem da página 1 e chama a nossa pintura de legenda logo abaixo dela!
             doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
-            
-            // 3. Imprime a legenda de cores no rodapé do PDF!
-            doc.setFontSize(10);
-            doc.setTextColor(100); // Cinza escuro
-            doc.text("Legenda de Fundo:   [ Amarelo = Hoje ]   |   [ Cinza = Fim de Semana ]   |   [ Azul = Feriado ]", margin, 30 + imgHeight + 8);
+            drawLegend(doc, 30 + imgHeight);
             
             widthLeft -= usableWidth;
             
-            // Continuação nas próximas páginas (se houver)
+            // Continuação nas próximas páginas horizontais (se houver)
             while (widthLeft > 1) { 
                 positionX -= usableWidth; 
                 doc.addPage('a4', 'l');
                 doc.setFontSize(18);
-                doc.setTextColor(0); // Volta para preto
+                doc.setTextColor(0, 0, 0); // Volta o título para preto
                 doc.text(`Relatório de Avanço Físico - ${nomeObra} (Continuação)`, margin, 22);
-                doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
                 
-                // Repete a legenda no rodapé das continuações
-                doc.setFontSize(10);
-                doc.setTextColor(100);
-                doc.text("Legenda de Fundo:   [ Amarelo = Hoje ]   |   [ Cinza = Fim de Semana ]   |   [ Azul = Feriado ]", margin, 30 + imgHeight + 8);
+                doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
+                drawLegend(doc, 30 + imgHeight); // Repete a legenda bonita na segunda página
                 
                 widthLeft -= usableWidth;
             }
             
             // Nova folha em Retrato para a Tabela
             doc.addPage('a4', 'p');
-            
             doc.setFontSize(14);
-            doc.setTextColor(0); // Preto
+            doc.setTextColor(0, 0, 0);
             doc.text(`Detalhamento Diário - ${nomeObra}`, 14, 20);
 
             const columns = ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"];
