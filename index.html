@@ -1879,28 +1879,29 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
 }
         });
     };
-// --- LÓGICA DA CURVA S FÍSICA ---
+// --- LÓGICA DA CURVA S FÍSICA (PONDERADA POR VALOR) ---
     const renderFisico = async () => {
         try {
             if (!currentObraId) return;
             const canvas = document.getElementById("curva-s-fisica-chart");
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
-            
+
             // 1. Busca Tarefas e Cronograma
             const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
             const snapshot = await getDocs(tarefasRef);
             const tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
+
             const cronogramaSaved = await getCronogramaConfig() || {};
             const cronogramaData = cronogramaSaved.tasks || {};
             feriadosPersonalizados = cronogramaSaved.feriados || [];
-            
+
             const dataInicioProjStr = cronogramaSaved.dataInicio || new Date().toISOString().split('T')[0];
             const dataInicioProjObj = new Date(dataInicioProjStr + 'T00:00:00');
             let maxEndDateObj = new Date(dataInicioProjObj);
-            
-            let totalDurationSum = 0;
+
+            // --- MUDANÇA: Agora somamos o VALOR TOTAL da obra, não os dias ---
+            let totalValorObra = 0;
             const validTasks = [];
 
             // 2. Prepara os dados alinhando com o cronograma salvo
@@ -1908,11 +1909,13 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 const saved = cronogramaData[t.id];
                 const startDateVal = saved?.startDate || dataInicioProjStr;
                 const duration = saved?.duration ? Number(saved.duration) : 1;
+                const valorDaTarefa = Number(t.valorTotal) || 0;
                 
-                totalDurationSum += duration; // O peso físico baseia-se no tempo que a tarefa leva
+                totalValorObra += valorDaTarefa; // O peso físico agora é baseado no dinheiro
 
                 validTasks.push({
                     id: t.id,
+                    valorTotal: valorDaTarefa, // Guardamos o valor
                     metragemTotal: Number(t.metragemTotal) || 0,
                     startDate: startDateVal,
                     duration: duration,
@@ -1933,7 +1936,9 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
             const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
             if (curvaSFisicaChart) curvaSFisicaChart.destroy();
-            if (validTasks.length === 0 || totalDurationSum === 0) {
+            
+            // Se a obra não tem valor financeiro preenchido, não conseguimos fazer essa ponderação
+            if (validTasks.length === 0 || totalValorObra === 0) {
                 curvaSFisicaChart = new Chart(ctx, { type: "line", data: { labels: [], datasets: [] } });
                 return;
             }
@@ -1944,8 +1949,9 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
             const actualPhysicalPerDay = new Array(diasTotais).fill(0);
 
             validTasks.forEach(task => {
-                const taskWeight = task.duration / totalDurationSum; // % de impacto da tarefa na obra toda
-                const dailyWeight = taskWeight / task.duration; // % que a tarefa avança por dia
+                // --- MUDANÇA: O peso da tarefa = (Valor da Tarefa / Valor Total da Obra) ---
+                const taskWeight = task.valorTotal / totalValorObra; 
+                const dailyWeight = taskWeight / task.duration; // Distribui esse peso pelos dias de duração
 
                 // 3A. Preenche Planejado
                 let currentDate = new Date(task.startDate + 'T00:00:00');
@@ -1969,7 +1975,7 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                         medDate.setHours(0,0,0,0);
                         const diffDays = Math.floor((medDate.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
                         
-                        // % física concluída pela medição * o peso da tarefa na obra
+                        // % física concluída pela medição * o peso FINANCEIRO da tarefa na obra
                         const medicaoPhysicalWeight = (m.metragem / task.metragemTotal) * taskWeight;
                         
                         if (diffDays >= 0 && diffDays < diasTotais) actualPhysicalPerDay[diffDays] += medicaoPhysicalWeight;
@@ -2091,7 +2097,7 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                     scales: {
                         y: { 
                             beginAtZero: true, 
-                            max: 100, // Limita o eixo Y para não passar de 100%
+                            max: 100, 
                             title: { display: true, text: "Avanço Físico (%)" },
                             ticks: { callback: function(value) { return value + '%'; } }
                         },
@@ -2106,7 +2112,7 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
 
             // --- NOVO: Conecta os botões de Exportação aos dados ---
             const btnPdf = document.getElementById('export-fisico-pdf-btn');
-            const novoBtnPdf = btnPdf.cloneNode(true); // Previne duplo clique fantasma
+            const novoBtnPdf = btnPdf.cloneNode(true); 
             btnPdf.parentNode.replaceChild(novoBtnPdf, btnPdf);
             
             const btnExcel = document.getElementById('export-fisico-excel-btn');
@@ -3115,61 +3121,25 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-// --- EXPORTAÇÃO DO AVANÇO FÍSICO (TAMANHO CONTROLADO HORIZONTAL + TABELA VERTICAL) ---
+// --- EXPORTAÇÃO DO AVANÇO FÍSICO ---
     const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4'); 
+        const doc = new jsPDF();
         
         doc.setFontSize(18);
         doc.text(`Relatório de Avanço Físico - ${nomeObra}`, 14, 22);
         
         const canvas = document.getElementById("curva-s-fisica-chart");
         if (canvas) {
+            // Captura o gráfico como imagem
             const chartImg = canvas.toDataURL("image/png", 1.0);
+            const imgWidth = 180;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
-            const pageWidth = 297; 
-            const margin = 14;
-            const usableWidth = pageWidth - (margin * 2);
+            // Cola a imagem no PDF
+            doc.addImage(chartImg, 'PNG', 14, 30, imgWidth, imgHeight);
             
-            // 1. Inicia com uma altura um pouco menor para não forçar tanto a largura
-            let imgHeight = 135; 
-            let imgWidth = (canvas.width * imgHeight) / canvas.height;
-            
-            // 2. TRAVA INTELIGENTE: Se tentar passar de 2 páginas, nós esprememos ele para caber em exatas 2 folhas!
-            if (imgWidth > usableWidth * 2) {
-                imgWidth = usableWidth * 2;
-                imgHeight = (canvas.height * imgWidth) / canvas.width; // Ajusta a altura para não achatar o gráfico
-            }
-            
-            // 3. Se for uma obra curtinha, garante que preencha a largura de pelo menos 1 folha inteira
-            if (imgWidth < usableWidth) {
-                imgWidth = usableWidth;
-                imgHeight = (canvas.height * imgWidth) / canvas.width;
-            }
-            
-            let positionX = margin;
-            let widthLeft = imgWidth;
-            
-            // Cola a primeira parte
-            doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
-            widthLeft -= usableWidth;
-            
-            // Cola a segunda parte (se precisar)
-            while (widthLeft > 1) { // > 1 para evitar criar página em branco por milímetros
-                positionX -= usableWidth; 
-                doc.addPage('a4', 'l');
-                doc.setFontSize(18);
-                doc.text(`Relatório de Avanço Físico - ${nomeObra} (Continuação)`, margin, 22);
-                doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
-                widthLeft -= usableWidth;
-            }
-            
-            // Terminou o gráfico, cria a folha em Retrato (Em pé)
-            doc.addPage('a4', 'p');
-            
-            doc.setFontSize(14);
-            doc.text(`Detalhamento Diário - ${nomeObra}`, 14, 20);
-
+            // Cria a tabela de dados detalhados logo abaixo da imagem
             const columns = ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"];
             const rows = labels.map((label, index) => [
                 label,
@@ -3180,13 +3150,14 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
             doc.autoTable({
                 head: [columns],
                 body: rows,
-                startY: 28, 
+                startY: 30 + imgHeight + 10,
                 theme: 'striped',
-                headStyles: { fillColor: [37, 99, 235] } 
+                headStyles: { fillColor: [37, 99, 235] } // Azul estilo painel
             });
         }
         doc.save(`avanco_fisico_${nomeObra}.pdf`);
     };
+
     const exportFisicoExcel = (labels, planned, actual, nomeObra) => {
         const data = [
             ["Relatório de Avanço Físico"],
