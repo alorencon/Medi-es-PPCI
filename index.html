@@ -3217,22 +3217,6 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         doc.save(`avanco_fisico_${nomeObra}.pdf`);
     };
 
-    const exportFisicoExcel = (labels, planned, actual, nomeObra) => {
-        const data = [
-            ["Relatório de Avanço Físico"],
-            [`Obra: ${nomeObra}`],
-            [],
-            ["Dia do Cronograma", "Planejado (%)", "Realizado (%)"]
-        ];
-        
-        labels.forEach((label, index) => {
-            data.push([
-                label,
-                parseFloat((planned[index] || 0).toFixed(1)),
-                parseFloat((actual[index] || 0).toFixed(1))
-            ]);
-        });
-
         const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Avanço Físico");
