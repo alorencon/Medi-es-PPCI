@@ -338,7 +338,7 @@ flex-wrap justify-between items-center mb-6">
 
                <div id="cronograma-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
-                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Planejamento e Curva S</h2>
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma Gráfico (Gantt)</h2>
                         <div class="flex space-x-2">
                             <button id="toggle-tabela-btn" class="btn btn-secondary flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1538,20 +1538,20 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
         }
     };
 
+   // --- LÓGICA DO GRÁFICO DE GANTT (BARRAS HORIZONTAIS) ---
     const renderCurvaS = (diasTotais, dataInicioStr) => {
         try {
             const canvas = document.getElementById("curva-s-chart");
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
-            
+
             if (curvaSChart) curvaSChart.destroy();
-            
-           if (!scheduleTasks || scheduleTasks.length === 0) {
-                curvaSChart = new Chart(ctx, { type: "line", data: { labels: [], datasets: [] } });
+
+            if (!scheduleTasks || scheduleTasks.length === 0) {
+                curvaSChart = new Chart(ctx, { type: "bar", data: { labels: [], datasets: [] } });
                 return;
             }
 
-            // --- Cálculos Matemáticos ---
             let scheduleStart = new Date();
             scheduleStart.setHours(0,0,0,0);
             if (dataInicioStr) {
@@ -1559,169 +1559,158 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 if (parts.length === 3) scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]);
             }
 
-            const plannedValuePerDay = new Array(diasTotais).fill(0);
-
+            const labels = [];
+            const barData = [];
+            
+            // 1. Calcula o início e fim de cada barra horizontal
             scheduleTasks.forEach(task => {
-                // Aloca o dinheiro apenas nos dias úteis a partir da Data de Início do Calendário
-                if (task.duration > 0 && task.valorTotal > 0 && task.startDate) {
-                    const dailyCost = task.valorTotal / task.duration;
-                    let currentDate = new Date(task.startDate + 'T00:00:00');
+                labels.push(task.name);
+                
+                if (task.startDate && task.duration > 0) {
+                    let taskStartObj = new Date(task.startDate + 'T00:00:00');
+                    while (!ehDiaUtil(taskStartObj)) taskStartObj.setDate(taskStartObj.getDate() + 1);
                     
-                    // Avança até achar o primeiro dia útil se a data de início cair em feriado/fds
-                    while (!ehDiaUtil(currentDate)) {
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    let diasAlocados = 0;
+                    const startDiffTime = taskStartObj.getTime() - scheduleStart.getTime();
+                    const startDayOffset = Math.max(0, Math.floor(startDiffTime / (1000 * 60 * 60 * 24)));
+                    
+                    let endObj = new Date(taskStartObj);
+                    let diasAlocados = 1;
                     while (diasAlocados < task.duration) {
-                        if (ehDiaUtil(currentDate)) {
-                            const diffTime = currentDate.getTime() - scheduleStart.getTime();
-                            const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                            if (dayIndex >= 0 && dayIndex < diasTotais) {
-                                plannedValuePerDay[dayIndex] += dailyCost;
-                            }
-                            diasAlocados++;
-                        }
-                        currentDate.setDate(currentDate.getDate() + 1);
+                        endObj.setDate(endObj.getDate() + 1);
+                        if (ehDiaUtil(endObj)) diasAlocados++;
                     }
+                    
+                    const endDiffTime = endObj.getTime() - scheduleStart.getTime();
+                    // O fim da barra é o dia corrido seguinte para preencher o quadradinho inteiro no gráfico
+                    const endDayOffset = Math.floor(endDiffTime / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    barData.push([startDayOffset, endDayOffset]);
+                } else {
+                    barData.push([0, 0]);
                 }
             });
 
-            const cumulativePlanned = [];
-            let accPlanned = 0;
-            plannedValuePerDay.forEach(v => { accPlanned += v; cumulativePlanned.push(accPlanned); });
-
-            const actualValuePerDay = new Array(diasTotais).fill(0);
-
-            scheduleTasks.forEach(task => {
-                const taskMedicoes = task.medicoes || [];
-                taskMedicoes.forEach(m => {
-                    if (!m.data) return;
-                    const medDate = new Date(m.data);
-                    medDate.setHours(0,0,0,0);
-                    const diffDays = Math.floor((medDate.getTime() - scheduleStart.getTime()) / (1000 * 60 * 60 * 24));
-                    if (diffDays >= 0 && diffDays < diasTotais) actualValuePerDay[diffDays] += (m.valor || 0);
-                    else if (diffDays < 0) actualValuePerDay[0] += (m.valor || 0);
-                    else if (diffDays >= diasTotais) actualValuePerDay[diasTotais - 1] += (m.valor || 0);
-                });
-            });
-
-            const cumulativeActual = [];
-            let accActual = 0;
-            let lastDayWithMeasurement = -1;
-            for (let i = diasTotais - 1; i >= 0; i--) {
-                if (actualValuePerDay[i] > 0) { lastDayWithMeasurement = i; break; }
-            }
-
-            actualValuePerDay.forEach((v, index) => { 
-                accActual += v; 
-                if (index <= lastDayWithMeasurement || accActual > 0 || index === 0) cumulativeActual.push(accActual); 
-            });
-
-            // --- Formatação dos Dias do Gráfico ---
-            const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-            const arrayDatasGrafico = []; // Guarda o objeto Date para o Plugin de Fundo usar
-            
-            const labels = Array.from({ length: diasTotais }, (_, i) => {
+            // 2. Configura os textos do Eixo X (Datas)
+            const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const arrayDatasGrafico = [];
+            const xLabels = Array.from({ length: diasTotais + 2 }, (_, i) => {
                 const dataAtual = new Date(scheduleStart);
                 dataAtual.setDate(scheduleStart.getDate() + i);
                 arrayDatasGrafico.push(dataAtual);
-                
                 const dia = String(dataAtual.getDate()).padStart(2, '0');
                 const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-                return `${dia}/${mes} ${diasDaSemana[dataAtual.getDay()]}`;
+                return `${dia}/${mes}`;
             });
 
-            // --- PLUGIN PERSONALIZADO: Fundos para Finais de Semana e Feriados ---
-           const customBackgroundPlugin = {
-                id: 'customHolidaysBackground',
+            // 3. Plugin de Fundo (Colunas coloridas de fins de semana cruzando o gráfico!)
+            const customBackgroundPluginGantt = {
+                id: 'customHolidaysBackgroundGantt',
                 beforeDraw: (chart) => {
                     const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
                     ctx.save();
                     
-                    const tickWidth = x.width / Math.max(x.ticks.length - 1, 1);
-                    
-                    // Pega a data de "Hoje" zerando as horas para comparar exatamente o dia
+                    const tickWidth = x.getPixelForValue(1) - x.getPixelForValue(0);
                     const dataHoje = new Date();
                     dataHoje.setHours(0, 0, 0, 0);
                     
-                    x.ticks.forEach((tick, index) => {
-                        const dataObj = arrayDatasGrafico[index];
-                        if (!dataObj) return;
-                        
-                        // Verifica se a coluna é o dia de "Hoje"
+                    for(let i = 0; i <= diasTotais; i++) {
+                        const dataObj = arrayDatasGrafico[i];
+                        if (!dataObj) continue;
                         const isToday = dataObj.getTime() === dataHoje.getTime();
-                        
-                        // Verifica Fim de Semana
                         const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
-                        
-                        // Verifica Feriados Nacionais e Personalizados
                         const dataString = dataObj.toISOString().split('T')[0];
                         const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
-                        const isHoliday = feriadosNacionais.includes(dataString) || feriadosPersonalizados.includes(dataString);
+                        // Suporte de segurança se os feriados personalizados não estiverem declarados
+                        const feriadosExtras = typeof feriadosPersonalizados !== 'undefined' ? feriadosPersonalizados : [];
+                        const isHoliday = feriadosNacionais.includes(dataString) || feriadosExtras.includes(dataString);
 
                         if (isToday || isWeekend || isHoliday) {
-                            // Define a cor de prioridade: 1º Hoje (Dourado), 2º Feriado (Azul), 3º Fim de Semana (Cinza)
-                            if (isToday) {
-                                ctx.fillStyle = 'rgba(255, 215, 0, 0.35)'; // Dourado mais suave
-                            } else if (isHoliday) {
-                                ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
-                            } else {
-                                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-                            }
+                            if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
+                            else if (isHoliday) ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
+                            else ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
                             
-                            let startX = x.getPixelForTick(index) - (tickWidth / 2);
+                            let startX = x.getPixelForValue(i);
                             let width = tickWidth;
                             
-                            if (startX < left) { width -= (left - startX); startX = left; }
-                            if (startX + width > right) { width = right - startX; }
-                            
-                            ctx.fillRect(startX, top, width, bottom - top);
+                            // Apenas desenha se estiver dentro do visor visível
+                            if (startX < right && startX + width > left) {
+                                if (startX < left) { width -= (left - startX); startX = left; }
+                                if (startX + width > right) { width = right - startX; }
+                                ctx.fillRect(startX, top, width, bottom - top);
+                            }
                         }
-                    });
+                    }
                     ctx.restore();
                 }
             };
-// --- AJUSTE DE RESPONSIVIDADE (MOBILE) ---
-            const scrollWrapper = document.getElementById("chart-scroll-wrapper");
+
+            // 4. Se tiver MUITAS tarefas, aumenta a altura da div pro gráfico não ficar "espremido"
+            const minHeight = Math.max(400, scheduleTasks.length * 45 + 80);
+            const scrollWrapper = document.getElementById("grafico-scroll-wrapper");
             if (scrollWrapper) {
-                // Garante no mínimo 25 pixels de largura para cada dia (ideal para leitura vertical)
-                // Se a tela do computador for maior que isso, ele usa 100% da tela normalmente.
-                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`;
+                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`; 
+                scrollWrapper.style.height = `${minHeight}px`; 
             }
+
+            // 5. Desenha o Gantt!
             curvaSChart = new Chart(ctx, {
-                type: "line",
+                type: 'bar', // Barra normal...
                 data: {
                     labels: labels,
-                    datasets: [
-                        { label: "Curva S Planejada (Base)", data: cumulativePlanned, borderColor: "#E21B2F", backgroundColor: "rgba(226,27,47,0.12)", fill: true, tension: 0.3 },
-                        { label: "Curva S Realizada (Medições)", data: cumulativeActual, borderColor: "#1f7a1f", backgroundColor: "rgba(31,122,31,0.08)", fill: true, tension: 0.3 }
-                    ]
+                    datasets: [{
+                        label: 'Duração',
+                        data: barData, // Passamos [inicio, fim] e o ChartJS faz ela flutuar!
+                        backgroundColor: '#3b82f6', // Azul Tailwind
+                        borderRadius: 4, 
+                        borderSkipped: false,
+                        barPercentage: 0.7 
+                    }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: true } },
+                    indexAxis: 'y', // MÁGICA: ...Deitada de lado!
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }, // Sem necessidade de legenda para uma cor só
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const startVal = context.raw[0];
+                                    const endVal = context.raw[1];
+                                    const duracaoCorridos = endVal - startVal;
+                                    const dataInicioStr = arrayDatasGrafico[startVal] ? arrayDatasGrafico[startVal].toLocaleDateString('pt-BR') : '';
+                                    const dataFimStr = arrayDatasGrafico[endVal-1] ? arrayDatasGrafico[endVal-1].toLocaleDateString('pt-BR') : '';
+                                    return ` Início: ${dataInicioStr} | Fim: ${dataFimStr} (${duracaoCorridos} dias corridos)`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: "Valor Financeiro (R$)" } },
+                        y: { 
+                            title: { display: false },
+                            ticks: { font: { size: 12, weight: '600' } },
+                            grid: { display: false } // Limpa as linhas de fundo horizontais
+                        },
                         x: { 
-                            title: { display: true, text: "Dias de Obra" },
-                            ticks: {
-                                autoSkip: false, // Obriga a mostrar TODOS os dias
-                                maxRotation: 90, // Gira o texto 90 graus (vertical)
-                                minRotation: 90  // Trava em 90 graus
+                            beginAtZero: true,
+                            max: Math.max(diasTotais, 10), 
+                            title: { display: true, text: "Calendário" },
+                            ticks: { 
+                                stepSize: 1,
+                                maxRotation: 90, 
+                                minRotation: 90,
+                                callback: function(value) { return xLabels[value] || value; }
                             }
                         }
                     }
                 },
-              plugins: [customBackgroundPlugin]
+                plugins: [customBackgroundPluginGantt]
             });
+
         } catch (error) {
-            console.error("Erro ao desenhar Curva S Financeira:", error);
+            console.error("Erro ao desenhar Cronograma Gantt:", error);
         }
     };
-    // Listeners da interface
-    const btnAtualizarCronograma = document.getElementById('gerar-cronograma-btn');
-    if (btnAtualizarCronograma) {
         // Lógica do botão de Ocultar/Mostrar Tabela do Cronograma
     const btnToggleTabela = document.getElementById('toggle-tabela-btn');
     if (btnToggleTabela) {
