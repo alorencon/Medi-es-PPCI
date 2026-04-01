@@ -1559,12 +1559,30 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 if (parts.length === 3) scheduleStart = new Date(parts[0], parts[1] - 1, parts[2]);
             }
 
+            // --- NOVA FUNÇÃO: Quebra de Linhas Automática ---
+            const formatarNomeTarefa = (texto, limite = 22) => {
+                const palavras = (texto || '').split(' ');
+                const linhas = [];
+                let linhaAtual = '';
+                palavras.forEach(palavra => {
+                    if ((linhaAtual + palavra).length > limite) {
+                        if (linhaAtual) linhas.push(linhaAtual.trim());
+                        linhaAtual = palavra + ' ';
+                    } else {
+                        linhaAtual += palavra + ' ';
+                    }
+                });
+                if (linhaAtual) linhas.push(linhaAtual.trim());
+                if (linhas.length > 3) return [linhas[0], linhas[1], linhas[2] + '...']; // Limita a 3 linhas
+                return linhas;
+            };
+
             const labels = [];
             const barData = [];
             
             // 1. Calcula o início e fim de cada barra horizontal
             scheduleTasks.forEach(task => {
-                labels.push(task.name);
+                labels.push(formatarNomeTarefa(task.name, 22)); // Agora o texto é fatiado!
                 
                 if (task.startDate && task.duration > 0) {
                     let taskStartObj = new Date(task.startDate + 'T00:00:00');
@@ -1691,9 +1709,10 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                             ticks: { font: { size: 12, weight: '600' } },
                             grid: { display: false } // Limpa as linhas de fundo horizontais
                         },
-                        x: { 
+                       x: { 
+                            position: 'top', // <-- CALENDÁRIO MOVIDO PARA O TOPO!
                             beginAtZero: true,
-                            max: Math.max(diasTotais, 10), 
+                            max: Math.max(diasTotais, 10),
                             title: { display: true, text: "Calendário" },
                             ticks: { 
                                 stepSize: 1,
