@@ -22,29 +22,29 @@
             background-size: cover;
             color: #fff;
         }
-        /* 1. MÁGICA DO ZOOM OUT: Reduz todos os textos, botões e margens em 15% no telemóvel */
+        /* 1. MÁGICA DO ZOOM OUT (NÍVEL 2): Reduz tudo em 30% no telemóvel para encaixar abas e tabelas */
         html {
-            font-size: 85%; 
+            font-size: 70%; 
         }
         
         .container {
             max-width: 1200px;
             margin: auto;
-            padding: 0.5rem; /* Remove as margens gigantes inúteis do telemóvel */
+            padding: 0.25rem; /* Margem quase zero para aproveitar a tela toda */
             color: #000;
         }
         
         .card {
             background-color: #fff;
-            border-radius: 0.75rem;
+            border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 1rem; /* Devolve o espaço de trabalho para as suas tarefas */
+            padding: 0.75rem; /* Cartões mais finos no telemóvel para caber mais informação */
         }
 
-        /* 2. INTELIGÊNCIA DE TELA: Quando a tela for grande (PC/Tablet), volta tudo ao tamanho original */
+        /* 2. INTELIGÊNCIA DE TELA: Quando a tela for grande (PC/Tablet), volta tudo ao tamanho original de 100% */
         @media (min-width: 768px) {
             html {
-                font-size: 100%; /* Desliga o Zoom Out */
+                font-size: 100%; /* Desliga o Zoom Out no PC */
             }
             .container {
                 padding: 2rem;
