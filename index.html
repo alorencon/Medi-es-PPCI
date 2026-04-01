@@ -1742,7 +1742,8 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                             title: { display: false }, 
                             grid: {
                                 // Desenha a linha divisória vertical apenas nos números inteiros
-                                color: (ctx) => (ctx.tick && Number.isInteger(ctx.tick.value)) ? '#e5e7eb' : 'transparent'
+                                color: (ctx) => (ctx.tick && Number.isInteger(ctx.tick.value)) ? '#9ca3af' : 'transparent',
+                                lineWidth: (ctx) => (ctx.tick && Number.isInteger(ctx.tick.value)) ? 1 : 0
                             },
                             ticks: { 
                                 autoSkip: false, // <-- MÁGICA: Proíbe o sistema de esconder as datas ao tirar o zoom!
