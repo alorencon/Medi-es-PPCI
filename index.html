@@ -1673,13 +1673,14 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 return `${dia}/${mes} - ${diaSemana}`;
             });
 
-            // 3. Plugin Mágico (Agora desenha DEPOIS das barras para "cortar" os fins de semana e feriados)
+            // 3. Plugin Mágico Dividido (Camada de Fundo e Camada de Corte)
             const customBackgroundPluginGantt = {
                 id: 'customHolidaysBackgroundGantt',
-                afterDatasetsDraw: (chart) => { // MUDANÇA: 'after' pinta por cima das barras!
+                
+                // CAMADA 1: Pinta ANTES das barras azuis (Fica no fundo)
+                beforeDatasetsDraw: (chart) => {
                     const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
                     ctx.save();
-                    
                     const tickWidth = x.getPixelForValue(1) - x.getPixelForValue(0);
                     const dataHoje = new Date();
                     dataHoje.setHours(0, 0, 0, 0);
@@ -1688,13 +1689,42 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                         const dataObj = arrayDatasGrafico[i];
                         if (!dataObj) continue;
                         const isToday = dataObj.getTime() === dataHoje.getTime();
+                        
+                        // Desenha o Hoje no fundo para a barra da tarefa passar por cima!
+                        if (isToday) {
+                            let startX = x.getPixelForValue(i);
+                            let width = tickWidth;
+                            if (startX < right && startX + width > left) {
+                                if (startX < left) { width -= (left - startX); startX = left; }
+                                if (startX + width > right) { width = right - startX; }
+                                ctx.fillStyle = 'rgba(255, 215, 0, 0.35)'; // Dourado
+                                ctx.fillRect(startX, top, width, bottom - top);
+                            }
+                        }
+                    }
+                    ctx.restore();
+                },
+                
+                // CAMADA 2: Pinta DEPOIS das barras azuis (Para cortar os fins de semana)
+                afterDatasetsDraw: (chart) => {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
+                    ctx.save();
+                    const tickWidth = x.getPixelForValue(1) - x.getPixelForValue(0);
+                    const dataHoje = new Date();
+                    dataHoje.setHours(0, 0, 0, 0);
+                    
+                    for(let i = 0; i <= diasTotais; i++) {
+                        const dataObj = arrayDatasGrafico[i];
+                        if (!dataObj) continue;
                         const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
                         const dataString = dataObj.toISOString().split('T')[0];
                         const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
                         const feriadosExtras = typeof feriadosPersonalizados !== 'undefined' ? feriadosPersonalizados : [];
                         const isHoliday = feriadosNacionais.includes(dataString) || feriadosExtras.includes(dataString);
+                        const isToday = dataObj.getTime() === dataHoje.getTime();
 
-                        if (isToday || isWeekend || isHoliday) {
+                        // O Hoje só corta a barra se cair num Fim de Semana ou Feriado!
+                        if (isWeekend || isHoliday) {
                             let startX = x.getPixelForValue(i);
                             let width = tickWidth;
                             
@@ -1702,12 +1732,12 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                                 if (startX < left) { width -= (left - startX); startX = left; }
                                 if (startX + width > right) { width = right - startX; }
                                 
-                                // 1º PASSO: Pintar de branco para "apagar" ou "cortar" a barra azul
+                                // 1º PASSO: Apaga a barra azul
                                 ctx.fillStyle = '#ffffff';
                                 ctx.fillRect(startX, top, width, bottom - top);
                                 
-                                // 2º PASSO: Pintar a cor original do feriado/fim de semana no buraco
-                                if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
+                                // 2º PASSO: Preenche o buraco
+                                if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)'; // Dourado se hoje for fim de semana
                                 else if (isHoliday) ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
                                 else ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
                                 
