@@ -391,10 +391,10 @@ flex-wrap justify-between items-center mb-6">
                         </table>
                     </div>
 
-                    <h3 class="text-xl font-semibold mb-4 mt-8">Curva S - Evolução Físico-Financeira</h3>
-                    <div class="bg-white p-4 rounded-lg shadow w-full">
-                        <div class="w-full overflow-x-auto pb-4">
-                            <div id="chart-scroll-wrapper" style="height: 400px; position: relative;">
+                    <h3 class="text-xl font-semibold mb-4 mt-8">Gráfico de Gantt</h3>
+                    <div class="bg-white p-4 rounded-lg shadow w-full border border-gray-200">
+                        <div class="w-full overflow-auto pb-4" style="max-height: 600px;">
+                            <div id="chart-scroll-wrapper" style="min-height: 400px; position: relative;">
                                 <canvas id="curva-s-chart"></canvas>
                             </div>
                         </div>
@@ -1644,11 +1644,11 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 }
             };
 
-            // 4. Se tiver MUITAS tarefas, aumenta a altura da div pro gráfico não ficar "espremido"
-            const minHeight = Math.max(400, scheduleTasks.length * 45 + 80);
-            const scrollWrapper = document.getElementById("grafico-scroll-wrapper");
+           // 4. Se tiver MUITAS tarefas, aumenta a altura da div pro gráfico não ficar "espremido"
+            const minHeight = Math.max(400, scheduleTasks.length * 60 + 100); // 60px de altura por tarefa para barras grossas
+            const scrollWrapper = document.getElementById("chart-scroll-wrapper"); // Nome corrigido!
             if (scrollWrapper) {
-                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`; 
+                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 40}px)`; // 40px de largura por dia do cronograma
                 scrollWrapper.style.height = `${minHeight}px`; 
             }
 
