@@ -1733,7 +1733,8 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
             Chart.Tooltip.positioners.followMouse = function(elements, eventPosition) {
                 // Se o rato estiver na tela, devolve a coordenada exata dele!
                 if (eventPosition) {
-                    return { x: eventPosition.x, y: eventPosition.y };
+                   // Manda a caixa da tarefa 25 píxeis para BAIXO do ponteiro
+                    return { x: eventPosition.x, y: eventPosition.y + 25 };
                 }
                 return false;
             };
@@ -1850,7 +1851,8 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                             customTooltip.style.display = 'block';
                             // Cola a caixinha flutuando logo acima e à direita do seu rato
                             customTooltip.style.left = (e.clientX + 15) + 'px';
-                            customTooltip.style.top = (e.clientY - 25) + 'px';
+                            // Manda a caixa da data 50 píxeis para CIMA do ponteiro
+                            customTooltip.style.top = (e.clientY - 50) + 'px';
                             return;
                         }
                     }
