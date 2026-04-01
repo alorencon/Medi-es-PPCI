@@ -1745,15 +1745,15 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                                 color: (ctx) => (ctx.tick && Number.isInteger(ctx.tick.value)) ? '#e5e7eb' : 'transparent'
                             },
                             ticks: { 
-                                stepSize: 0.5, // Cria um "meio passo" invisível
+                                autoSkip: false, // <-- MÁGICA: Proíbe o sistema de esconder as datas ao tirar o zoom!
+                                stepSize: 0.5, 
                                 maxRotation: 90, 
                                 minRotation: 90,
                                 callback: function(value) { 
-                                    // MÁGICA VISUAL: Coloca o texto APENAS no meio da coluna (nos 0.5, 1.5, 2.5...)
                                     if (!Number.isInteger(value)) {
                                         return xLabels[Math.floor(value)] || ''; 
                                     }
-                                    return ''; // Deixa a linha divisória limpa, sem texto em cima dela
+                                    return ''; 
                                 }
                             }
                         }
