@@ -1729,6 +1729,15 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 scrollWrapper.style.height = `${minHeight}px`; 
             }
 
+            // --- NOVA FUNÇÃO: Ensina a caixa de informações a seguir o rato ---
+            Chart.Tooltip.positioners.followMouse = function(elements, eventPosition) {
+                // Se o rato estiver na tela, devolve a coordenada exata dele!
+                if (eventPosition) {
+                    return { x: eventPosition.x, y: eventPosition.y };
+                }
+                return false;
+            };
+
             // 5. Desenha o Gantt!
             curvaSChart = new Chart(ctx, {
                 type: 'bar', 
@@ -1750,6 +1759,7 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                     plugins: { 
                         legend: { display: false }, 
                         tooltip: {
+                            position: 'followMouse', // <-- MÁGICA: Liga o motor de seguir o rato!
                             callbacks: {
                                 // Título da caixinha: Mostra o Nome da Tarefa
                                 title: function(context) {
