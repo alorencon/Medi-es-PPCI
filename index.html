@@ -358,6 +358,8 @@ flex-wrap justify-between items-center mb-6">
                                 </svg>
                                 <span>Atualizar Dados</span>
                             </button>
+                            <button id="export-crono-pdf-btn" class="btn btn-secondary flex items-center space-x-2">Exportar PDF</button>
+                            <button id="export-crono-excel-btn" class="btn btn-secondary flex items-center space-x-2">Exportar Excel</button>
                         </div>
                     </div>
 
@@ -1544,6 +1546,24 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
             });
 
             renderCurvaS(maxEndDay, dataInicioProjStr);
+            
+            // --- NOVO: LIGA OS BOTÕES DE EXPORTAÇÃO DO CRONOGRAMA ---
+            const btnPdfCrono = document.getElementById('export-crono-pdf-btn');
+            if (btnPdfCrono) {
+                const novoBtnPdf = btnPdfCrono.cloneNode(true); 
+                btnPdfCrono.parentNode.replaceChild(novoBtnPdf, btnPdfCrono);
+                
+                const btnExcelCrono = document.getElementById('export-crono-excel-btn');
+                const novoBtnExcel = btnExcelCrono.cloneNode(true);
+                btnExcelCrono.parentNode.replaceChild(novoBtnExcel, btnExcelCrono);
+
+                const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+                const obraDoc = await getDoc(obraDocRef);
+                const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
+
+                novoBtnPdf.addEventListener('click', () => exportCronogramaPDF(obraNome));
+                novoBtnExcel.addEventListener('click', () => exportCronogramaExcel(obraNome));
+            }
             
         } catch (error) {
             console.error("Erro fatal em renderCronograma:", error);
@@ -3167,7 +3187,105 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-// --- EXPORTAÇÃO DO AVANÇO FÍSICO (LEGENDA DESENHADA COM CORES REAIS NO PDF) ---
+// --- EXPORTAÇÃO DO CRONOGRAMA GANTT ---
+    const exportCronogramaPDF = (nomeObra) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4'); 
+        
+        doc.setFontSize(18);
+        doc.text(`Cronograma de Obras (Gantt) - ${nomeObra}`, 14, 22);
+        
+        const canvas = document.getElementById("curva-s-chart");
+        if (canvas) {
+            const chartImg = canvas.toDataURL("image/png", 1.0);
+            
+            const pageWidth = 297; 
+            const pageHeight = 210;
+            const margin = 14;
+            const usableWidth = pageWidth - (margin * 2);
+            const maxUsableHeight = pageHeight - 40; // Trava de altura para caber perfeitamente na folha
+            
+            let imgHeight = maxUsableHeight; 
+            let imgWidth = (canvas.width * imgHeight) / canvas.height;
+            
+            // Se o gráfico tiver poucas tarefas e ficar estreito, a gente estica para a folha inteira
+            if (imgWidth < usableWidth) {
+                imgWidth = usableWidth;
+                imgHeight = (canvas.height * imgWidth) / canvas.width;
+                if (imgHeight > maxUsableHeight) {
+                    imgHeight = maxUsableHeight;
+                    imgWidth = (canvas.width * imgHeight) / canvas.height;
+                }
+            }
+            
+            let positionX = margin;
+            let widthLeft = imgWidth;
+            
+            // Cola a primeira página do Gantt
+            doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
+            widthLeft -= usableWidth;
+            
+            // Cria folhas deitadas extras para gráficos que duram muitos meses
+            while (widthLeft > 1) { 
+                positionX -= usableWidth; 
+                doc.addPage('a4', 'l');
+                doc.setFontSize(18);
+                doc.text(`Cronograma de Obras - ${nomeObra} (Continuação)`, margin, 22);
+                doc.addImage(chartImg, 'PNG', positionX, 30, imgWidth, imgHeight);
+                widthLeft -= usableWidth;
+            }
+            
+            // Nova folha em Retrato (Em pé) para a Tabela de Tarefas
+            doc.addPage('a4', 'p');
+            doc.setFontSize(14);
+            doc.text(`Detalhamento das Tarefas - ${nomeObra}`, 14, 20);
+
+            const columns = ["Tarefa", "Valor Total", "Data de Início", "Duração"];
+            const rows = scheduleTasks.map(task => {
+                const dateObj = new Date(task.startDate + 'T00:00:00');
+                return [
+                    task.name,
+                    task.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                    dateObj.toLocaleDateString('pt-BR'),
+                    task.duration + ' dias'
+                ];
+            });
+            
+            doc.autoTable({
+                head: [columns],
+                body: rows,
+                startY: 28, 
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] } 
+            });
+        }
+        doc.save(`cronograma_gantt_${nomeObra}.pdf`);
+    };
+
+    const exportCronogramaExcel = (nomeObra) => {
+        const data = [
+            ["Cronograma de Obras (Gantt)"],
+            [`Obra: ${nomeObra}`],
+            [],
+            ["Tarefa", "Valor Total (R$)", "Data de Início", "Duração (Dias)"]
+        ];
+        
+        scheduleTasks.forEach(task => {
+            const dateObj = new Date(task.startDate + 'T00:00:00');
+            data.push([
+                task.name,
+                task.valorTotal,
+                dateObj.toLocaleDateString('pt-BR'),
+                task.duration
+            ]);
+        });
+        
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Cronograma");
+        XLSX.writeFile(workbook, `cronograma_${nomeObra}.xlsx`);
+    };
+    // --- EXPORTAÇÃO DO AVANÇO FÍSICO (LEGENDA DESENHADA COM CORES REAIS NO PDF) ---
     const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); 
