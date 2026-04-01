@@ -1727,11 +1727,7 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
             }
         });
     }
-        const novoBtn = btnAtualizarCronograma.cloneNode(true);
-        btnAtualizarCronograma.parentNode.replaceChild(novoBtn, btnAtualizarCronograma);
-        novoBtn.addEventListener('click', renderCronograma);
-    }
-
+        
     const dataInicioInputObj = document.getElementById('cronograma-data-inicio');
     if (dataInicioInputObj) {
         dataInicioInputObj.addEventListener('change', () => {
