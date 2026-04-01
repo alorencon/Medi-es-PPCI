@@ -1735,18 +1735,25 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                             grid: { display: false } 
                         },
                         x: { 
-                            type: 'linear', // <-- 2. MÁGICA: Régua exata para alinhar a barra ao dia
+                            type: 'linear', 
                             position: 'top', 
                             beginAtZero: true,
                             max: Math.max(diasTotais, 10), 
                             title: { display: false }, 
+                            grid: {
+                                // Desenha a linha divisória vertical apenas nos números inteiros
+                                color: (ctx) => (ctx.tick && Number.isInteger(ctx.tick.value)) ? '#e5e7eb' : 'transparent'
+                            },
                             ticks: { 
-                                stepSize: 1,
+                                stepSize: 0.5, // Cria um "meio passo" invisível
                                 maxRotation: 90, 
                                 minRotation: 90,
                                 callback: function(value) { 
-                                    if (Number.isInteger(value)) return xLabels[value] || ''; 
-                                    return '';
+                                    // MÁGICA VISUAL: Coloca o texto APENAS no meio da coluna (nos 0.5, 1.5, 2.5...)
+                                    if (!Number.isInteger(value)) {
+                                        return xLabels[Math.floor(value)] || ''; 
+                                    }
+                                    return ''; // Deixa a linha divisória limpa, sem texto em cima dela
                                 }
                             }
                         }
