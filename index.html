@@ -391,10 +391,17 @@ flex-wrap justify-between items-center mb-6">
                         </table>
                     </div>
 
-                    <h3 class="text-xl font-semibold mb-4 mt-8">Gráfico de Gantt</h3>
+                    <div class="flex flex-wrap justify-between items-center mb-4 mt-8">
+                        <h3 class="text-xl font-semibold">Gráfico de Gantt</h3>
+                        <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg border border-gray-300">
+                            <button id="zoom-out-btn" class="px-3 py-1 bg-white hover:bg-gray-200 rounded shadow-sm font-bold text-gray-700 text-lg leading-none">-</button>
+                            <span class="px-2 py-1 text-sm font-semibold text-gray-600 self-center">Zoom</span>
+                            <button id="zoom-in-btn" class="px-3 py-1 bg-white hover:bg-gray-200 rounded shadow-sm font-bold text-gray-700 text-lg leading-none">+</button>
+                        </div>
+                    </div>
                     <div class="bg-white p-4 rounded-lg shadow w-full border border-gray-200">
-                        div class="w-full overflow-x-auto pb-4">
-                            <div id="chart-scroll-wrapper" style="min-height: 400px; position: relative;">
+                        <div class="w-full overflow-auto pb-4" style="max-height: 650px;">
+                            <div id="chart-scroll-wrapper" style="position: relative;">
                                 <canvas id="curva-s-chart"></canvas>
                             </div>
                         </div>
@@ -1663,11 +1670,13 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 }
             };
 
-           // 4. Aumenta a altura da div pro gráfico não ficar "espremido" e caberem as descrições gigantes
-            const minHeight = Math.max(600, scheduleTasks.length * 85 + 100); // 85px de altura por tarefa garante muito espaço!
+          // 4. Configura as dimensões do gráfico (Altura moderada e Largura baseada no Zoom)
+            if (typeof window.ganttZoomLevel === 'undefined') window.ganttZoomLevel = 50; // Zoom padrão
+            
+            const minHeight = Math.max(400, scheduleTasks.length * 55 + 80); // 55px por tarefa (o dobro do original)
             const scrollWrapper = document.getElementById("chart-scroll-wrapper");
             if (scrollWrapper) {
-                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 50}px)`; // 50px alarga o calendário para caber "12/05 - SEG"
+                scrollWrapper.style.minWidth = `max(100%, ${diasTotais * window.ganttZoomLevel}px)`; 
                 scrollWrapper.style.height = `${minHeight}px`; 
             }
 
@@ -3271,6 +3280,29 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Avanço Físico");
         XLSX.writeFile(workbook, `avanco_fisico_${nomeObra}.xlsx`);
     };
+    // --- CONTROLES DE ZOOM DO GANTT ---
+    const btnZoomIn = document.getElementById('zoom-in-btn');
+    const btnZoomOut = document.getElementById('zoom-out-btn');
+    
+    if (btnZoomIn && btnZoomOut) {
+        // Remove ouvintes antigos se houver (previne bugs de duplo clique)
+        const novoBtnZoomIn = btnZoomIn.cloneNode(true);
+        const novoBtnZoomOut = btnZoomOut.cloneNode(true);
+        btnZoomIn.parentNode.replaceChild(novoBtnZoomIn, btnZoomIn);
+        btnZoomOut.parentNode.replaceChild(novoBtnZoomOut, btnZoomOut);
+
+        novoBtnZoomIn.addEventListener('click', () => {
+            if (typeof window.ganttZoomLevel === 'undefined') window.ganttZoomLevel = 50;
+            window.ganttZoomLevel += 15; // Aumenta a largura das colunas
+            renderCronograma(); // Redesenha com o zoom
+        });
+
+        novoBtnZoomOut.addEventListener('click', () => {
+            if (typeof window.ganttZoomLevel === 'undefined') window.ganttZoomLevel = 50;
+            window.ganttZoomLevel = Math.max(20, window.ganttZoomLevel - 15); // Diminui, mas não deixa espremer demais
+            renderCronograma();
+        });
+    }
     // Event listeners for main buttons
     addObraBtn.addEventListener('click', () => openObraForm());
 addTarefaBtn.addEventListener('click', () => {
