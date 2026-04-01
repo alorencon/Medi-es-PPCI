@@ -1808,6 +1808,52 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 plugins: [customBackgroundPluginGantt]
             });
 
+            // --- NOVO: TOOLTIP FLUTUANTE DE DATA PARA O BACKGROUND ---
+            let customTooltip = document.getElementById('gantt-day-tooltip');
+            if (!customTooltip) {
+                customTooltip = document.createElement('div');
+                customTooltip.id = 'gantt-day-tooltip';
+                // Caixinha preta elegante usando o Tailwind
+                customTooltip.className = 'fixed bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded shadow-lg pointer-events-none z-50';
+                customTooltip.style.display = 'none';
+                document.body.appendChild(customTooltip);
+            }
+
+            // Ouve o movimento do rato sobre a tela do gráfico
+            canvas.onmousemove = (e) => {
+                if (!curvaSChart) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const chartArea = curvaSChart.chartArea;
+
+                // Verifica se o ponteiro está dentro da grelha do calendário
+                if (x >= chartArea.left && x <= chartArea.right && y >= chartArea.top && y <= chartArea.bottom) {
+                    // MÁGICA: Converte o pixel da tela no valor exato da nossa régua matemática!
+                    const xValue = curvaSChart.scales.x.getValueForPixel(x);
+                    const dayIndex = Math.floor(xValue); 
+                    
+                    if (dayIndex >= 0 && dayIndex <= diasTotais) {
+                        const dateStr = xLabels[dayIndex];
+                        if (dateStr) {
+                            customTooltip.innerHTML = `📅 ${dateStr}`;
+                            customTooltip.style.display = 'block';
+                            // Cola a caixinha flutuando logo acima e à direita do seu rato
+                            customTooltip.style.left = (e.clientX + 15) + 'px';
+                            customTooltip.style.top = (e.clientY - 25) + 'px';
+                            return;
+                        }
+                    }
+                }
+                customTooltip.style.display = 'none'; // Esconde se apontar para fora dos dias
+            };
+
+            // Esconde a caixinha se o rato sair do quadro do gráfico
+            canvas.onmouseleave = () => {
+                customTooltip.style.display = 'none';
+            };
+            // --- FIM DO TOOLTIP ---
+
         } catch (error) {
             console.error("Erro ao desenhar Cronograma Gantt:", error);
         }
