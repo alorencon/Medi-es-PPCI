@@ -1728,10 +1728,14 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                     scales: {
                         y: { 
                             title: { display: false },
-                            ticks: { font: { size: 12, weight: '600' } },
+                            ticks: { 
+                                font: { size: 12, weight: '600' },
+                                autoSkip: false // <-- 1. MÁGICA: Proíbe o gráfico de esconder tarefas
+                            },
                             grid: { display: false } 
                         },
                         x: { 
+                            type: 'linear', // <-- 2. MÁGICA: Régua exata para alinhar a barra ao dia
                             position: 'top', 
                             beginAtZero: true,
                             max: Math.max(diasTotais, 10), 
@@ -1740,7 +1744,10 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                                 stepSize: 1,
                                 maxRotation: 90, 
                                 minRotation: 90,
-                                callback: function(value) { return xLabels[value] || value; }
+                                callback: function(value) { 
+                                    if (Number.isInteger(value)) return xLabels[value] || ''; 
+                                    return '';
+                                }
                             }
                         }
                     }
@@ -2122,31 +2129,17 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                     },
                     scales: {
                         y: { 
-                            title: { display: false },
-                            ticks: { 
-                                font: { size: 12, weight: '600' },
-                                autoSkip: false // <-- 1. MÁGICA: Proíbe o gráfico de esconder tarefas, forçando o alinhamento perfeito!
-                            },
-                            grid: { display: false } 
+                            beginAtZero: true, 
+                            max: 100, 
+                            title: { display: true, text: "Avanço Físico (%)" },
+                            ticks: { callback: function(value) { return value + '%'; } }
                         },
                         x: { 
-                            type: 'linear', // <-- 2. MÁGICA: Transforma o eixo numa régua exata, colando o Dia 0 no início perfeito da barra.
-                            position: 'top', 
-                            beginAtZero: true,
-                            max: Math.max(diasTotais, 10), 
-                            title: { display: false }, 
-                            ticks: { 
-                                stepSize: 1,
-                                maxRotation: 90, 
-                                minRotation: 90,
-                                callback: function(value) { 
-                                    // Garante que só imprime as datas nos números inteiros da régua
-                                    if (Number.isInteger(value)) return xLabels[value] || ''; 
-                                    return '';
-                                }
-                            }
+                            title: { display: true, text: "Dias de Obra" },
+                            ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 }
                         }
                     }
+                },
                 plugins: [customBackgroundPlugin]
             });
 
