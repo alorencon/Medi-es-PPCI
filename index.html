@@ -1628,10 +1628,10 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 return `${dia}/${mes} - ${diaSemana}`;
             });
 
-            // 3. Plugin de Fundo (Colunas coloridas de fins de semana cruzando o gráfico!)
+            // 3. Plugin Mágico (Agora desenha DEPOIS das barras para "cortar" os fins de semana e feriados)
             const customBackgroundPluginGantt = {
                 id: 'customHolidaysBackgroundGantt',
-                beforeDraw: (chart) => {
+                afterDatasetsDraw: (chart) => { // MUDANÇA: 'after' pinta por cima das barras!
                     const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
                     ctx.save();
                     
@@ -1646,22 +1646,26 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                         const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
                         const dataString = dataObj.toISOString().split('T')[0];
                         const feriadosNacionais = getFeriadosNacionais(dataObj.getFullYear());
-                        // Suporte de segurança se os feriados personalizados não estiverem declarados
                         const feriadosExtras = typeof feriadosPersonalizados !== 'undefined' ? feriadosPersonalizados : [];
                         const isHoliday = feriadosNacionais.includes(dataString) || feriadosExtras.includes(dataString);
 
                         if (isToday || isWeekend || isHoliday) {
-                            if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
-                            else if (isHoliday) ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
-                            else ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
-                            
                             let startX = x.getPixelForValue(i);
                             let width = tickWidth;
                             
-                            // Apenas desenha se estiver dentro do visor visível
                             if (startX < right && startX + width > left) {
                                 if (startX < left) { width -= (left - startX); startX = left; }
                                 if (startX + width > right) { width = right - startX; }
+                                
+                                // 1º PASSO: Pintar de branco para "apagar" ou "cortar" a barra azul
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(startX, top, width, bottom - top);
+                                
+                                // 2º PASSO: Pintar a cor original do feriado/fim de semana no buraco
+                                if (isToday) ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
+                                else if (isHoliday) ctx.fillStyle = 'rgba(100, 181, 246, 0.25)';
+                                else ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                                
                                 ctx.fillRect(startX, top, width, bottom - top);
                             }
                         }
@@ -1670,10 +1674,10 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                 }
             };
 
-          // 4. Configura as dimensões do gráfico (Altura moderada e Largura baseada no Zoom)
-            if (typeof window.ganttZoomLevel === 'undefined') window.ganttZoomLevel = 50; // Zoom padrão
+            // 4. Configura as dimensões do gráfico
+            if (typeof window.ganttZoomLevel === 'undefined') window.ganttZoomLevel = 50; 
             
-            const minHeight = Math.max(400, scheduleTasks.length * 55 + 80); // 55px por tarefa (o dobro do original)
+            const minHeight = Math.max(400, scheduleTasks.length * 55 + 80); 
             const scrollWrapper = document.getElementById("chart-scroll-wrapper");
             if (scrollWrapper) {
                 scrollWrapper.style.minWidth = `max(100%, ${diasTotais * window.ganttZoomLevel}px)`; 
@@ -1682,33 +1686,41 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
 
             // 5. Desenha o Gantt!
             curvaSChart = new Chart(ctx, {
-                type: 'bar', // Barra normal...
+                type: 'bar', 
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Duração',
-                        data: barData, // Passamos [inicio, fim] e o ChartJS faz ela flutuar!
-                        backgroundColor: '#3b82f6', // Azul Tailwind
+                        data: barData, 
+                        backgroundColor: '#3b82f6', 
                         borderRadius: 4, 
                         borderSkipped: false,
                         barPercentage: 0.7 
                     }]
                 },
                 options: {
-                    indexAxis: 'y', // MÁGICA: ...Deitada de lado!
+                    indexAxis: 'y', 
                     responsive: true, 
                     maintainAspectRatio: false,
                     plugins: { 
-                        legend: { display: false }, // Sem necessidade de legenda para uma cor só
+                        legend: { display: false }, 
                         tooltip: {
                             callbacks: {
+                                // Título da caixinha: Mostra o Nome da Tarefa
+                                title: function(context) {
+                                    const taskIndex = context[0].dataIndex;
+                                    return scheduleTasks[taskIndex].name;
+                                },
+                                // Descrição da caixinha: Mostra apenas os dias úteis corretos
                                 label: function(context) {
+                                    const taskIndex = context.dataIndex;
+                                    const task = scheduleTasks[taskIndex];
                                     const startVal = context.raw[0];
                                     const endVal = context.raw[1];
-                                    const duracaoCorridos = endVal - startVal;
                                     const dataInicioStr = arrayDatasGrafico[startVal] ? arrayDatasGrafico[startVal].toLocaleDateString('pt-BR') : '';
                                     const dataFimStr = arrayDatasGrafico[endVal-1] ? arrayDatasGrafico[endVal-1].toLocaleDateString('pt-BR') : '';
-                                    return ` Início: ${dataInicioStr} | Fim: ${dataFimStr} (${duracaoCorridos} dias corridos)`;
+                                    
+                                    return `Duração: ${task.duration} dias úteis (Início: ${dataInicioStr} - Fim: ${dataFimStr})`;
                                 }
                             }
                         }
@@ -1717,13 +1729,13 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                         y: { 
                             title: { display: false },
                             ticks: { font: { size: 12, weight: '600' } },
-                            grid: { display: false } // Limpa as linhas de fundo horizontais
+                            grid: { display: false } 
                         },
-                       x: { 
-                            position: 'top', // <-- CALENDÁRIO MOVIDO PARA O TOPO!
+                        x: { 
+                            position: 'top', 
                             beginAtZero: true,
-                            max: Math.max(diasTotais, 10),
-                            title: { display: true, text: "Calendário" },
+                            max: Math.max(diasTotais, 10), 
+                            title: { display: false }, 
                             ticks: { 
                                 stepSize: 1,
                                 maxRotation: 90, 
