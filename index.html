@@ -1051,26 +1051,30 @@ onSnapshot(obrasRef, (snapshot) => {
         });
 };
 // --- FUNÇÃO CENTRAL DE ANÁLISE DE ALERTAS (MÁQUINA DE REGRAS) ---
-    const analisarAlertasObra = (obra, tarefas, cronograma) => {
+    const analisarAlertasObra = (obra, tarefas, cronograma, contexto = 'dashboard') => {
         let alertas = [];
         const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
         const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
 
-        // 1. Alertas de Nível de Obra
-        if ((!obra.valorMedido || obra.valorMedido === 0) && obra.valorTotal > 0) {
-            alertas.push({ prioridade: 3, icone: '⚠️', cor: 'text-yellow-600', titulo: `Obra Ociosa`, texto: 'Nenhuma medição financeira registrada ainda.' });
-        } else if (obra.valorTotal > 0 && (obra.valorMedido / obra.valorTotal) >= 0.9 && (obra.valorMedido / obra.valorTotal) < 1) {
-            alertas.push({ prioridade: 4, icone: '🎯', cor: 'text-green-600', titulo: `Reta Final`, texto: `Obra acima de 90%. Foco na entrega e faturamento final!` });
+        // 1. Alertas de Nível de Obra (MOSTRAR APENAS NO DASHBOARD)
+        if (contexto === 'dashboard') {
+            if ((!obra.valorMedido || obra.valorMedido === 0) && obra.valorTotal > 0) {
+                alertas.push({ prioridade: 3, icone: '⚠️', cor: 'text-yellow-600', titulo: `Obra Ociosa`, texto: 'Nenhuma medição financeira registrada ainda.' });
+            } else if (obra.valorTotal > 0 && (obra.valorMedido / obra.valorTotal) >= 0.9 && (obra.valorMedido / obra.valorTotal) < 1) {
+                alertas.push({ prioridade: 4, icone: '🎯', cor: 'text-green-600', titulo: `Reta Final`, texto: `Obra acima de 90%. Foco na entrega e faturamento final!` });
+            }
         }
 
         // 2. Alertas Profundos (Nível de Tarefa)
         for (const t of tarefas) {
-            if (!t.valorTotal || t.valorTotal === 0) {
-                alertas.push({ prioridade: 1, icone: '❌', cor: 'text-red-600', titulo: 'Erro Orçamentário', texto: `A tarefa "${t.nome}" está com Valor R$ 0,00.` });
+            // Erro Orçamentário (MOSTRAR APENAS NO DASHBOARD)
+            if (contexto === 'dashboard' && (!t.valorTotal || t.valorTotal === 0)) {
+                alertas.push({ prioridade: 1, icone: '❌', cor: 'text-red-600', titulo: 'Erro Orçamentário', texto: `A tarefa "${t.nome || 'Sem Nome'}" está com Valor R$ 0,00.` });
             }
 
             const metragemMedida = (t.medicoes || []).reduce((s, m) => s + (m.metragem || 0), 0);
 
+            // Regras de Avanço Físico (Mostrar em ambos)
             if (cronograma && cronograma.tasks && cronograma.tasks[t.id]) {
                 const taskCrono = cronograma.tasks[t.id];
                 const startDate = new Date(taskCrono.startDate + 'T00:00:00');
@@ -1078,7 +1082,7 @@ onSnapshot(obrasRef, (snapshot) => {
                 const metaDiaria = (t.metragemTotal || 0) / duration;
 
                 if (hoje >= startDate && metragemMedida === 0) {
-                    alertas.push({ prioridade: 1, icone: '🚨', cor: 'text-red-600', titulo: `Atraso Crítico`, texto: `A tarefa "${t.nome}" deveria ter iniciado dia ${startDate.toLocaleDateString('pt-BR')}, mas tem 0% medido. Aloque recursos urgente!` });
+                    alertas.push({ prioridade: 1, icone: '🚨', cor: 'text-red-600', titulo: `Atraso Crítico`, texto: `A tarefa "${t.nome || 'Sem Nome'}" deveria ter iniciado, mas tem 0 medido. Aloque recursos urgente!` });
                 }
 
                 if (ontem >= startDate && metragemMedida < (t.metragemTotal || 0) && metragemMedida > 0) {
@@ -1088,11 +1092,11 @@ onSnapshot(obrasRef, (snapshot) => {
                     }).reduce((sum, m) => sum + (m.metragem || 0), 0);
 
                     if (medicoesOntem === 0) {
-                        alertas.push({ prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem`, texto: `A tarefa "${t.nome}" está em andamento, mas não teve medição registrada no dia anterior.` });
+                        alertas.push({ prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem`, texto: `A tarefa "${t.nome || 'Sem Nome'}" está em andamento, mas não teve medição registrada no dia anterior.` });
                     } else if (medicoesOntem < metaDiaria) {
-                        alertas.push({ prioridade: 2, icone: '📉', cor: 'text-orange-600', titulo: `Ritmo Lento`, texto: `"${t.nome}": Mediu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem. A meta diária era de ${metaDiaria.toFixed(2)} ${t.unidade}.` });
+                        alertas.push({ prioridade: 2, icone: '📉', cor: 'text-orange-600', titulo: `Ritmo Lento`, texto: `"${t.nome || 'Sem Nome'}": Mediu ${medicoesOntem.toFixed(2)} ${t.unidade || 'un'} ontem. A meta era de ${metaDiaria.toFixed(2)} ${t.unidade || 'un'}.` });
                     } else {
-                        alertas.push({ prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Meta Superada`, texto: `Excelente! "${t.nome}" produziu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem (Meta era ${metaDiaria.toFixed(2)}).` });
+                        alertas.push({ prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Meta Superada`, texto: `Excelente! "${t.nome || 'Sem Nome'}" produziu ${medicoesOntem.toFixed(2)} ${t.unidade || 'un'} ontem.` });
                     }
                 }
 
@@ -1100,7 +1104,7 @@ onSnapshot(obrasRef, (snapshot) => {
                      const faltante = (t.metragemTotal || 0) - metragemMedida;
                      const alvoHoje = Math.min(metaDiaria, faltante);
                      if (alvoHoje > 0) {
-                         alertas.push({ prioridade: 5, icone: '🎯', cor: 'text-blue-600', titulo: `Meta de Hoje`, texto: `Alvo de conclusão diária para "${t.nome}": Produzir ${alvoHoje.toFixed(2)} ${t.unidade}.` });
+                         alertas.push({ prioridade: 5, icone: '🎯', cor: 'text-blue-600', titulo: `Meta de Hoje`, texto: `Alvo diário para "${t.nome || 'Sem Nome'}": Produzir ${alvoHoje.toFixed(2)} ${t.unidade || 'un'}.` });
                      }
                 }
             }
@@ -2441,6 +2445,8 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
 
                 validTasks.push({
                     id: t.id,
+                    nome: t.nome || 'Sem nome', // <-- CORREÇÃO DO UNDEFINED
+                    unidade: t.unidade || 'un', // <-- CORREÇÃO DO UNDEFINED
                     valorTotal: valorDaTarefa, // Guardamos o valor
                     metragemTotal: Number(t.metragemTotal) || 0,
                     startDate: startDateVal,
@@ -2652,7 +2658,8 @@ const obraDoc = await getDoc(obraDocRef);
 
 if (obraDoc.exists()) {
     const obraData = { id: obraDoc.id, ...obraDoc.data() };
-    alertasObraAtual = analisarAlertasObra(obraData, validTasks, cronogramaSaved); // Usamos validTasks aqui
+    // Avisa a inteligência que estamos no Avanço Físico para não mostrar os alertas financeiros
+                alertasObraAtual = analisarAlertasObra(obraData, validTasks, cronogramaSaved, 'fisico');
     
     const divAlertasFisico = document.getElementById('fisico-alertas-container');
     if (divAlertasFisico) {
