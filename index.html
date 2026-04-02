@@ -315,6 +315,16 @@ padding: 10px;
                             <p class="text-orange-100 text-xs font-bold uppercase tracking-wider mb-1">Saldo a Faturar (Backlog Garantido)</p>
                             <p id="dash-saldo-faturar" class="text-3xl font-bold">R$ 0,00</p>
                         </div>
+                        
+                        <div class="p-4 bg-white rounded-lg text-black shadow-md border border-gray-200 flex flex-col justify-between" style="min-height: 120px;">
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3 flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse mr-2"></span>
+                                Radar Inteligente (Riscos e Alertas)
+                            </p>
+                            <div id="dash-alertas-lista" class="space-y-2 overflow-y-auto max-h-32 pr-2 custom-scrollbar">
+                                <p class="text-sm text-gray-400">Aguardando dados...</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-sm">
                         <h3 class="text-md font-semibold text-gray-700 mb-4">Progresso Financeiro Global da Casa Castilho</h3>
@@ -866,7 +876,70 @@ onSnapshot(obrasRef, (snapshot) => {
             renderDashboard(obras);
         });
 };
+// --- INTELIGÊNCIA: RADAR DE ALERTAS DO DASHBOARD ---
+    const carregarAlertasGlobais = async (obras) => {
+        const painelAlertas = document.getElementById('dash-alertas-lista');
+        if (!painelAlertas) return;
 
+        painelAlertas.innerHTML = '<p class="text-sm text-blue-500 animate-pulse mt-2">Varrendo banco de dados...</p>';
+
+        let alertas = [];
+
+        // Regra 1: Obras Ociosas (0% de avanço)
+        const obrasOciosas = obras.filter(o => (!o.valorMedido || o.valorMedido === 0) && o.valorTotal > 0);
+        if (obrasOciosas.length > 0) {
+            alertas.push({ icone: '⚠️', cor: 'text-yellow-600', titulo: 'Obras Ociosas', texto: `${obrasOciosas.length} obra(s) ainda sem faturamento iniciado.` });
+        }
+
+        // Regra 2: Foco em Faturamento (Reta final > 90%)
+        const obrasRetaFinal = obras.filter(o => o.valorTotal > 0 && (o.valorMedido / o.valorTotal) >= 0.9 && (o.valorMedido / o.valorTotal) < 1);
+        if (obrasRetaFinal.length > 0) {
+            alertas.push({ icone: '🎯', cor: 'text-green-600', titulo: 'Reta Final', texto: `${obrasRetaFinal.length} obra(s) com > 90%. Foco na entrega e recebimento!` });
+        }
+
+        // Varredura Profunda (Tarefas em todas as obras)
+        let tarefasSemPreco = 0;
+        let tarefasExternasPendentes = 0;
+
+        try {
+            for (const obra of obras) {
+                const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${obra.id}/tarefas`);
+                const snap = await getDocs(tarefasRef);
+                snap.forEach(doc => {
+                    const t = doc.data();
+                    if (!t.valorTotal || t.valorTotal === 0) tarefasSemPreco++;
+                    
+                    const medido = (t.medicoes || []).reduce((s, m) => s + (m.valor || 0), 0);
+                    if (t.localizacaoTarefa === 'Externo' && medido < (t.valorTotal || 1)) tarefasExternasPendentes++;
+                });
+            }
+
+            if (tarefasSemPreco > 0) {
+                alertas.push({ icone: '❌', cor: 'text-red-600', titulo: 'Erro Orçamentário', texto: `${tarefasSemPreco} tarefa(s) cadastradas com Valor R$ 0,00 no sistema.` });
+            }
+            if (tarefasExternasPendentes > 0) {
+                alertas.push({ icone: '⛈️', cor: 'text-blue-600', titulo: 'Risco de Chuva', texto: `${tarefasExternasPendentes} tarefa(s) marcadas como EXTERNO inacabadas.` });
+            }
+        } catch(e) {
+            console.error("Erro na varredura do radar:", e);
+        }
+
+        // Desenhar na tela do Dashboard
+        if (alertas.length === 0) {
+            painelAlertas.innerHTML = '<p class="text-sm text-green-600 font-semibold mt-2">✅ Tudo sob controle! Nenhum alerta no momento.</p>';
+            return;
+        }
+
+        painelAlertas.innerHTML = alertas.map(a => `
+            <div class="flex items-start space-x-3 p-2 bg-gray-50 rounded border border-gray-100">
+                <span class="text-lg">${a.icone}</span>
+                <div>
+                    <p class="text-sm font-bold ${a.cor} leading-tight">${a.titulo}</p>
+                    <p class="text-xs text-gray-600 leading-tight">${a.texto}</p>
+                </div>
+            </div>
+        `).join('');
+    };
     // --- FUNÇÃO DO DASHBOARD EXECUTIVO ---
     const renderDashboard = (obras) => {
         const dashTotalObras = document.getElementById('dash-total-obras');
@@ -914,6 +987,9 @@ onSnapshot(obrasRef, (snapshot) => {
         } else {
             dashProgressText.classList.add('hidden');
         }
+
+        // --- MÁGICA: Dispara o Radar Inteligente em background ---
+        carregarAlertasGlobais(obras);
     };
     const addOrUpdateObra = async (obra) => {
         if (!db) {
