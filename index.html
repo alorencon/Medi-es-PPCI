@@ -1063,10 +1063,14 @@ obras.forEach(obra => {
                        </button>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <p class="text-sm text-gray-500">Valor Total: 
-
-<span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
+                <div class="mt-4 border-t border-gray-100 pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
+                        <p class="text-xs font-bold text-blue-600">${obra.valorTotal > 0 ? ((obra.valorMedido || 0) / obra.valorTotal * 100).toFixed(1) : 0}%</p>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${obra.valorTotal > 0 ? ((obra.valorMedido || 0) / obra.valorTotal * 100).toFixed(1) : 0}%;"></div>
+                    </div>
                 </div>
             `;
 obraCard.addEventListener('click', async () => {
