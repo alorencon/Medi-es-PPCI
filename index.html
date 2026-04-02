@@ -1081,6 +1081,20 @@ onSnapshot(obrasRef, (snapshot) => {
                 const duration = parseInt(taskCrono.duration) || 1;
                 const metaDiaria = (t.metragemTotal || 0) / duration;
 
+                // CÁLCULO DE PROGRESSO ESPERADO ATÉ ONTEM À NOITE
+                let diasDecorridos = 0;
+                let iterDate = new Date(startDate);
+                // Conta dias úteis desde o início até ontem
+                while (iterDate < hoje && diasDecorridos < duration) {
+                    // Chama a função global que ignora fins de semana e feriados
+                    if (typeof ehDiaUtil === 'function' ? ehDiaUtil(iterDate) : (iterDate.getDay() !== 0 && iterDate.getDay() !== 6)) {
+                        diasDecorridos++;
+                    }
+                    iterDate.setDate(iterDate.getDate() + 1);
+                }
+                const progressoEsperado = diasDecorridos * metaDiaria;
+
+                // A. ALERTAS NEGATIVOS (Atrasos)
                 if (hoje >= startDate && metragemMedida === 0) {
                     alertas.push({ prioridade: 1, icone: '🚨', cor: 'text-red-600', titulo: `Atraso Crítico`, texto: `A tarefa "${t.nome || 'Sem Nome'}" deveria ter iniciado, mas tem 0 medido. Aloque recursos urgente!` });
                 }
@@ -1092,19 +1106,33 @@ onSnapshot(obrasRef, (snapshot) => {
                     }).reduce((sum, m) => sum + (m.metragem || 0), 0);
 
                     if (medicoesOntem === 0) {
-                        alertas.push({ prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem`, texto: `A tarefa "${t.nome || 'Sem Nome'}" está em andamento, mas não teve medição registrada no dia anterior.` });
+                        alertas.push({ prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem`, texto: `A tarefa "${t.nome || 'Sem Nome'}" está em andamento, mas não teve medição no dia anterior.` });
                     } else if (medicoesOntem < metaDiaria) {
                         alertas.push({ prioridade: 2, icone: '📉', cor: 'text-orange-600', titulo: `Ritmo Lento`, texto: `"${t.nome || 'Sem Nome'}": Mediu ${medicoesOntem.toFixed(2)} ${t.unidade || 'un'} ontem. A meta era de ${metaDiaria.toFixed(2)} ${t.unidade || 'un'}.` });
                     } else {
-                        alertas.push({ prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Meta Superada`, texto: `Excelente! "${t.nome || 'Sem Nome'}" produziu ${medicoesOntem.toFixed(2)} ${t.unidade || 'un'} ontem.` });
+                        // Produziu MUITO bem ontem!
+                        alertas.push({ prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Ritmo Acelerado`, texto: `Excelente! A equipe produziu ${medicoesOntem.toFixed(2)} ${t.unidade || 'un'} em "${t.nome || 'Sem Nome'}" ontem (superou a meta).` });
                     }
                 }
 
+                // B. ALERTAS POSITIVOS GERAIS (Adiantamento)
+                if (metragemMedida > 0 && metragemMedida < (t.metragemTotal || 0)) {
+                    if (hoje < startDate) {
+                        // A data de início nem chegou e o pessoal já começou a medir!
+                        alertas.push({ prioridade: 4, icone: '⭐', cor: 'text-blue-600', titulo: `Início Antecipado`, texto: `A equipe já adiantou ${metragemMedida.toFixed(2)} ${t.unidade || 'un'} de "${t.nome || 'Sem Nome'}" antes da data prevista de início no cronograma!` });
+                    } else if (metragemMedida > progressoEsperado && diasDecorridos > 0) {
+                        // A soma de tudo que foi medido é maior que a soma do que deveria estar pronto hoje
+                        alertas.push({ prioridade: 5, icone: '🌟', cor: 'text-green-600', titulo: `Tarefa Adiantada`, texto: `A tarefa "${t.nome || 'Sem Nome'}" está com ótimo avanço! Medidos: ${metragemMedida.toFixed(2)} ${t.unidade || 'un'} (Esperado até agora: ${progressoEsperado.toFixed(2)}).` });
+                    }
+                }
+
+                // C. META DO DIA (O que falta para hoje)
                 if (hoje >= startDate && metragemMedida < (t.metragemTotal || 0)) {
                      const faltante = (t.metragemTotal || 0) - metragemMedida;
                      const alvoHoje = Math.min(metaDiaria, faltante);
-                     if (alvoHoje > 0) {
-                         alertas.push({ prioridade: 5, icone: '🎯', cor: 'text-blue-600', titulo: `Meta de Hoje`, texto: `Alvo diário para "${t.nome || 'Sem Nome'}": Produzir ${alvoHoje.toFixed(2)} ${t.unidade || 'un'}.` });
+                     // Se a tarefa estiver SUPER adiantada, nem precisa mostrar meta para não cobrar a equipe à toa
+                     if (alvoHoje > 0 && metragemMedida <= progressoEsperado) {
+                         alertas.push({ prioridade: 7, icone: '🎯', cor: 'text-blue-600', titulo: `Meta Diária`, texto: `Alvo de produção de hoje para "${t.nome || 'Sem Nome'}": ${alvoHoje.toFixed(2)} ${t.unidade || 'un'}.` });
                      }
                 }
             }
