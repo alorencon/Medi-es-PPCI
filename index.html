@@ -281,12 +281,14 @@ padding: 10px;
 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="obras">Obras</button>
                 <button id="tab-equipe-obra" class="tab-btn hidden font-bold text-orange-700" data-tab="mao-de-obra">Equipe</button>
+                <button id="tab-frota-obra" class="tab-btn hidden font-bold text-orange-700" data-tab="frota-obra">Frota</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
                 <button class="tab-btn" data-tab="cronograma">Cronograma</button>
                 <button class="tab-btn font-bold text-blue-800" data-tab="fisico">Avanço Físico</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
                 <button class="tab-btn" data-tab="equipe">Base de Equipe</button>
+                <button class="tab-btn" data-tab="frota-global">Base de Frota</button>
             </div>
 
             
@@ -373,7 +375,37 @@ flex-wrap justify-between items-center mb-6">
  </div>
                 </div>
 
-               <div id="cronograma-view" class="tab-content hidden">
+               <div id="frota-global-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Base de Frota e Maquinário</h2>
+                        <button id="add-frota-global-btn" class="btn btn-primary flex items-center space-x-2">
+                            <span class="text-xl leading-none">+</span>
+                            <span>Novo Veículo/Máquina</span>
+                        </button>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+                        <p class="text-sm text-gray-600">Cadastre aqui os carros, caminhões e equipamentos da empresa. O custo configurado será aplicado às obras em que forem alocados.</p>
+                    </div>
+                    <div id="frota-global-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
+                <div id="frota-obra-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">Equipamentos na Obra</h2>
+                        <button id="add-frota-obra-btn" class="btn btn-primary flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 border-none">
+                            <span class="text-xl leading-none">+</span>
+                            <span>Alocar Máquina/Veículo</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="p-6 bg-gray-100 rounded-lg shadow-sm border border-gray-200">
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Custo Total de Equipamentos</p>
+                            <p id="total-gasto-frota" class="text-3xl font-bold text-orange-600">R$ 0,00</p>
+                        </div>
+                    </div>
+                    <div id="frota-obra-list" class="space-y-4"></div>
+                </div>
+    <div id="cronograma-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Cronograma Gráfico (Gantt)</h2>
                         <div class="flex space-x-2">
@@ -815,6 +847,15 @@ modalTitle.textContent = '';
                 } else {
                     renderDespesas();
                 }
+           } else if (tab.dataset.tab === 'frota-obra') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderFrotaObra();
+                }
+            } else if (tab.dataset.tab === 'frota-global') {
+                // Frota Global (Base) - Abre direto
             } else if (tab.dataset.tab === 'equipe') {
                 // A Equipe é global! Não exige que uma obra esteja selecionada.
                 } else if (tab.dataset.tab === 'mao-de-obra') {
@@ -853,6 +894,7 @@ onAuthStateChanged(auth, async (user) => {
       appView.classList.remove('hidden');
                     listenToObras();
                     listenToEquipe(); // Inicia o carregamento da sua Mão de Obra
+               listenToFrotaGlobal(); // Inicia o carregamento das máquinas
                 } else {
                     userId = null;
                     userIdDisplay.textContent = "N/A";
@@ -920,6 +962,8 @@ logoutBtn.addEventListener('click', async () => {
         currentObraId = null; // Reset current obra
         const tabEquipeObra = document.getElementById('tab-equipe-obra');
         if (tabEquipeObra) tabEquipeObra.classList.add('hidden');
+    const tabFrotaObra = document.getElementById('tab-frota-obra');
+        if (tabFrotaObra) tabFrotaObra.classList.add('hidden');
     tabs[0].click(); // Go back to obras tab
     });
 // Firestore CRUD Operations
@@ -1213,7 +1257,9 @@ obraCard.addEventListener('click', async () => {
                 // Mostra a aba de Equipe da obra
                 const tabEquipeObra = document.getElementById('tab-equipe-obra');
                 if (tabEquipeObra) tabEquipeObra.classList.remove('hidden');
-                // Busca as tarefas da obra clicada para o clima poder analisar
+                const tabFrotaObra = document.getElementById('tab-frota-obra');
+                if (tabFrotaObra) tabFrotaObra.classList.remove('hidden');
+    // Busca as tarefas da obra clicada para o clima poder analisar
                 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
                 const snapshot = await getDocs(tarefasRef);
                 const tarefasParaClima = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -3472,7 +3518,272 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Relatorio Despesas");
         XLSX.writeFile(workbook, `relatorio_despesas_${startDate}_${endDate}.xlsx`);
     };
-// --- EXPORTAÇÃO DO CRONOGRAMA GANTT ---
+// =========================================================================
+    // --- MÓDULO: SISTEMA DE FROTA (GLOBAL E OBRA) ---
+    // =========================================================================
+    let unsubscribeFrotaGlobal = null;
+    let unsubscribeFrotaObra = null;
+
+    // 1. CARREGAR BASE GLOBAL
+    const listenToFrotaGlobal = () => {
+        if (!db || !userId) return;
+        const frotaRef = collection(db, `artifacts/${__app_id}/users/${userId}/frota`);
+        if (unsubscribeFrotaGlobal) unsubscribeFrotaGlobal();
+        
+        unsubscribeFrotaGlobal = onSnapshot(frotaRef, (snapshot) => {
+            const frota = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderFrotaGlobalList(frota);
+        });
+    };
+
+    const renderFrotaGlobalList = (frota) => {
+        const listDiv = document.getElementById('frota-global-list');
+        if (!listDiv) return;
+        listDiv.innerHTML = '';
+
+        if (frota.length === 0) {
+            listDiv.innerHTML = '<p class="text-gray-500 col-span-full text-center">Nenhum equipamento cadastrado na Base.</p>';
+        } else {
+            frota.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+            frota.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card border-l-4 border-indigo-600 hover:shadow-lg transition-shadow';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">${item.nome}</h3>
+                            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-md uppercase">${item.placaOuId || 'S/N'}</span>
+                        </div>
+                        <div class="flex space-x-2 bg-gray-100 rounded-lg p-1">
+                            <button class="edit-frota-btn p-1 text-gray-500 hover:text-indigo-600" data-id="${item.id}">✏️</button>
+                            <button class="delete-frota-btn p-1 text-gray-500 hover:text-red-600" data-id="${item.id}">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-3">
+                        <p class="flex items-center">💰 Custo Base: <strong class="ml-1 text-gray-800">${formatCurrency(item.custoDiario || 0)} / dia</strong></p>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+
+            // Ligar botões de editar e apagar da Base
+            document.querySelectorAll('.edit-frota-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const eq = frota.find(f => f.id === e.currentTarget.dataset.id);
+                    openFrotaForm(eq);
+                });
+            });
+            document.querySelectorAll('.delete-frota-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const id = e.currentTarget.dataset.id;
+                    openModal('Excluir', '<p class="text-center text-gray-700 mb-4">Tem certeza?</p><button id="btn-del-frota" class="btn btn-primary bg-red-600 w-full">Sim, Excluir</button>');
+                    document.getElementById('btn-del-frota').addEventListener('click', async () => {
+                        await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/frota`, id));
+                        closeModal();
+                    });
+                });
+            });
+        }
+
+        const btnAdd = document.getElementById('add-frota-global-btn');
+        if (btnAdd) {
+            const newBtn = btnAdd.cloneNode(true);
+            btnAdd.parentNode.replaceChild(newBtn, btnAdd);
+            newBtn.addEventListener('click', () => openFrotaForm());
+        }
+    };
+
+    const openFrotaForm = (item = {}) => {
+        openModal(item.id ? 'Editar Equipamento' : 'Novo Equipamento', `
+            <form id="frota-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nome / Modelo (Ex: Betoneira 400L)</label>
+                    <input type="text" name="nome" value="${item.nome || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Placa ou N.º de Série</label>
+                        <input type="text" name="placaOuId" value="${item.placaOuId || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Custo (R$ / dia)</label>
+                        <input type="number" step="0.01" name="custoDiario" value="${item.custoDiario || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-full mt-6 bg-indigo-600 border-none">Salvar Equipamento</button>
+            </form>
+        `);
+        document.getElementById('frota-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nome: e.target.nome.value,
+                placaOuId: e.target.placaOuId.value || 'N/A',
+                custoDiario: parseFloat(e.target.custoDiario.value) || 0
+            };
+            const ref = collection(db, `artifacts/${__app_id}/users/${userId}/frota`);
+            if (item.id) await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/frota`, item.id), data);
+            else await addDoc(ref, data);
+            closeModal();
+        });
+    };
+
+    // 2. ALOCAR NA OBRA (Com Inteligência de Transferência)
+    const renderFrotaObra = async () => {
+        if (!currentObraId) return;
+        const frotaObraRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/frota`);
+        if (unsubscribeFrotaObra) unsubscribeFrotaObra();
+        
+        unsubscribeFrotaObra = onSnapshot(frotaObraRef, (snapshot) => {
+            const alocados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const listDiv = document.getElementById('frota-obra-list');
+            if (!listDiv) return;
+            
+            let totalGasto = 0;
+            listDiv.innerHTML = '';
+            
+            if (alocados.length === 0) listDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhum equipamento alocado.</p>';
+            else {
+                alocados.sort((a, b) => (b.ativo !== false ? 1 : 0) - (a.ativo !== false ? 1 : 0));
+                alocados.forEach(alocado => {
+                    const gasto = (alocado.diasUso || 0) * (alocado.custoDiario || 0);
+                    totalGasto += gasto;
+                    const isAtivo = alocado.ativo !== false;
+                    
+                    const blockButtons = isAtivo ? '' : 'pointer-events-none opacity-40 grayscale';
+                    const statusBadge = isAtivo 
+                        ? `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded ml-2">Ativo</span>`
+                        : `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded ml-2">Transferido/Devolvido</span>`;
+
+                    const item = document.createElement('div');
+                    item.className = `card flex flex-wrap justify-between items-center border-l-4 ${isAtivo ? 'border-indigo-500' : 'border-gray-300 bg-gray-50'}`;
+                    item.innerHTML = `
+                        <div class="mb-4 md:mb-0">
+                            <h3 class="font-bold text-lg ${isAtivo ? 'text-gray-800' : 'text-gray-500'}">${alocado.nome} ${statusBadge}</h3>
+                            <p class="text-sm text-gray-500 uppercase font-bold">${alocado.placaOuId} <span class="text-gray-400 normal-case font-normal">• ${formatCurrency(alocado.custoDiario)}/dia</span></p>
+                        </div>
+                        <div class="flex items-center flex-wrap space-y-2 md:space-y-0 space-x-0 md:space-x-4">
+                            <div class="text-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                                <p class="text-xs text-gray-500 font-bold uppercase">Dias de Uso</p>
+                                <p class="text-xl font-bold ${isAtivo ? 'text-indigo-600' : 'text-gray-500'}">${alocado.diasUso || 0}</p>
+                            </div>
+                            <div class="text-center bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-200">
+                                <p class="text-xs text-gray-500 font-bold uppercase">Custo Gerado</p>
+                                <p class="text-xl font-bold ${isAtivo ? 'text-indigo-600' : 'text-gray-500'}">${formatCurrency(gasto)}</p>
+                            </div>
+                            <div class="flex flex-col space-y-2 ${blockButtons}">
+                                <button class="add-dia-frota-btn bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 font-bold text-sm" data-id="${alocado.id}">+ 1 Dia</button>
+                                <button class="edit-dia-frota-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-bold text-sm" data-id="${alocado.id}" data-dias="${alocado.diasUso || 0}">Editar Dias</button>
+                            </div>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            }
+            document.getElementById('total-gasto-frota').textContent = formatCurrency(totalGasto);
+
+            // Funções dos botões locais (Igual ao da Equipe)
+            document.querySelectorAll('.add-dia-frota-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const eq = alocados.find(a => a.id === id);
+                    await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/frota`, id), { diasUso: (eq.diasUso || 0) + 1 });
+                });
+            });
+            document.querySelectorAll('.edit-dia-frota-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const diasAtuais = e.currentTarget.dataset.dias;
+                    openModal('Editar', `
+                        <input type="number" id="input-edit-dias-frota" value="${diasAtuais}" step="0.5" class="mt-1 block w-full rounded-md border-gray-300 text-black p-2">
+                        <button id="salvar-dias-frota" class="btn btn-primary w-full mt-4 bg-blue-600 border-none">Salvar</button>
+                    `);
+                    document.getElementById('salvar-dias-frota').addEventListener('click', async () => {
+                        const novosDias = parseFloat(document.getElementById('input-edit-dias-frota').value) || 0;
+                        await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/frota`, id), { diasUso: novosDias });
+                        closeModal();
+                    });
+                });
+            });
+        });
+
+        // Alocar com a mesma Inteligência de RH
+        const btnAdd = document.getElementById('add-frota-obra-btn');
+        if (btnAdd) {
+            const newBtn = btnAdd.cloneNode(true);
+            btnAdd.parentNode.replaceChild(newBtn, btnAdd);
+            newBtn.addEventListener('click', async () => {
+                const frotaGlobRef = collection(db, `artifacts/${__app_id}/users/${userId}/frota`);
+                const snapGlob = await getDocs(frotaGlobRef);
+                const frotaGlobal = snapGlob.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                if (frotaGlobal.length === 0) return openModal('Aviso', '<p class="text-center text-gray-700">Sem equipamentos cadastrados na Base.</p>');
+
+                const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+                const obrasSnap = await getDocs(obrasRef);
+                const mapaAloc = {}; 
+                
+                for (const obraDoc of obrasSnap.docs) {
+                    const moRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${obraDoc.id}/frota`);
+                    const moSnap = await getDocs(moRef);
+                    moSnap.forEach(moDoc => {
+                        const moData = moDoc.data();
+                        if (moData.frotaId && moData.ativo !== false) {
+                            mapaAloc[moData.frotaId] = { obraId: obraDoc.id, obraNome: obraDoc.data().nome, docId: moDoc.id };
+                        }
+                    });
+                }
+
+                let optionsHtml = '<option value="">-- Selecione a Máquina --</option>';
+                frotaGlobal.forEach(c => {
+                    const aloc = mapaAloc[c.id];
+                    let status = "[Livre]", disabled = "", dados = `data-nome="${c.nome}" data-placa="${c.placaOuId}" data-custo="${c.custoDiario}"`;
+                    if (aloc) {
+                        if (aloc.obraId === currentObraId) { status = "❌ [Aqui]"; disabled = "disabled"; }
+                        else { status = `⚠️ [Em: ${aloc.obraNome}]`; dados += ` data-obraid="${aloc.obraId}" data-obranome="${aloc.obraNome}" data-docid="${aloc.docId}"`; }
+                    }
+                    optionsHtml += `<option value="${c.id}" ${disabled} ${dados}>${status} ${c.nome} (${c.placaOuId})</option>`;
+                });
+
+                openModal('Alocar Máquina', `
+                    <form id="form-alocar-frota" class="space-y-4">
+                        <select id="sel-frota" class="block w-full rounded-md border-gray-300 text-black p-2 font-medium">${optionsHtml}</select>
+                        <button type="submit" class="btn btn-primary w-full bg-orange-600 border-none mt-4">Alocar</button>
+                    </form>
+                `);
+
+                document.getElementById('form-alocar-frota').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const sel = document.getElementById('sel-frota');
+                    const opt = sel.options[sel.selectedIndex];
+                    if (!opt.value) return;
+
+                    const novaAloc = {
+                        frotaId: opt.value, nome: opt.dataset.nome, placaOuId: opt.dataset.placa,
+                        custoDiario: parseFloat(opt.dataset.custo), diasUso: 0, ativo: true
+                    };
+
+                    const executar = async () => {
+                        if (opt.dataset.obraid) {
+                            await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/obras/${opt.dataset.obraid}/frota`, opt.dataset.docid), { ativo: false });
+                        }
+                        await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/frota`), novaAloc);
+                        closeModal();
+                    };
+
+                    if (opt.dataset.obraid) {
+                        openModal('Confirmar Transferência', `
+                            <p class="text-center">Transferir <b>${novaAloc.nome}</b> para esta obra?</p>
+                            <p class="text-center text-green-700 bg-green-50 p-2 mt-2">Os custos passados na obra ${opt.dataset.obranome} serão salvos.</p>
+                            <button id="btn-conf" class="btn btn-primary w-full mt-4 bg-orange-600">Sim, Transferir</button>
+                        `);
+                        document.getElementById('btn-conf').addEventListener('click', executar);
+                    } else await executar();
+                });
+            });
+        }
+    };
+    // =========================================================================
+    // --- EXPORTAÇÃO DO CRONOGRAMA GANTT ---
     const exportCronogramaPDF = (nomeObra) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); 
