@@ -287,6 +287,7 @@ padding: 10px;
                 <button class="tab-btn font-bold text-blue-800" data-tab="fisico">Avanço Físico</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
+                <button id="tab-dre-obra" class="tab-btn hidden font-bold text-green-700" data-tab="dre">DRE</button>
                 <button class="tab-btn" data-tab="equipe">Base de Equipe</button>
                 <button class="tab-btn" data-tab="frota-global">Veículos</button>
             </div>
@@ -542,7 +543,51 @@ flex-wrap justify-between items-center mb-6">
                
  </div>
 
-                <div id="despesas-view" class="tab-content hidden">
+        <div id="dre-view" class="tab-content hidden">
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold mb-2 md:mb-0">DRE em Tempo Real (Demonstrativo Financeiro)</h2>
+                        <button onclick="renderDRE()" class="btn flex items-center space-x-2 text-black border border-gray-300 hover:bg-gray-100 bg-white shadow-sm rounded-lg px-4 py-2 font-semibold">
+                            <span>🔄 Atualizar Valores</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="p-6 bg-green-50 rounded-lg shadow-sm border border-green-200 transition-transform hover:-translate-y-1">
+                            <p class="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Receita (Faturado / Medido)</p>
+                            <p id="dre-receita" class="text-3xl font-bold text-green-700">R$ 0,00</p>
+                        </div>
+                        <div class="p-6 bg-red-50 rounded-lg shadow-sm border border-red-200 transition-transform hover:-translate-y-1">
+                            <p class="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">Custos Totais (Materiais + Mão de Obra)</p>
+                            <p id="dre-custos" class="text-3xl font-bold text-red-700">R$ 0,00</p>
+                        </div>
+                        <div id="dre-card-lucro" class="p-6 bg-blue-50 rounded-lg shadow-sm border border-blue-200 transition-transform hover:-translate-y-1">
+                            <p class="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">Lucro Bruto Atual</p>
+                            <p id="dre-lucro" class="text-3xl font-bold text-blue-700">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Margem de Lucratividade</h3>
+                            <div class="flex items-end space-x-4 mb-2">
+                                <span id="dre-margem-texto" class="text-5xl font-bold text-gray-800">0%</span>
+                                <span class="text-gray-500 mb-1 font-medium">sobre a receita</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4 mt-4 overflow-hidden">
+                                <div id="dre-margem-barra" class="bg-blue-600 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                            <p id="dre-status-mensagem" class="text-sm font-bold mt-4 text-center p-3 rounded"></p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 w-full text-left">Distribuição de Custos</h3>
+                            <div class="relative w-48 h-48">
+                                <canvas id="dreChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>        
+    <div id="despesas-view" class="tab-content hidden">
              
        <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Despesas da Obra</h2>
@@ -860,7 +905,14 @@ modalTitle.textContent = '';
                 } else {
                     renderDespesas();
                 }
-           } else if (tab.dataset.tab === 'frota-obra') {
+           } else if (tab.dataset.tab === 'dre') {
+                 if (!currentObraId) {
+                    openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
+                    tabs[0].click();
+                } else {
+                    renderDRE();
+                }
+            } else if (tab.dataset.tab === 'frota-obra') {
                  if (!currentObraId) {
                     openModal('Atenção', '<p class="text-center text-gray-700">Por favor, selecione uma obra primeiro.</p>');
                     tabs[0].click();
@@ -977,6 +1029,8 @@ logoutBtn.addEventListener('click', async () => {
         if (tabEquipeObra) tabEquipeObra.classList.add('hidden');
     const tabFrotaObra = document.getElementById('tab-frota-obra');
         if (tabFrotaObra) tabFrotaObra.classList.add('hidden');
+    const tabDreObra = document.getElementById('tab-dre-obra');
+        if (tabDreObra) tabDreObra.classList.add('hidden');
     tabs[0].click(); // Go back to obras tab
     });
 // Firestore CRUD Operations
@@ -1272,6 +1326,8 @@ obraCard.addEventListener('click', async () => {
                 if (tabEquipeObra) tabEquipeObra.classList.remove('hidden');
                 const tabFrotaObra = document.getElementById('tab-frota-obra');
                 if (tabFrotaObra) tabFrotaObra.classList.remove('hidden');
+    const tabDreObra = document.getElementById('tab-dre-obra');
+                if (tabDreObra) tabDreObra.classList.remove('hidden');
     // Busca as tarefas da obra clicada para o clima poder analisar
                 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
                 const snapshot = await getDocs(tarefasRef);
@@ -3836,6 +3892,116 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         }
     };
     // =========================================================================
+    // =========================================================================
+    // --- MÓDULO: DRE EM TEMPO REAL (FINANCEIRO) ---
+    // =========================================================================
+    let dreChartInstance = null;
+
+    const renderDRE = async () => {
+        if (!currentObraId || !db || !userId) return;
+
+        try {
+            // 1. Buscar Receita (Valor Medido da Obra)
+            const obraDoc = await getDoc(doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId));
+            if (!obraDoc.exists()) return;
+            const receitaBruta = obraDoc.data().valorMedido || 0;
+
+            // 2. Buscar Custos de Materiais e Despesas
+            const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
+            const despesasSnap = await getDocs(despesasRef);
+            let custoMateriais = 0;
+            despesasSnap.forEach(doc => {
+                custoMateriais += (doc.data().valor || 0);
+            });
+
+            // 3. Buscar Custos de Mão de Obra
+            const moRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/maodeobra`);
+            const moSnap = await getDocs(moRef);
+            let custoMaoDeObra = 0;
+            moSnap.forEach(doc => {
+                const data = doc.data();
+                custoMaoDeObra += (data.diasTrabalhados || 0) * (data.custoDiario || 0);
+            });
+
+            // Cálculos Finais
+            const custoTotal = custoMateriais + custoMaoDeObra;
+            const lucroBruto = receitaBruta - custoTotal;
+            const margem = receitaBruta > 0 ? (lucroBruto / receitaBruta) * 100 : 0;
+
+            // Atualizar os Cartões
+            document.getElementById('dre-receita').textContent = formatCurrency(receitaBruta);
+            document.getElementById('dre-custos').textContent = formatCurrency(custoTotal);
+            document.getElementById('dre-lucro').textContent = formatCurrency(lucroBruto);
+            
+            // Inteligência do Painel de Margem
+            const lucroCard = document.getElementById('dre-card-lucro');
+            const margemTexto = document.getElementById('dre-margem-texto');
+            const margemBarra = document.getElementById('dre-margem-barra');
+            const statusMsg = document.getElementById('dre-status-mensagem');
+
+            margemTexto.textContent = `${margem.toFixed(1)}%`;
+            
+            if (lucroBruto >= 0) {
+                lucroCard.className = 'p-6 bg-blue-50 rounded-lg shadow-sm border border-blue-200 transition-transform hover:-translate-y-1';
+                document.getElementById('dre-lucro').className = 'text-3xl font-bold text-blue-700';
+                margemTexto.className = 'text-5xl font-bold text-blue-600';
+                margemBarra.className = 'bg-blue-600 h-4 rounded-full transition-all duration-1000';
+                margemBarra.style.width = `${Math.min(margem, 100)}%`;
+                
+                if (margem > 20) {
+                    statusMsg.className = 'text-sm font-bold mt-4 text-center p-3 rounded bg-green-100 text-green-800';
+                    statusMsg.textContent = '✅ Obra Altamente Rentável!';
+                } else if (margem > 0 && margem <= 20) {
+                    statusMsg.className = 'text-sm font-bold mt-4 text-center p-3 rounded bg-yellow-100 text-yellow-800';
+                    statusMsg.textContent = '⚠️ Lucro Apertado. Vigie os gastos!';
+                } else {
+                     statusMsg.className = 'text-sm font-bold mt-4 text-center p-3 rounded bg-gray-100 text-gray-800';
+                     statusMsg.textContent = 'Aguardando medições para calcular margem.';
+                     margemBarra.style.width = '0%';
+                }
+            } else {
+                // Alerta de Prejuízo
+                lucroCard.className = 'p-6 bg-red-50 rounded-lg shadow-sm border border-red-200 transition-transform hover:-translate-y-1 animate-pulse';
+                document.getElementById('dre-lucro').className = 'text-3xl font-bold text-red-700';
+                margemTexto.className = 'text-5xl font-bold text-red-600';
+                margemBarra.className = 'bg-red-600 h-4 rounded-full transition-all duration-1000';
+                margemBarra.style.width = '100%'; 
+                statusMsg.className = 'text-sm font-bold mt-4 text-center p-3 rounded bg-red-100 text-red-800';
+                statusMsg.textContent = '🚨 ALERTA: Prejuízo! Os custos já ultrapassaram o faturamento!';
+            }
+
+            // Atualizar Gráfico de Pizza (Custo: Material vs Equipe)
+            const ctx = document.getElementById('dreChart');
+            if (!ctx) return;
+            
+            if (dreChartInstance) dreChartInstance.destroy(); // Limpa o antigo
+            
+            if (custoTotal > 0) {
+                dreChartInstance = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Materiais/Despesas', 'Mão de Obra'],
+                        datasets: [{
+                            data: [custoMateriais, custoMaoDeObra],
+                            backgroundColor: ['#ef4444', '#f97316'], // Vermelho e Laranja
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { weight: 'bold' } } }
+                        }
+                    }
+                });
+            }
+
+        } catch (e) {
+            console.error("Erro ao gerar DRE:", e);
+        }
+    };
     // --- EXPORTAÇÃO DO CRONOGRAMA GANTT ---
     const exportCronogramaPDF = (nomeObra) => {
         const { jsPDF } = window.jspdf;
