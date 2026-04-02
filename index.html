@@ -280,13 +280,13 @@ padding: 10px;
 
 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="obras">Obras</button>
+                <button id="tab-equipe-obra" class="tab-btn hidden font-bold text-orange-700" data-tab="mao-de-obra">Equipe</button>
                 <button class="tab-btn" data-tab="tarefas">Tarefas</button>
                 <button class="tab-btn" data-tab="cronograma">Cronograma</button>
                 <button class="tab-btn font-bold text-blue-800" data-tab="fisico">Avanço Físico</button>
                 <button class="tab-btn" data-tab="relatorios">Relatórios</button>
                 <button class="tab-btn" data-tab="despesas">Despesas</button>
                 <button class="tab-btn" data-tab="equipe">Base de Equipe</button>
-                <button class="tab-btn font-bold text-orange-700" data-tab="mao-de-obra">Mão de Obra da Obra</button>
             </div>
 
             
@@ -913,7 +913,9 @@ createAccountBtn.addEventListener('click', async (e) => {
 logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
         currentObraId = null; // Reset current obra
-        tabs[0].click(); // Go back to obras tab
+        const tabEquipeObra = document.getElementById('tab-equipe-obra');
+        if (tabEquipeObra) tabEquipeObra.classList.add('hidden');
+    tabs[0].click(); // Go back to obras tab
     });
 // Firestore CRUD Operations
     const listenToObras = () => {
@@ -1203,7 +1205,9 @@ obras.forEach(obra => {
             `;
 obraCard.addEventListener('click', async () => {
                 currentObraId = obra.id;
-                
+                // Mostra a aba de Equipe da obra
+                const tabEquipeObra = document.getElementById('tab-equipe-obra');
+                if (tabEquipeObra) tabEquipeObra.classList.remove('hidden');
                 // Busca as tarefas da obra clicada para o clima poder analisar
                 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
                 const snapshot = await getDocs(tarefasRef);
@@ -3771,7 +3775,8 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                             </div>
                             <div class="flex flex-col space-y-2 w-full md:w-auto mt-2 md:mt-0">
                                 <button class="add-dia-btn bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600 font-bold text-sm transition-colors" data-id="${alocado.id}">+ 1 Dia Trabalhado</button>
-                                <button class="remove-colab-obra-btn text-gray-400 hover:text-red-600 text-xs font-bold text-center transition-colors" data-id="${alocado.id}">Remover da Obra</button>
+                                <button class="edit-dia-btn bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 font-bold text-sm transition-colors mt-2" data-id="${alocado.id}" data-nome="${alocado.nome}" data-dias="${alocado.diasTrabalhados || 0}">Editar Dias</button>
+                                <button class="remove-colab-obra-btn text-gray-400 hover:text-red-600 text-xs font-bold text-center transition-colors mt-3" data-id="${alocado.id}">Remover da Obra</button>
                             </div>
                         </div>
                     `;
@@ -3791,7 +3796,32 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                     await updateDoc(ref, { diasTrabalhados: (colab.diasTrabalhados || 0) + 1 });
                 });
             });
-            
+            document.querySelectorAll('.edit-dia-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const nome = e.currentTarget.dataset.nome;
+                    const diasAtuais = e.currentTarget.dataset.dias;
+                    
+                    openModal('Editar Dias Trabalhados', `
+                        <form id="form-editar-dias" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Total de Dias de ${nome}</label>
+                                <input type="number" id="input-edit-dias" value="${diasAtuais}" min="0" step="0.5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                                <p class="text-xs text-gray-500 mt-1">Insira o número correto de dias. Aceita meios dias (ex: 1.5).</p>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full bg-blue-600 hover:bg-blue-700 border-none">Salvar Correção</button>
+                        </form>
+                    `);
+                    
+                    document.getElementById('form-editar-dias').addEventListener('submit', async (ev) => {
+                        ev.preventDefault();
+                        const novosDias = parseFloat(document.getElementById('input-edit-dias').value) || 0;
+                        const ref = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/maodeobra`, id);
+                        await updateDoc(ref, { diasTrabalhados: novosDias });
+                        closeModal();
+                    });
+                });
+            });
             document.querySelectorAll('.remove-colab-obra-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = e.currentTarget.dataset.id;
