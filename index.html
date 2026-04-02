@@ -316,7 +316,7 @@ padding: 10px;
                             <p id="dash-saldo-faturar" class="text-3xl font-bold">R$ 0,00</p>
                         </div>
                         
-                        <div class="p-4 bg-white rounded-lg text-black shadow-md border border-gray-200 flex flex-col justify-between" style="min-height: 120px;">
+                        <div class="p-4 bg-slate-100 rounded-lg text-black shadow-inner border border-slate-300 flex flex-col justify-between" style="min-height: 120px;">
                             <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3 flex items-center">
                                 <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse mr-2"></span>
                                 Radar Inteligente (Riscos e Alertas)
@@ -931,10 +931,10 @@ onSnapshot(obrasRef, (snapshot) => {
         }
 
         painelAlertas.innerHTML = alertas.map(a => `
-            <div class="flex items-start space-x-3 p-2 bg-gray-50 rounded border border-gray-100">
-                <span class="text-lg">${a.icone}</span>
+            <div class="flex items-start space-x-3 p-3 bg-white rounded-md border border-gray-200 shadow-sm transition-transform hover:-translate-y-0.5">
+                <span class="text-xl drop-shadow-sm">${a.icone}</span>
                 <div>
-                    <p class="text-sm font-bold ${a.cor} leading-tight">${a.titulo}</p>
+                    <p class="text-sm font-bold ${a.cor} leading-tight mb-0.5">${a.titulo}</p>
                     <p class="text-xs text-gray-600 leading-tight">${a.texto}</p>
                 </div>
             </div>
