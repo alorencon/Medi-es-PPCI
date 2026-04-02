@@ -534,10 +534,11 @@ flex-wrap justify-between items-center mb-6">
                             <div class="flex items-center"><span class="w-4 h-4 inline-block mr-2 rounded border border-gray-400" style="background-color: rgba(200, 200, 200, 0.4);"></span> Fim de Semana</div>
                             <div class="flex items-center"><span class="w-4 h-4 inline-block mr-2 rounded border border-blue-400" style="background-color: rgba(100, 181, 246, 0.4);"></span> Feriado</div>
                         </div>
-
+                            <div id="fisico-alertas-container" class="mt-8 border-t pt-6 border-gray-200"></div>
+                        
                     </div>
                 </div>
-               
+                       
         <div id="relatorios-view" class="tab-content hidden">
                  
    <h2 class="text-2xl font-semibold mb-6">Relatórios</h2>
@@ -1049,128 +1050,125 @@ onSnapshot(obrasRef, (snapshot) => {
             renderDashboard(obras);
         });
 };
-// --- INTELIGÊNCIA: RADAR DE ALERTAS DO DASHBOARD (ATUALIZADO) ---
+// --- FUNÇÃO CENTRAL DE ANÁLISE DE ALERTAS (MÁQUINA DE REGRAS) ---
+    const analisarAlertasObra = (obra, tarefas, cronograma) => {
+        let alertas = [];
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
+
+        // 1. Alertas de Nível de Obra
+        if ((!obra.valorMedido || obra.valorMedido === 0) && obra.valorTotal > 0) {
+            alertas.push({ prioridade: 3, icone: '⚠️', cor: 'text-yellow-600', titulo: `Obra Ociosa`, texto: 'Nenhuma medição financeira registrada ainda.' });
+        } else if (obra.valorTotal > 0 && (obra.valorMedido / obra.valorTotal) >= 0.9 && (obra.valorMedido / obra.valorTotal) < 1) {
+            alertas.push({ prioridade: 4, icone: '🎯', cor: 'text-green-600', titulo: `Reta Final`, texto: `Obra acima de 90%. Foco na entrega e faturamento final!` });
+        }
+
+        // 2. Alertas Profundos (Nível de Tarefa)
+        for (const t of tarefas) {
+            if (!t.valorTotal || t.valorTotal === 0) {
+                alertas.push({ prioridade: 1, icone: '❌', cor: 'text-red-600', titulo: 'Erro Orçamentário', texto: `A tarefa "${t.nome}" está com Valor R$ 0,00.` });
+            }
+
+            const metragemMedida = (t.medicoes || []).reduce((s, m) => s + (m.metragem || 0), 0);
+
+            if (cronograma && cronograma.tasks && cronograma.tasks[t.id]) {
+                const taskCrono = cronograma.tasks[t.id];
+                const startDate = new Date(taskCrono.startDate + 'T00:00:00');
+                const duration = parseInt(taskCrono.duration) || 1;
+                const metaDiaria = (t.metragemTotal || 0) / duration;
+
+                if (hoje >= startDate && metragemMedida === 0) {
+                    alertas.push({ prioridade: 1, icone: '🚨', cor: 'text-red-600', titulo: `Atraso Crítico`, texto: `A tarefa "${t.nome}" deveria ter iniciado dia ${startDate.toLocaleDateString('pt-BR')}, mas tem 0% medido. Aloque recursos urgente!` });
+                }
+
+                if (ontem >= startDate && metragemMedida < (t.metragemTotal || 0) && metragemMedida > 0) {
+                    const medicoesOntem = (t.medicoes || []).filter(m => {
+                        const d = new Date(m.data);
+                        return d.getDate() === ontem.getDate() && d.getMonth() === ontem.getMonth() && d.getFullYear() === ontem.getFullYear();
+                    }).reduce((sum, m) => sum + (m.metragem || 0), 0);
+
+                    if (medicoesOntem === 0) {
+                        alertas.push({ prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem`, texto: `A tarefa "${t.nome}" está em andamento, mas não teve medição registrada no dia anterior.` });
+                    } else if (medicoesOntem < metaDiaria) {
+                        alertas.push({ prioridade: 2, icone: '📉', cor: 'text-orange-600', titulo: `Ritmo Lento`, texto: `"${t.nome}": Mediu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem. A meta diária era de ${metaDiaria.toFixed(2)} ${t.unidade}.` });
+                    } else {
+                        alertas.push({ prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Meta Superada`, texto: `Excelente! "${t.nome}" produziu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem (Meta era ${metaDiaria.toFixed(2)}).` });
+                    }
+                }
+
+                if (hoje >= startDate && metragemMedida < (t.metragemTotal || 0)) {
+                     const faltante = (t.metragemTotal || 0) - metragemMedida;
+                     const alvoHoje = Math.min(metaDiaria, faltante);
+                     if (alvoHoje > 0) {
+                         alertas.push({ prioridade: 5, icone: '🎯', cor: 'text-blue-600', titulo: `Meta de Hoje`, texto: `Alvo de conclusão diária para "${t.nome}": Produzir ${alvoHoje.toFixed(2)} ${t.unidade}.` });
+                     }
+                }
+            }
+        }
+        alertas.sort((a, b) => a.prioridade - b.prioridade);
+        return alertas;
+    };
+
+    // --- RADAR DO DASHBOARD (AGRUPADO COM BOTÃO EXPANDIR) ---
     const carregarAlertasGlobais = async (obras) => {
         const painelAlertas = document.getElementById('dash-alertas-lista');
         if (!painelAlertas) return;
 
-        painelAlertas.innerHTML = '<p class="text-sm text-blue-500 animate-pulse mt-2">Cruzando dados de Cronograma e Medições...</p>';
+        painelAlertas.innerHTML = '<p class="text-sm text-blue-500 animate-pulse mt-2">Varrendo bancos de dados...</p>';
 
-        let alertas = [];
-        
-        // Prepara datas para comparação (Hoje e Ontem)
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        const ontem = new Date(hoje);
-        ontem.setDate(ontem.getDate() - 1);
+        let htmlFinal = '';
+        let temAlertas = false;
 
         try {
             for (const obra of obras) {
-                // Puxa as tarefas desta obra
                 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${obra.id}/tarefas`);
                 const snapTarefas = await getDocs(tarefasRef);
                 const tarefas = snapTarefas.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Puxa o cronograma desta obra para saber quando as coisas deveriam começar
                 const cronoRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${obra.id}/cronograma/dados`);
                 const snapCrono = await getDoc(cronoRef);
                 const cronograma = snapCrono.exists() ? snapCrono.data() : null;
 
-                // 1. Alertas de Nível de Obra
-                if ((!obra.valorMedido || obra.valorMedido === 0) && obra.valorTotal > 0) {
-                    alertas.push({ prioridade: 3, icone: '⚠️', cor: 'text-yellow-600', titulo: `Obra Ociosa: ${obra.nome}`, texto: 'Nenhuma medição financeira registrada ainda.' });
-                } else if (obra.valorTotal > 0 && (obra.valorMedido / obra.valorTotal) >= 0.9 && (obra.valorMedido / obra.valorTotal) < 1) {
-                    alertas.push({ prioridade: 4, icone: '🎯', cor: 'text-green-600', titulo: `Reta Final: ${obra.nome}`, texto: `Obra acima de 90%. Foco na entrega e faturamento final!` });
-                }
+                // Chama o motor mestre de regras
+                const alertasDaObra = analisarAlertasObra(obra, tarefas, cronograma);
 
-                // 2. Alertas Profundos (Nível de Tarefa)
-                for (const t of tarefas) {
-                    // Erro de orçamento (Sem valor)
-                    if (!t.valorTotal || t.valorTotal === 0) {
-                        alertas.push({ prioridade: 1, icone: '❌', cor: 'text-red-600', titulo: 'Erro Orçamentário', texto: `A tarefa "${t.nome}" em ${obra.nome} está com Valor R$ 0,00.` });
-                    }
+                if (alertasDaObra.length > 0) {
+                    temAlertas = true;
+                    // Verifica se tem alertas de prioridade alta para deixar o selo vermelho
+                    const qtdCriticos = alertasDaObra.filter(a => a.prioridade <= 2).length;
+                    const corBadge = qtdCriticos > 0 ? 'bg-red-100 text-red-800 border-red-200' : 'bg-orange-100 text-orange-800 border-orange-200';
+                    const iconeStatus = qtdCriticos > 0 ? '🚨' : '⚠️';
 
-                    const metragemMedida = (t.medicoes || []).reduce((s, m) => s + (m.metragem || 0), 0);
-
-                    // Verifica se a tarefa está no cronograma para cruzar os dados
-                    if (cronograma && cronograma.tasks && cronograma.tasks[t.id]) {
-                        const taskCrono = cronograma.tasks[t.id];
-                        const startDate = new Date(taskCrono.startDate + 'T00:00:00');
-                        const duration = parseInt(taskCrono.duration) || 1;
-                        
-                        // Calcula o ritmo ideal: Metragem Total dividida pelos dias de duração
-                        const metaDiaria = (t.metragemTotal || 0) / duration;
-
-                        // A. ALERTA DE ATRASO (Chegou a data de início e não tem medição)
-                        if (hoje >= startDate && metragemMedida === 0) {
-                            alertas.push({
-                                prioridade: 1, icone: '🚨', cor: 'text-red-600', titulo: `Atraso Crítico: ${obra.nome}`,
-                                texto: `"${t.nome}" deveria ter iniciado dia ${startDate.toLocaleDateString('pt-BR')}, mas tem 0% medido. Aloque recursos urgente!`
-                            });
-                        }
-
-                        // B. ANÁLISE DE PERFORMANCE DE ONTEM
-                        if (ontem >= startDate && metragemMedida < (t.metragemTotal || 0) && metragemMedida > 0) {
-                            // Soma o que foi medido especificamente ontem
-                            const medicoesOntem = (t.medicoes || []).filter(m => {
-                                const d = new Date(m.data);
-                                return d.getDate() === ontem.getDate() && d.getMonth() === ontem.getMonth() && d.getFullYear() === ontem.getFullYear();
-                            }).reduce((sum, m) => sum + (m.metragem || 0), 0);
-
-                            if (medicoesOntem === 0) {
-                                alertas.push({
-                                    prioridade: 2, icone: '⚠️', cor: 'text-orange-500', titulo: `Sem Avanço Ontem: ${obra.nome}`,
-                                    texto: `A tarefa "${t.nome}" está em andamento, mas não teve medição registrada no dia anterior.`
-                                });
-                            } else if (medicoesOntem < metaDiaria) {
-                                alertas.push({
-                                    prioridade: 2, icone: '📉', cor: 'text-orange-600', titulo: `Ritmo Lento: ${obra.nome}`,
-                                    texto: `"${t.nome}": Mediu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem. A meta diária era de ${metaDiaria.toFixed(2)} ${t.unidade}.`
-                                });
-                            } else {
-                                alertas.push({
-                                    prioridade: 6, icone: '🚀', cor: 'text-green-600', titulo: `Meta Superada: ${obra.nome}`,
-                                    texto: `Excelente! "${t.nome}" produziu ${medicoesOntem.toFixed(2)} ${t.unidade} ontem (Meta era ${metaDiaria.toFixed(2)}).`
-                                });
-                            }
-                        }
-
-                        // C. META DO DIA (Estimativa Diária)
-                        if (hoje >= startDate && metragemMedida < (t.metragemTotal || 0)) {
-                             const faltante = (t.metragemTotal || 0) - metragemMedida;
-                             const alvoHoje = Math.min(metaDiaria, faltante); // Não deixa a meta passar do que falta
-                             if (alvoHoje > 0) {
-                                 alertas.push({
-                                     prioridade: 5, icone: '🎯', cor: 'text-blue-600', titulo: `Meta de Hoje: ${obra.nome}`,
-                                     texto: `Alvo de conclusão diária para "${t.nome}": Produzir ${alvoHoje.toFixed(2)} ${t.unidade}.`
-                                 });
-                             }
-                        }
-                    }
+                    // Mágica do agrupamento usando <details> do HTML5
+                    htmlFinal += `
+                        <details class="group bg-white rounded-md border border-gray-200 shadow-sm mb-2 overflow-hidden">
+                            <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-3 hover:bg-gray-50 transition-colors">
+                                <span class="font-bold text-gray-800 text-sm flex items-center">
+                                    <span class="mr-2 text-xs transition-transform group-open:rotate-90">▶</span>
+                                    🏗️ ${obra.nome}
+                                </span>
+                                <span class="${corBadge} text-xs font-bold px-2.5 py-0.5 rounded border flex items-center shadow-sm">
+                                    ${iconeStatus} ${alertasDaObra.length} notificaç${alertasDaObra.length > 1 ? 'ões' : 'ão'}
+                                </span>
+                            </summary>
+                            <div class="p-3 border-t border-gray-200 bg-slate-50 space-y-3">
+                                ${alertasDaObra.map(a => `
+                                    <div class="flex items-start space-x-3 bg-white p-2 rounded shadow-sm border border-gray-100">
+                                        <span class="text-lg drop-shadow-sm leading-none mt-0.5">${a.icone}</span>
+                                        <div>
+                                            <p class="text-sm font-bold ${a.cor} leading-tight mb-0.5">${a.titulo}</p>
+                                            <p class="text-xs text-gray-600 leading-tight">${a.texto}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
+                    `;
                 }
             }
-        } catch(e) {
-            console.error("Erro na varredura do radar:", e);
-        }
+        } catch(e) { console.error("Erro no radar:", e); }
 
-        // Ordena os alertas pela prioridade (1 = Crítico/Vermelho, vai pro topo da lista)
-        alertas.sort((a, b) => a.prioridade - b.prioridade);
-
-        // Desenha na tela
-        if (alertas.length === 0) {
-            painelAlertas.innerHTML = '<p class="text-sm text-green-600 font-semibold mt-2">✅ Tudo sob controle! Nenhum alerta no momento.</p>';
-            return;
-        }
-
-        painelAlertas.innerHTML = alertas.map(a => `
-            <div class="flex items-start space-x-3 p-3 bg-white rounded-md border border-gray-200 shadow-sm transition-transform hover:-translate-y-0.5">
-                <span class="text-xl drop-shadow-sm">${a.icone}</span>
-                <div>
-                    <p class="text-sm font-bold ${a.cor} leading-tight mb-0.5">${a.titulo}</p>
-                    <p class="text-xs text-gray-600 leading-tight">${a.texto}</p>
-                </div>
-            </div>
-        `).join('');
+        painelAlertas.innerHTML = temAlertas ? htmlFinal : '<p class="text-sm text-green-600 font-semibold mt-2">✅ Tudo sob controle nas obras!</p>';
     };
     // --- FUNÇÃO DO DASHBOARD EXECUTIVO ---
     const renderDashboard = (obras) => {
@@ -2647,14 +2645,43 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
             const novoBtnExcel = btnExcel.cloneNode(true);
             btnExcel.parentNode.replaceChild(novoBtnExcel, btnExcel);
 
-            // Busca o nome da obra para dar nome ao arquivo
-            const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
-            const obraDoc = await getDoc(obraDocRef);
-            const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
+            // NOVO: Renderiza os alertas locais embaixo do gráfico e envia para o PDF
+let alertasObraAtual = [];
+const obraDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, currentObraId);
+const obraDoc = await getDoc(obraDocRef);
 
-            // Liga o clique à nossa nova função exportadora
-            novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome));
-            novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
+if (obraDoc.exists()) {
+    const obraData = { id: obraDoc.id, ...obraDoc.data() };
+    alertasObraAtual = analisarAlertasObra(obraData, validTasks, cronogramaSaved); // Usamos validTasks aqui
+    
+    const divAlertasFisico = document.getElementById('fisico-alertas-container');
+    if (divAlertasFisico) {
+        if (alertasObraAtual.length > 0) {
+            divAlertasFisico.innerHTML = `
+                <h3 class="text-lg font-bold text-gray-700 mb-4">Notificações da Obra</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${alertasObraAtual.map(a => `
+                        <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded border border-gray-200 shadow-sm">
+                            <span class="text-xl drop-shadow-sm mt-0.5">${a.icone}</span>
+                            <div>
+                                <p class="text-sm font-bold ${a.cor} leading-tight mb-1">${a.titulo}</p>
+                                <p class="text-xs text-gray-700 leading-tight">${a.texto}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            divAlertasFisico.innerHTML = '<p class="text-sm text-green-600 font-bold bg-green-50 p-3 rounded border border-green-200 text-center">✅ Tudo em dia com esta obra! Nenhuma notificação pendente.</p>';
+        }
+    }
+}
+
+const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
+
+// Liga os botões PASSANDO OS ALERTAS para a função de PDF
+novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome, alertasObraAtual));
+novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
 
         } catch (error) {
             console.error("Erro ao desenhar Curva S Física:", error);
@@ -4163,7 +4190,7 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
         XLSX.writeFile(workbook, `cronograma_${nomeObra}.xlsx`);
     };
     // --- EXPORTAÇÃO DO AVANÇO FÍSICO (LEGENDA DESENHADA COM CORES REAIS NO PDF) ---
-    const exportFisicoPDF = (labels, planned, actual, nomeObra) => {
+    const exportFisicoPDF = (labels, planned, actual, nomeObra, alertas = []) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); 
         
@@ -4284,6 +4311,35 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                 headStyles: { fillColor: [37, 99, 235] } 
             });
         }
+        // NOVO: Adiciona os Alertas no PDF
+            if (alertas && alertas.length > 0) {
+                doc.addPage('a4', 'p'); // Nova página em Retrato
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Quadro de Notificações - ${nomeObra}`, 14, 20);
+
+                // Dicionário para converter Emoji em Texto limpo (o jsPDF não imprime emojis direito)
+                const conversorEmoji = { '⚠️': 'Atenção', '🎯': 'Meta', '❌': 'Erro', '🚨': 'Crítico', '📉': 'Atraso', '🚀': 'Sucesso' };
+
+                const alertRows = alertas.map(a => [
+                    conversorEmoji[a.icone] || 'Aviso',
+                    a.titulo,
+                    a.texto
+                ]);
+
+                doc.autoTable({
+                    head: [["Tipo", "Alerta", "Detalhes e Recomendações"]],
+                    body: alertRows,
+                    startY: 28, 
+                    theme: 'grid',
+                    headStyles: { fillColor: [220, 38, 38] }, // Cabeçalho Vermelho
+                    columnStyles: {
+                        0: { cellWidth: 20, fontStyle: 'bold' },
+                        1: { cellWidth: 40, fontStyle: 'bold' },
+                        2: { cellWidth: 'auto' }
+                    }
+                });
+            }
         doc.save(`avanco_fisico_${nomeObra}.pdf`);
     };
     const exportFisicoExcel = (labels, planned, actual, nomeObra) => {
