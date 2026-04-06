@@ -4418,8 +4418,12 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                 doc.setTextColor(0, 0, 0);
                 doc.text(`Quadro de Notificações - ${nomeObra}`, 14, 20);
 
-                // Dicionário para converter Emoji em Texto limpo (o jsPDF não imprime emojis direito)
-                const conversorEmoji = { '⚠️': 'Atenção', '🎯': 'Meta', '❌': 'Erro', '🚨': 'Crítico', '📉': 'Atraso', '🚀': 'Sucesso' };
+                // Dicionário atualizado para cobrir todos os nossos novos alertas
+                const conversorEmoji = { 
+                    '⚠️': 'Atenção', '🎯': 'Meta', '❌': 'Erro', 
+                    '🚨': 'Crítico', '📉': 'Atraso', '🚀': 'Sucesso', 
+                    '🌟': 'Adiantado', '⭐': 'Antecipado' 
+                };
 
                 const alertRows = alertas.map(a => [
                     conversorEmoji[a.icone] || 'Aviso',
@@ -4428,15 +4432,35 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                 ]);
 
                 doc.autoTable({
-                    head: [["Tipo", "Alerta", "Detalhes e Recomendações"]],
+                    head: [["Status", "Notificação", "Detalhes e Recomendações"]],
                     body: alertRows,
                     startY: 28, 
                     theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] }, // Cabeçalho Vermelho
+                    headStyles: { fillColor: [55, 65, 81] }, // Cabeçalho Cinza Escuro elegante
                     columnStyles: {
-                        0: { cellWidth: 20, fontStyle: 'bold' },
-                        1: { cellWidth: 40, fontStyle: 'bold' },
-                        2: { cellWidth: 'auto' }
+                        0: { cellWidth: 28, fontStyle: 'bold', halign: 'center', valign: 'middle' }, // Coluna da Etiqueta
+                        1: { cellWidth: 45, fontStyle: 'bold', valign: 'middle' },
+                        2: { cellWidth: 'auto', valign: 'middle' }
+                    },
+                    // MÁGICA: Colore a célula de Status parecendo uma Etiqueta (Badge)
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 0) {
+                            const tipo = data.cell.raw;
+                            data.cell.styles.textColor = [255, 255, 255]; // Letra Branca
+                            
+                            // Pinta o fundo baseado no tipo de alerta
+                            if (tipo === 'Crítico' || tipo === 'Erro') {
+                                data.cell.styles.fillColor = [220, 38, 38]; // Vermelho (Urgências)
+                            } else if (tipo === 'Atenção' || tipo === 'Atraso') {
+                                data.cell.styles.fillColor = [234, 88, 12]; // Laranja (Avisos)
+                            } else if (tipo === 'Sucesso' || tipo === 'Adiantado') {
+                                data.cell.styles.fillColor = [22, 163, 74]; // Verde (Positivos)
+                            } else if (tipo === 'Meta' || tipo === 'Antecipado') {
+                                data.cell.styles.fillColor = [37, 99, 235]; // Azul (Informativos)
+                            } else {
+                                data.cell.styles.fillColor = [107, 114, 128]; // Cinza (Padrão)
+                            }
+                        }
                     }
                 });
             }
