@@ -498,9 +498,14 @@ flex-wrap justify-between items-center mb-6">
              <div id="fisico-view" class="tab-content hidden">
                     <div class="flex flex-wrap justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold mb-2 md:mb-0">Avanço Físico</h2>
-                        <div class="flex space-x-2">
-                            <button id="export-fisico-pdf-btn" class="btn btn-secondary">Exportar PDF</button>
-                            <button id="export-fisico-excel-btn" class="btn btn-secondary">Exportar Excel</button>
+                        <div class="flex flex-wrap items-center space-x-2 space-y-2 md:space-y-0">
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 border border-gray-300 mr-2">
+                                <button id="btn-view-diario" class="px-4 py-1 text-sm font-bold rounded shadow-sm bg-white text-blue-700">Diário</button>
+                                <button id="btn-view-semanal" class="px-4 py-1 text-sm font-bold rounded text-gray-600 hover:bg-gray-300 transition-colors">Semanal</button>
+                            </div>
+                            
+                            <button id="export-fisico-pdf-btn" class="btn btn-secondary text-sm">Exportar PDF</button>
+                            <button id="export-fisico-excel-btn" class="btn btn-secondary text-sm">Exportar Excel</button>
                         </div>
                     </div>
                     
@@ -2444,7 +2449,27 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
             const canvas = document.getElementById("curva-s-fisica-chart");
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
+// --- NOVO: LÓGICA DE BOTÕES DO MODO DE VISUALIZAÇÃO ---
+            if (typeof window.graficoFisicoModo === 'undefined') window.graficoFisicoModo = 'diario';
+            
+            const btnDiario = document.getElementById('btn-view-diario');
+            const btnSemanal = document.getElementById('btn-view-semanal');
+            
+            if (btnDiario && btnSemanal) {
+                // Altera a cor do botão ativo
+                if (window.graficoFisicoModo === 'diario') {
+                    btnDiario.className = 'px-4 py-1 text-sm font-bold rounded shadow-sm bg-white text-blue-700';
+                    btnSemanal.className = 'px-4 py-1 text-sm font-bold rounded text-gray-600 hover:bg-gray-300 transition-colors';
+                } else {
+                    btnSemanal.className = 'px-4 py-1 text-sm font-bold rounded shadow-sm bg-white text-blue-700';
+                    btnDiario.className = 'px-4 py-1 text-sm font-bold rounded text-gray-600 hover:bg-gray-300 transition-colors';
+                }
 
+                // Ao clicar, muda o modo e redesenha o gráfico
+                btnDiario.onclick = () => { if (window.graficoFisicoModo !== 'diario') { window.graficoFisicoModo = 'diario'; renderFisico(); } };
+                btnSemanal.onclick = () => { if (window.graficoFisicoModo !== 'semanal') { window.graficoFisicoModo = 'semanal'; renderFisico(); } };
+            }
+            // -----------------------------------------------------
             // 1. Busca Tarefas e Cronograma
             const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
             const snapshot = await getDocs(tarefasRef);
@@ -2601,10 +2626,37 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
                 const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
                 return `${dia}/${mes} ${diasDaSemana[dataAtual.getDay()]}`;
             });
+            // --- NOVO: LÓGICA DE AGRUPAMENTO (DIÁRIO VS SEMANAL) ---
+            let viewLabels = labels;
+            let viewPlanned = cumulativePlanned;
+            let viewActual = cumulativeActual;
+
+            if (window.graficoFisicoModo === 'semanal') {
+                viewLabels = [];
+                viewPlanned = [];
+                viewActual = [];
+                
+                // Pula de 7 em 7 dias
+                for (let i = 0; i < diasTotais; i += 7) {
+                    let weekEndIndex = Math.min(i + 6, diasTotais - 1); // Pega o último dia da semana ou do projeto
+                    let weekNum = Math.floor(i / 7) + 1;
+                    
+                    let dataInicioSemana = arrayDatasGraficoFisico[i];
+                    let dataFimSemana = arrayDatasGraficoFisico[weekEndIndex];
+                    
+                    let strInicio = `${String(dataInicioSemana.getDate()).padStart(2, '0')}/${String(dataInicioSemana.getMonth() + 1).padStart(2, '0')}`;
+                    let strFim = `${String(dataFimSemana.getDate()).padStart(2, '0')}/${String(dataFimSemana.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    viewLabels.push(`Sem. ${weekNum} (${strInicio} até ${strFim})`);
+                    viewPlanned.push(cumulativePlanned[weekEndIndex]);
+                    viewActual.push(cumulativeActual[weekEndIndex]);
+                }
+            }
 
             const customBackgroundPlugin = {
                 id: 'customHolidaysBackgroundFisico',
                 beforeDraw: (chart) => {
+                    if (window.graficoFisicoModo === 'semanal') return; // Pula pintura colorida se for semanal
                     const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
                     ctx.save();
                     const tickWidth = x.width / Math.max(x.ticks.length - 1, 1);
@@ -2637,15 +2689,19 @@ document.querySelectorAll('.delete-despesa-btn').forEach(btn => {
             };
 
             const scrollWrapper = document.getElementById("fisico-scroll-wrapper");
-            if (scrollWrapper) scrollWrapper.style.minWidth = `max(100%, ${diasTotais * 25}px)`;
+            if (scrollWrapper) {
+                // Alarga as colunas semanais para não ficar um gráfico "espremido"
+                let espacamento = window.graficoFisicoModo === 'semanal' ? 120 : 25;
+                scrollWrapper.style.minWidth = `max(100%, ${viewLabels.length * espacamento}px)`;
+            }
 
             curvaSFisicaChart = new Chart(ctx, {
                 type: "line",
                 data: {
-                    labels: labels,
+                    labels: viewLabels,
                     datasets: [
-                        { label: "Planejado (%)", data: cumulativePlanned, borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.12)", fill: true, tension: 0.3, pointRadius: 2 },
-                        { label: "Realizado (%)", data: cumulativeActual, borderColor: "#16a34a", backgroundColor: "rgba(22,163,74,0.15)", fill: true, tension: 0.3, pointRadius: 3 }
+                        { label: "Planejado (%)", data: viewPlanned, borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.12)", fill: true, tension: 0.3, pointRadius: 3 },
+                        { label: "Realizado (%)", data: viewActual, borderColor: "#16a34a", backgroundColor: "rgba(22,163,74,0.15)", fill: true, tension: 0.3, pointRadius: 4 }
                     ]
                 },
                 options: {
@@ -2715,10 +2771,13 @@ if (obraDoc.exists()) {
 const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
 
             // NOVO: Corta os dados da tabela para parar na data de "Hoje" no PDF e Excel
-            const limitIndex = todayDiffDays >= 0 ? Math.min(todayDiffDays + 1, diasTotais) : 0;
-            const labelsAteHoje = labels.slice(0, limitIndex);
-            const plannedAteHoje = cumulativePlanned.slice(0, limitIndex);
-            const actualAteHoje = cumulativeActual.slice(0, limitIndex);
+            const limitIndex = window.graficoFisicoModo === 'semanal' 
+                ? (todayDiffDays >= 0 ? Math.min(Math.floor(todayDiffDays / 7) + 1, viewLabels.length) : 0) // Para na semana atual
+                : (todayDiffDays >= 0 ? Math.min(todayDiffDays + 1, diasTotais) : 0); // Para no dia de hoje
+                
+            const labelsAteHoje = viewLabels.slice(0, limitIndex);
+            const plannedAteHoje = viewPlanned.slice(0, limitIndex);
+            const actualAteHoje = viewActual.slice(0, limitIndex);
 
             // Liga os botões PASSANDO OS DADOS FATIADOS e OS ALERTAS para exportação
             novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labelsAteHoje, plannedAteHoje, actualAteHoje, obraNome, alertasObraAtual));
