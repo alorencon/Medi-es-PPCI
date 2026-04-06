@@ -2714,9 +2714,15 @@ if (obraDoc.exists()) {
 
 const obraNome = obraDoc.exists() ? obraDoc.data().nome : "Obra";
 
-// Liga os botões PASSANDO OS ALERTAS para a função de PDF
-novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labels, cumulativePlanned, cumulativeActual, obraNome, alertasObraAtual));
-novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labels, cumulativePlanned, cumulativeActual, obraNome));
+            // NOVO: Corta os dados da tabela para parar na data de "Hoje" no PDF e Excel
+            const limitIndex = todayDiffDays >= 0 ? Math.min(todayDiffDays + 1, diasTotais) : 0;
+            const labelsAteHoje = labels.slice(0, limitIndex);
+            const plannedAteHoje = cumulativePlanned.slice(0, limitIndex);
+            const actualAteHoje = cumulativeActual.slice(0, limitIndex);
+
+            // Liga os botões PASSANDO OS DADOS FATIADOS e OS ALERTAS para exportação
+            novoBtnPdf.addEventListener('click', () => exportFisicoPDF(labelsAteHoje, plannedAteHoje, actualAteHoje, obraNome, alertasObraAtual));
+            novoBtnExcel.addEventListener('click', () => exportFisicoExcel(labelsAteHoje, plannedAteHoje, actualAteHoje, obraNome));
 
         } catch (error) {
             console.error("Erro ao desenhar Curva S Física:", error);
