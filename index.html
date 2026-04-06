@@ -3416,44 +3416,44 @@ const newTarefa = {
         const formHtml = `
             <form id="medicao-form" class="space-y-4">
                 <div>
+                    <label for="medicao-data" class="block text-sm font-medium text-gray-700">Data da Execução</label>
+                    <input type="date" id="medicao-data" name="data" value="${new Date().toISOString().split('T')[0]}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                </div>
+                <div>
                     <label for="medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
-                    
-
-<input type="number" step="0.01" id="medicao-metragem" name="metragem" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="medicao-metragem" name="metragem" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
                 </div>
                 <div>
                     <label for="medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
                     <textarea id="medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black"></textarea>
-  
-
-              </div>
+                </div>
                 <button type="submit" class="btn btn-primary w-full">Adicionar Medição</button>
             </form>
         `;
-openModal('Nova Medição', formHtml);
+        openModal('Nova Medição', formHtml);
         document.getElementById('medicao-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
+            const dataSelecionada = formData.get('data');
             
-            // Calculate valor automatically based on valorUnitario
-      
-
-      const valor = tarefa.valorUnitario * metragem;
+            // MÁGICA: Fixa o fuso horário (T12:00:00) para evitar que a data volte 1 dia para trás dependendo da hora do lançamento
+            const dataFinal = new Date(dataSelecionada + 'T12:00:00').toISOString();
+            
+            // Calcula o valor automaticamente baseado no valorUnitario da tarefa
+            const valor = tarefa.valorUnitario * metragem;
 
             const newMedicao = {
                 metragem: metragem,
                 valor: valor,
                 observacoes: observacoes,
-                data: new Date().toISOString()
-     
-
-       };
+                data: dataFinal // Agora salva a data retroativa que você escolheu!
+            };
             addMedicaoToTarefa(tarefa.id, newMedicao);
             closeModal();
         });
-};
+    };
 
     const openMedicoesList = (tarefaId, medicoes) => {
         const listHtml = `
@@ -3532,52 +3532,52 @@ openModal('Medições Anteriores', listHtml || '<p>Nenhuma medição registrada.
         });
     };
 const openEditMedicaoForm = (tarefaId, medicaoIndex, medicao) => {
+        // Pega a data original salva no banco de dados e formata para o input tipo "date"
+        const dataOriginalFormatada = medicao.data ? new Date(medicao.data).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
         const formHtml = `
             <form id="edit-medicao-form" class="space-y-4">
                 <div>
+                    <label for="edit-medicao-data" class="block text-sm font-medium text-gray-700">Data da Execução</label>
+                    <input type="date" id="edit-medicao-data" name="data" value="${dataOriginalFormatada}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
+                </div>
+                <div>
                     <label for="edit-medicao-metragem" class="block text-sm font-medium text-gray-700">Metragem Concluída</label>
-                    <input type="number" step="0.01" id="edit-medicao-metragem" name="metragem" value="${medicao.metragem}" 
-
-class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <input type="number" step="0.01" id="edit-medicao-metragem" name="metragem" value="${medicao.metragem}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black" required>
                 </div>
                 <div>
                     <label for="edit-medicao-observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
-                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${medicao.observacoes || ''}</textarea>
+                    <textarea id="edit-medicao-observacoes" name="observacoes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-black">${medicao.observacoes || ''}</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">Salvar Alterações</button>
             </form>
         `;
-openModal('Editar Medição', formHtml);
+        openModal('Editar Medição', formHtml);
         document.getElementById('edit-medicao-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const metragem = parseFloat(formData.get('metragem'));
             const observacoes = formData.get('observacoes');
+            const dataSelecionada = formData.get('data');
             
             const tarefaDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`, tarefaId);
-      
-
-      const tarefaDoc = await getDoc(tarefaDocRef);
+            const tarefaDoc = await getDoc(tarefaDocRef);
             const tarefa = tarefaDoc.data();
             
             const valor = tarefa.valorUnitario * metragem;
+            const dataFinal = new Date(dataSelecionada + 'T12:00:00').toISOString();
             
             const updatedMedicao = {
                 metragem: metragem,
-  
-
-              valor: valor,
+                valor: valor,
                 observacoes: observacoes,
-                data: medicao.data
+                data: dataFinal // Atualiza a data se você tiver mudado
             };
             
             await updateMedicaoInTarefa(tarefaId, medicaoIndex, updatedMedicao);
-            
-
-
             closeModal();
         });
-}
+    }
 
     // Adicionar event listener para o botão de relatório de despesas
    document.getElementById('gerar-relatorio-despesas-btn').addEventListener('click', () => {
