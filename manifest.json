@@ -1,0 +1,20 @@
+{
+  "name": "Medições PPCI",
+  "short_name": "PPCI Obras",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#2d3748",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://openweathermap.org/img/wn/01d.png", 
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://openweathermap.org/img/wn/01d.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
