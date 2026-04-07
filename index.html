@@ -960,7 +960,7 @@ auth = getAuth(app);
             db = getFirestore(app);
             // --- SISTEMA DE PERFIS DE ACESSO (ROLES) ---
         // Troque 'admin' por 'supervisor' ou 'cliente' para testar como a tela muda!
-        window.userRole = 'admin'; 
+        window.userRole = 'supervisor'; 
 
         const aplicarPermissoes = () => {
             const role = window.userRole;
