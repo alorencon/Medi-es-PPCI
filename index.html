@@ -223,6 +223,7 @@ padding: 10px;
             align-items: center;
 }
     </style>
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -752,7 +753,7 @@ class="btn btn-primary">Gerar Relatório</button>
     // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, getDocs, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import { setLogLevel } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Set Firebase log level for debugging
@@ -957,6 +958,14 @@ modalTitle.textContent = '';
             app = initializeApp(__firebase_config);
 auth = getAuth(app);
             db = getFirestore(app);
+            // ATIVA O BANCO DE DADOS OFFLINE DO FIREBASE
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.warn("Múltiplas abas abertas, persistência ativada só na primeira.");
+            } else if (err.code == 'unimplemented') {
+                console.warn("Navegador não suporta persistência offline.");
+            }
+        });
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
 onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -5081,6 +5090,14 @@ addTarefaBtn.addEventListener('click', () => {
     if (typeof initFirebase === 'function') {
         initFirebase();
     }
+// REGISTRO DO SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('SW registrado!', registration.scope))
+                    .catch(error => console.log('Falha no SW:', error));
+            });
+        }
 </script>
 </body>
 </html>
