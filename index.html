@@ -803,7 +803,8 @@ const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' 
     let auth;
     let db;
 let userId = null;
-    let audioContext;
+let userRole = 'leitor'; // NOVO: Guarda o nível de acesso (padrão é leitor por segurança)
+let audioContext;
 
     let currentObraId = null;
     let unsubscribeTarefas = null;
@@ -859,6 +860,35 @@ let dragType = '';
 return (numerator / denominator) * 100;
     };
 
+    // --- SISTEMA DE PERMISSÕES ---
+const aplicarPermissoesVisuais = () => {
+    const tabDre = document.querySelector('[data-tab="dre"]');
+    const tabDespesas = document.querySelector('[data-tab="despesas"]');
+    const tabRelatorios = document.querySelector('[data-tab="relatorios"]');
+    
+    const btnAddObra = document.getElementById('add-obra-btn');
+    const btnAddFrotaBase = document.getElementById('add-frota-global-btn');
+    const btnAddEquipeBase = document.getElementById('add-colab-btn');
+
+    if (userRole === 'apontador') {
+        if (tabDre) tabDre.style.display = 'none';
+        if (tabDespesas) tabDespesas.style.display = 'none';
+        if (tabRelatorios) tabRelatorios.style.display = 'none';
+
+        if (btnAddObra) btnAddObra.style.display = 'none';
+        if (btnAddFrotaBase) btnAddFrotaBase.style.display = 'none';
+        if (btnAddEquipeBase) btnAddEquipeBase.style.display = 'none';
+    } else if (userRole === 'admin') {
+        if (tabDre) tabDre.style.display = 'block';
+        if (tabDespesas) tabDespesas.style.display = 'block';
+        if (tabRelatorios) tabRelatorios.style.display = 'block';
+        
+        if (btnAddObra) btnAddObra.style.display = 'flex';
+        if (btnAddFrotaBase) btnAddFrotaBase.style.display = 'flex';
+        if (btnAddEquipeBase) btnAddEquipeBase.style.display = 'flex';
+    }
+};
+// -----------------------------
     // Modal functions
     const openModal = (title, content) => {
         modalTitle.textContent = title;
@@ -971,13 +1001,30 @@ onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
                     userIdDisplay.textContent = userId;
-                    loginView.classList.add('hidden');
-              
+                    
+                    // NOVO: Busca permissões
+                    try {
+                        const roleRef = doc(db, `artifacts/${__app_id}/usuarios_permissoes`, userId);
+                        const roleSnap = await getDoc(roleRef);
+                        if (roleSnap.exists()) {
+                            userRole = roleSnap.data().role;
+                        } else {
+                            userRole = 'leitor'; 
+                        }
+                    } catch (error) {
+                        console.error("Erro ao buscar permissões:", error);
+                        userRole = 'leitor'; 
+                    }
 
-      appView.classList.remove('hidden');
+                    loginView.classList.add('hidden');
+                    appView.classList.remove('hidden');
+                    
+                    // NOVO: Aplica restrições na tela
+                    aplicarPermissoesVisuais();
+
                     listenToObras();
-                    listenToEquipe(); // Inicia o carregamento da sua Mão de Obra
-               listenToFrotaGlobal(); // Inicia o carregamento das máquinas
+                    listenToEquipe();
+                    listenToFrotaGlobal();
                 } else {
                     userId = null;
                     userIdDisplay.textContent = "N/A";
@@ -1394,25 +1441,19 @@ obras.forEach(obra => {
 
     </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                   <div class="flex items-center space-x-2">
+                        ${userRole === 'admin' ? `
                         <button class="edit-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
-                         
-
-   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
-                       
-
-     </svg>
-                        </button>
-                         <button class="delete-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-      
-
-                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293zM14.707 5.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-7.293 7.293a1 1 0 01-.39.293l-2.426.809a.5.5 0 01-.639-.639l.809-2.426a1 1 0 01.293-.39l7.293-7.293z"></path>
                             </svg>
- 
-
-                       </button>
+                        </button>
+                        <button class="delete-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
                 <div class="mt-4 border-t border-gray-100 pt-4">
