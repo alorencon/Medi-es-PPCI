@@ -809,20 +809,49 @@ let userId = null;
 
    const aplicarPermissoes = () => {
         const role = window.userRole;
+        
+        // Menus Principais
         const menuDashboard = document.querySelector('[data-tab="dashboard"]');
         const menuObras = document.querySelector('[data-tab="obras"]');
         const menuDRE = document.querySelector('[data-tab="dre"]');
         const menuDespesas = document.querySelector('[data-tab="despesas"]');
+        
+        // Outros Menus 
+        const menuTarefas = document.querySelector('[data-tab="tarefas"]');
+        const menuRelatorios = document.querySelector('[data-tab="relatorios"]');
+        const menuEquipe = document.querySelector('[data-tab="equipe"]');
+        const menuFrotaGlobal = document.querySelector('[data-tab="frota-global"]');
 
         if (role === 'cliente') {
+            // 1. ESCONDE MENUS INTERNOS (Mantém apenas Obras, Cronograma e Avanço Físico)
             if(menuDashboard) menuDashboard.style.display = 'none';
-            if(menuObras) menuObras.style.display = 'none';
             if(menuDRE) menuDRE.style.display = 'none';
             if(menuDespesas) menuDespesas.style.display = 'none';
-            // Força o cliente a ir direto para o Avanço Físico
-            document.querySelector('[data-tab="fisico"]')?.click();
+            if(menuTarefas) menuTarefas.style.display = 'none';
+            if(menuRelatorios) menuRelatorios.style.display = 'none';
+            if(menuEquipe) menuEquipe.style.display = 'none';
+            if(menuFrotaGlobal) menuFrotaGlobal.style.display = 'none';
+
+            // 2. CRONOGRAMA: Esconde a Tabela de Tarefas e os botões de configuração
+            const tabelaCrono = document.getElementById('tabela-cronograma-container');
+            const btnToggleTabela = document.getElementById('toggle-tabela-btn');
+            const btnAtualizarCrono = document.getElementById('gerar-cronograma-btn');
+            const configCronoDiv = document.querySelector('#cronograma-view .bg-gray-100'); // Bloco de datas
+
+            if(tabelaCrono) tabelaCrono.style.display = 'none';
+            if(btnToggleTabela) btnToggleTabela.style.display = 'none';
+            if(btnAtualizarCrono) btnAtualizarCrono.style.display = 'none';
+            if(configCronoDiv) configCronoDiv.style.display = 'none';
+
+            // 3. AVANÇO FÍSICO: Esconde botões de PDF e Excel
+            const btnPdfFisico = document.getElementById('export-fisico-pdf-btn');
+            const btnExcelFisico = document.getElementById('export-fisico-excel-btn');
+            
+            if(btnPdfFisico) btnPdfFisico.style.display = 'none';
+            if(btnExcelFisico) btnExcelFisico.style.display = 'none';
+
         } else if (role === 'supervisor') {
-            // Supervisor não vê DRE, MAS VÊ Despesas!
+            // Supervisor não vê DRE
             if(menuDRE) menuDRE.style.display = 'none';
         }
     };
