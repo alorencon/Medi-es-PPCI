@@ -803,7 +803,8 @@ const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' 
     let auth;
     let db;
 let userId = null;
-let userRole = 'leitor'; // NOVO: Guarda o nível de acesso (padrão é leitor por segurança)
+let userRole = 'leitor'; 
+const adminIdFixo = "rcqGD5VE4RSKWHU4YOPu1lVDv1q2"; // Seu UID de Admin [cite: 173, 220]
 let audioContext;
 
     let currentObraId = null;
@@ -1529,7 +1530,7 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
     
     const renderTarefas = () => {
         if (!currentObraId) return;
-        const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
+       const tarefasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras/${currentObraId}/tarefas`);
         
         // 1. Desliga o 'olheiro' anterior para não criar fantasmas visuais
         if (unsubscribeTarefas) unsubscribeTarefas();
@@ -1756,7 +1757,7 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
 
     const getCronogramaConfig = async () => {
         if (!currentObraId || !db) return null;
-        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/cronograma/dados`);
+        const cronogramaRef = doc(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras/${currentObraId}/cronograma/dados`); [cite: 411]
         const cronogramaDoc = await getDoc(cronogramaRef);
         return cronogramaDoc.exists() ? cronogramaDoc.data() : null;
     };
@@ -2387,7 +2388,7 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
 
     const renderDespesas = () => {
         if (!currentObraId) return;
-const despesasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/despesas`);
+const despesasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras/${currentObraId}/despesas`);
         // 1. Desliga o 'olheiro' anterior
         if (unsubscribeDespesas) unsubscribeDespesas();
         
@@ -3951,7 +3952,7 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
     // 2. ALOCAR NA OBRA 
     const renderFrotaObra = async () => {
         if (!currentObraId) return;
-        const frotaObraRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/frota`);
+        const frotaObraRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras/${currentObraId}/frota`); [cite: 926]
         if (unsubscribeFrotaObra) unsubscribeFrotaObra();
         
         unsubscribeFrotaObra = onSnapshot(frotaObraRef, (snapshot) => {
@@ -4572,7 +4573,7 @@ const obrasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obra
     const renderMaoDeObra = async () => {
         if (!currentObraId) return;
         
-        const maoDeObraRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/maodeobra`);
+        const maoDeObraRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras/${currentObraId}/maodeobra`); [cite: 1083]
         if (unsubscribeMaoDeObra) unsubscribeMaoDeObra();
         
         let alocadosGlobais = []; // Guarda para o PDF
