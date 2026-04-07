@@ -1480,14 +1480,19 @@ obras.forEach(obra => {
             `;
 obraCard.addEventListener('click', async () => {
                 currentObraId = obra.id;
-                // Mostra a aba de Equipe da obra
+                const role = window.userRole;
+
+                // Mostra a aba de Equipe da obra (somente se NÃO for cliente)
                 const tabEquipeObra = document.getElementById('tab-equipe-obra');
-                if (tabEquipeObra) tabEquipeObra.classList.remove('hidden');
+                if (tabEquipeObra && role !== 'cliente') tabEquipeObra.classList.remove('hidden');
+                
                 const tabFrotaObra = document.getElementById('tab-frota-obra');
-                if (tabFrotaObra) tabFrotaObra.classList.remove('hidden');
-    const tabDreObra = document.getElementById('tab-dre-obra');
-                if (tabDreObra) tabDreObra.classList.remove('hidden');
-    // Busca as tarefas da obra clicada para o clima poder analisar
+                if (tabFrotaObra && role !== 'cliente') tabFrotaObra.classList.remove('hidden');
+                
+                const tabDreObra = document.getElementById('tab-dre-obra');
+                if (tabDreObra && role === 'admin') tabDreObra.classList.remove('hidden'); // DRE só para admin
+
+                // Busca as tarefas da obra clicada para o clima poder analisar
                 const tarefasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras/${currentObraId}/tarefas`);
                 const snapshot = await getDocs(tarefasRef);
                 const tarefasParaClima = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1495,7 +1500,12 @@ obraCard.addEventListener('click', async () => {
                 // Envia a cidade E as tarefas para o widget
                 updateWeatherWidget(obra.localizacao, tarefasParaClima);
                 
-                document.querySelector('[data-tab="tarefas"]').click(); // Vai para a aba de tarefas
+                // MÁGICA DO REDIRECIONAMENTO: Cliente vai direto para Cronograma
+                if (role === 'cliente') {
+                    document.querySelector('[data-tab="cronograma"]')?.click();
+                } else {
+                    document.querySelector('[data-tab="tarefas"]')?.click();
+                }
             });
 obrasList.appendChild(obraCard);
         });
@@ -4306,30 +4316,31 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                 widthLeft -= usableWidth;
             }
             
-            // Nova folha em Retrato (Em pé) para a Tabela de Tarefas
-            doc.addPage('a4', 'p');
-            doc.setFontSize(14);
-            doc.text(`Detalhamento das Tarefas - ${nomeObra}`, 14, 20);
+            // Se NÃO for cliente, adiciona a folha em Retrato com a Tabela de Tarefas
+            if (window.userRole !== 'cliente') {
+                doc.addPage('a4', 'p');
+                doc.setFontSize(14);
+                doc.text(`Detalhamento das Tarefas - ${nomeObra}`, 14, 20);
 
-            const columns = ["Tarefa", "Valor Total", "Data de Início", "Duração"];
-            const rows = scheduleTasks.map(task => {
-                const dateObj = new Date(task.startDate + 'T00:00:00');
-                return [
-                    task.name,
-                    task.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                    dateObj.toLocaleDateString('pt-BR'),
-                    task.duration + ' dias'
-                ];
-            });
-            
-            doc.autoTable({
-                head: [columns],
-                body: rows,
-                startY: 28, 
-                theme: 'striped',
-                headStyles: { fillColor: [37, 99, 235] } 
-            });
-        }
+                const columns = ["Tarefa", "Valor Total", "Data de Início", "Duração"];
+                const rows = scheduleTasks.map(task => {
+                    const dateObj = new Date(task.startDate + 'T00:00:00');
+                    return [
+                        task.name,
+                        task.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        dateObj.toLocaleDateString('pt-BR'),
+                        task.duration + ' dias'
+                    ];
+                });
+                
+                doc.autoTable({
+                    head: [columns],
+                    body: rows,
+                    startY: 28, 
+                    theme: 'striped',
+                    headStyles: { fillColor: [37, 99, 235] } 
+                });
+            }
         doc.save(`cronograma_gantt_${nomeObra}.pdf`);
     };
 
