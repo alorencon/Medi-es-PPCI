@@ -804,6 +804,29 @@ const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' 
     let db;
 let userId = null;
     let audioContext;
+    // --- SISTEMA DE PERFIS DE ACESSO (ROLES) ---
+    window.userRole = 'admin'; // Troque para 'supervisor' ou 'cliente' para testar!
+
+    const aplicarPermissoes = () => {
+        const role = window.userRole;
+        const menuDashboard = document.querySelector('[data-tab="dashboard"]');
+        const menuObras = document.querySelector('[data-tab="obras"]');
+        const menuDRE = document.querySelector('[data-tab="dre"]');
+        const menuDespesas = document.querySelector('[data-tab="despesas"]');
+
+        if (role === 'cliente') {
+            if(menuDashboard) menuDashboard.style.display = 'none';
+            if(menuObras) menuObras.style.display = 'none';
+            if(menuDRE) menuDRE.style.display = 'none';
+            if(menuDespesas) menuDespesas.style.display = 'none';
+            // Força o cliente a ir direto para o Avanço Físico
+            document.querySelector('[data-tab="fisico"]')?.click();
+        } else if (role === 'supervisor') {
+            // Supervisor não vê financeiro global
+            if(menuDRE) menuDRE.style.display = 'none';
+            if(menuDespesas) menuDespesas.style.display = 'none';
+        }
+    };
 
     let currentObraId = null;
     let unsubscribeTarefas = null;
@@ -975,6 +998,7 @@ onAuthStateChanged(auth, async (user) => {
               
 
       appView.classList.remove('hidden');
+                    aplicarPermissoes();
                     listenToObras();
                     listenToEquipe(); // Inicia o carregamento da sua Mão de Obra
                listenToFrotaGlobal(); // Inicia o carregamento das máquinas
@@ -1236,15 +1260,16 @@ onSnapshot(obrasRef, (snapshot) => {
         });
 
         // Atualiza os cartões na tela
-        dashTotalObras.textContent = formatCurrency(totalValor);
-        dashTotalMedido.textContent = formatCurrency(totalMedido);
+       const ehSup = window.userRole === 'supervisor';
+        dashTotalObras.textContent = ehSup ? 'Restrito' : formatCurrency(totalValor);
+        dashTotalMedido.textContent = ehSup ? 'Restrito' : formatCurrency(totalMedido);
         dashQtdObras.textContent = obras.length;
         // --- NOVO: Cálculo do Saldo a Faturar ---
         const dashSaldoFaturar = document.getElementById('dash-saldo-faturar');
         if (dashSaldoFaturar) {
             const saldo = totalValor - totalMedido;
             // Se o saldo for negativo (por alguma medição extra sem contrato atualizado), mostra 0
-            dashSaldoFaturar.textContent = formatCurrency(saldo > 0 ? saldo : 0);
+            dashSaldoFaturar.textContent = ehSup ? 'Restrito' : formatCurrency(saldo > 0 ? saldo : 0);
         }
 
         // Calcula a porcentagem global de conclusão da empresa
@@ -1394,7 +1419,7 @@ obras.forEach(obra => {
 
     </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                   <div class="flex items-center space-x-2 ${window.userRole === 'supervisor' ? 'hidden' : ''}">
                         <button class="edit-obra-btn text-gray-500 hover:text-gray-700" data-id="${obra.id}">
                          
 
@@ -1417,7 +1442,7 @@ obras.forEach(obra => {
                 </div>
                 <div class="mt-4 border-t border-gray-100 pt-4">
                     <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${formatCurrency(obra.valorTotal || 0)}</span></p>
+                        <p class="text-sm text-gray-500">Valor Total: <span class="text-green-600 font-semibold">${window.userRole === 'supervisor' ? 'Restrito' : formatCurrency(obra.valorTotal || 0)}</span></p>
                         <p class="text-xs font-bold text-blue-600">${obra.valorTotal > 0 ? ((obra.valorMedido || 0) / obra.valorTotal * 100).toFixed(1) : 0}%</p>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -1545,22 +1570,22 @@ document.querySelectorAll('.delete-obra-btn').forEach(btn => {
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div>
                             <p class="text-sm text-gray-500">Valor Unitário</p>
-                            <p class="font-semibold">${formatCurrency(valorUnitario)}</p>
+                            <p class="font-semibold">${window.userRole === 'supervisor' ? '---' : formatCurrency(valorUnitario)}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Valor Total</p>
-                            <p class="font-semibold">${formatCurrency(tarefa.valorTotal)}</p>
+                            <p class="font-semibold">${window.userRole === 'supervisor' ? '---' : formatCurrency(tarefa.valorTotal)}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Valor Medido</p>
-                            <p class="font-semibold text-green-600">${formatCurrency(valorMedido)}</p>
+                            <p class="font-semibold text-green-600">${window.userRole === 'supervisor' ? '---' : formatCurrency(valorMedido)}</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap justify-start space-x-2 mt-4">
                         <button class="btn btn-secondary add-medicao-btn mb-2 md:mb-0" data-id="${tarefa.id}">+ Medição</button>
                         <button class="btn btn-secondary ver-medicoes-btn mb-2 md:mb-0" data-id="${tarefa.id}">Ver Medições</button>
-                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0" data-id="${tarefa.id}">Editar</button>
-                        <button class="btn btn-secondary delete-tarefa-btn" data-id="${tarefa.id}">Excluir</button>
+                        <button class="btn btn-secondary edit-tarefa-btn mb-2 md:mb-0 ${window.userRole === 'supervisor' ? 'hidden' : ''}" data-id="${tarefa.id}">Editar</button>
+                        <button class="btn btn-secondary delete-tarefa-btn ${window.userRole === 'supervisor' ? 'hidden' : ''}" data-id="${tarefa.id}">Excluir</button>
                     </div>
                 `;
 
