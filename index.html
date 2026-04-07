@@ -1007,42 +1007,31 @@ modalTitle.textContent = '';
     const initFirebase = async () => {
         try {
             app = initializeApp(__firebase_config);
-auth = getAuth(app);
+            auth = getAuth(app);
             db = getFirestore(app);
-            // ATIVA O BANCO DE DADOS OFFLINE DO FIREBASE
-        enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') {
-                console.warn("Múltiplas abas abertas, persistência ativada só na primeira.");
-            } else if (err.code == 'unimplemented') {
-                console.warn("Navegador não suporta 
-persistência offline.");
-            }
-        });
+
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-onAuthStateChanged(auth, async (user) => {
+            
+            onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userId = user.uid;
                     userIdDisplay.textContent = userId;
                     loginView.classList.add('hidden');
-              
-
-      appView.classList.remove('hidden');
+                    appView.classList.remove('hidden');
                     aplicarPermissoes();
                     listenToObras();
-                    listenToEquipe(); // Inicia o carregamento da sua Mão de Obra
-               listenToFrotaGlobal(); // Inicia o carregamento das máquinas
+                    listenToEquipe(); 
+                    listenToFrotaGlobal(); 
                 } else {
                     userId = null;
                     userIdDisplay.textContent = "N/A";
-            
-
-        loginView.classList.remove('hidden');
+                    loginView.classList.remove('hidden');
                     appView.classList.add('hidden');
                 }
             });
-} catch (error) {
+        } catch (error) {
             console.error("Erro ao inicializar Firebase ou autenticar:", error);
-}
+        }
     };
     
     loginForm.addEventListener('submit', async (e) => {
