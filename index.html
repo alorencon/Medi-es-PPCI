@@ -1104,7 +1104,9 @@ logoutBtn.addEventListener('click', async () => {
             console.error("Firestore ou UserID não inicializados. Tente novamente.");
 return;
         }
-        const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+        // Agora todos os usuários, independente da role, lerão as obras do admin principal
+const adminIdFixo = "rcqGD5VE4RSKWHU4Y0Pu1lVDv1q2";
+const obrasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras`);
 onSnapshot(obrasRef, (snapshot) => {
             const obras = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderObras(obras);
@@ -1320,7 +1322,9 @@ onSnapshot(obrasRef, (snapshot) => {
 return;
         }
 
-        const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+      // Agora todos os usuários, independente da role, lerão as obras do admin principal
+const adminIdFixo = "rcqGD5VE4RSKWHU4Y0Pu1lVDv1q2";
+const obrasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras`);
 if (obra.id) {
             const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/obras`, obra.id);
 await updateDoc(docRef, obra);
@@ -4055,7 +4059,9 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                         return openModal('Aviso', '<p class="text-center text-gray-700">Você não tem veículos na Base da Empresa.</p>');
                     }
 
-                    const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+                    // Agora todos os usuários, independente da role, lerão as obras do admin principal
+const adminIdFixo = "rcqGD5VE4RSKWHU4Y0Pu1lVDv1q2";
+const obrasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras`);
                     const obrasSnap = await getDocs(obrasRef);
                     const mapaAloc = {}; 
                     
@@ -4745,7 +4751,9 @@ const worksheet = XLSX.utils.aoa_to_sheet(data);
                     }
 
                     // Verifica onde cada um está (Ignora os Inativos!)
-                    const obrasRef = collection(db, `artifacts/${__app_id}/users/${userId}/obras`);
+                    // Agora todos os usuários, independente da role, lerão as obras do admin principal
+const adminIdFixo = "rcqGD5VE4RSKWHU4Y0Pu1lVDv1q2";
+const obrasRef = collection(db, `artifacts/${__app_id}/users/${adminIdFixo}/obras`);
                     const obrasSnap = await getDocs(obrasRef);
                     const mapaAlocacoes = {}; 
                     
